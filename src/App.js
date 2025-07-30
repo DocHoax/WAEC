@@ -16,6 +16,13 @@ import ManageClasses from './pages/ManageClasses';
 import ManageUsers from './pages/ManageUsers';
 import ExamSchedules from './pages/ExamSchedules';
 import DataExports from './pages/DataExports';
+import ManageTests from './pages/ManageTests';
+import TestDetails from './pages/TestDetails';
+import Dashboard from './pages/Dashboard';
+import Tests from './pages/Tests';
+import Profile from './pages/Profile';
+import Submitted from './pages/Submitted';
+import SetBatch from './pages/SetBatch';
 
 class ErrorBoundary extends React.Component {
   state = { hasError: false };
@@ -50,132 +57,88 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Login />} />
             <Route
-              path="/student/*"
-              element={
-                <ProtectedRoute requiredRole="student">
-                  <StudentHome />
-                </ProtectedRoute>
-              }
+              path="/student"
+              element={<ProtectedRoute requiredRole="student"><StudentHome><Dashboard /></StudentHome></ProtectedRoute>}
             />
             <Route
-              path="/test/:testId"
-              element={
-                <ProtectedRoute requiredRole="student">
-                  <TestTaking />
-                </ProtectedRoute>
-              }
+              path="/student/dashboard"
+              element={<ProtectedRoute requiredRole="student"><StudentHome><Dashboard /></StudentHome></ProtectedRoute>}
+            />
+            <Route
+              path="/student/tests"
+              element={<ProtectedRoute requiredRole="student"><StudentHome><Tests /></StudentHome></ProtectedRoute>}
+            />
+            <Route
+              path="/student/profile"
+              element={<ProtectedRoute requiredRole="student"><StudentHome><Profile /></StudentHome></ProtectedRoute>}
+            />
+            <Route
+              path="/student/submitted"
+              element={<ProtectedRoute requiredRole="student"><Submitted /></ProtectedRoute>}
+            />
+            <Route
+              path="/student/results"
+              element={<ProtectedRoute requiredRole="student"><TestResults /></ProtectedRoute>}
+            />
+            <Route
+              path="/student/test/:testId"
+              element={<ProtectedRoute requiredRole="student"><TestTaking /></ProtectedRoute>}
             />
             <Route
               path="/teacher/*"
-              element={
-                <ProtectedRoute requiredRole="teacher">
-                  <TeacherHome />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/teacher/test-results/:testId"
-              element={
-                <ProtectedRoute requiredRoles={['teacher', 'admin']}>
-                  <TestResults />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute requiredRole="teacher"><TeacherHome /></ProtectedRoute>}
             />
             <Route
               path="/admin"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <AdminHome />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminHome /></AdminLayout></ProtectedRoute>}
             />
             <Route
               path="/admin/classes"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <ManageClasses />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/subjects"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <ManageClasses />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><ManageClasses /></AdminLayout></ProtectedRoute>}
             />
             <Route
               path="/admin/users"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <ManageUsers />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><ManageUsers /></AdminLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/admin/tests"
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><ManageTests /></AdminLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/admin/tests/:testId"
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><TestDetails /></AdminLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/admin/tests/:testId/batch"
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><SetBatch /></AdminLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/admin/results"
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminResults /></AdminLayout></ProtectedRoute>}
             />
             <Route
               path="/admin/results/:testId"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <AdminResults />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminResults /></AdminLayout></ProtectedRoute>}
             />
             <Route
               path="/admin/exams"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <ExamSchedules />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><ExamSchedules /></AdminLayout></ProtectedRoute>}
             />
             <Route
               path="/admin/exports"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <DataExports />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><DataExports /></AdminLayout></ProtectedRoute>}
             />
             <Route
               path="/admin/analytics"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <Analytics />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><Analytics /></AdminLayout></ProtectedRoute>}
             />
             <Route
               path="/users"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <Register />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute requiredRole="admin"><Register /></ProtectedRoute>}
             />
             <Route
               path="/analytics"
-              element={
-                <ProtectedRoute requiredRoles={['teacher', 'admin']}>
-                  <Analytics />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute requiredRoles={['teacher', 'admin']}><Analytics /></ProtectedRoute>}
             />
             <Route
               path="/unauthorized"

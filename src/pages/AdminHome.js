@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 
 const AdminHome = () => {
   const { user } = useContext(AuthContext);
@@ -99,109 +100,156 @@ const AdminHome = () => {
     setLoading(false);
   };
 
+  const handleApproveTest = async (testId) => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `http://localhost:5000/api/tests/${testId}/approve`,
+        { status: 'approved' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchTests();
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to approve test.');
+    }
+    setLoading(false);
+  };
+
   if (!user || user.role !== 'admin') {
     return (
-      <p style={{ padding: '20px', color: '#FFFFFF', backgroundColor: '#4B5320', textAlign: 'center', fontFamily: 'sans-serif', fontSize: '16px' }}>
-        Access Restricted: Admins Only
-      </p>
+      <div style={styles.accessDenied}>
+        <p>Access Restricted: Admins Only</p>
+      </div>
     );
   }
-  if (loading) return (
-    <p style={{ padding: '20px', color: '#FFFFFF', backgroundColor: '#4B5320', textAlign: 'center', fontFamily: 'sans-serif', fontSize: '16px' }}>
-      Loading Dashboard...
-    </p>
-  );
+
+  if (loading) {
+    return (
+      <div style={styles.loading}>
+        <p>Loading Dashboard...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div style={styles.container}>
       {error && (
-        <p style={{ backgroundColor: '#FFF3F3', color: '#B22222', borderLeft: '4px solid #B22222', padding: '15px', marginBottom: '20px', fontFamily: 'sans-serif', borderRadius: '4px', fontSize: '14px' }}>
-          Error: {error}
-        </p>
+        <div style={styles.alertError}>
+          <FiAlertTriangle style={styles.alertIcon} />
+          <span>Error: {error}</span>
+        </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-        <div style={{ backgroundColor: '#4B5320', color: '#FFFFFF', padding: '30px', borderRadius: '8px', textAlign: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.2)', border: '1px solid #000000' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: 'sans-serif', marginBottom: '10px', color: '#FFFFFF' }}>
-            Welcome to Your Admin Dashboard
-          </h2>
-          <p style={{ fontSize: '16px', fontFamily: 'sans-serif', color: '#D4A017' }}>
-            Streamline your academic management with powerful tools to oversee classes, exams, results, and more at Sanniville Academy.
-          </p>
-        </div>
+      <div style={styles.header}>
+        <h2 style={styles.headerTitle}>Admin Dashboard</h2>
+        <p style={styles.headerSubtitle}>
+          Manage classes, tests, users, and exams at Sanniville Academy
+        </p>
+      </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #E0E0E0', textAlign: 'center' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#4B5320', fontFamily: 'sans-serif' }}>Total Classes</h3>
-            <p style={{ fontSize: '24px', color: '#D4A017', fontFamily: 'sans-serif', margin: '10px 0' }}>{classes.length}</p>
-          </div>
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #E0E0E0', textAlign: 'center' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#4B5320', fontFamily: 'sans-serif' }}>Total Students</h3>
-            <p style={{ fontSize: '24px', color: '#D4A017', fontFamily: 'sans-serif', margin: '10px 0' }}>{users.filter(u => u.role === 'student').length}</p>
-          </div>
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #E0E0E0', textAlign: 'center' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#4B5320', fontFamily: 'sans-serif' }}>Total Tests</h3>
-            <p style={{ fontSize: '24px', color: '#D4A017', fontFamily: 'sans-serif', margin: '10px 0' }}>{tests.length}</p>
-          </div>
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #E0E0E0', textAlign: 'center' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#4B5320', fontFamily: 'sans-serif' }}>Upcoming Exams</h3>
-            <p style={{ fontSize: '24px', color: '#D4A017', fontFamily: 'sans-serif', margin: '10px 0' }}>{examSchedules.length}</p>
-          </div>
+      <div style={styles.statsGrid}>
+        <div style={styles.statCard}>
+          <h3 style={styles.statTitle}>Total Classes</h3>
+          <p style={styles.statValue}>{classes.length}</p>
         </div>
+        <div style={styles.statCard}>
+          <h3 style={styles.statTitle}>Total Students</h3>
+          <p style={styles.statValue}>{users.filter(u => u.role === 'student').length}</p>
+        </div>
+        <div style={styles.statCard}>
+          <h3 style={styles.statTitle}>Total Tests</h3>
+          <p style={styles.statValue}>{tests.length}</p>
+        </div>
+        <div style={styles.statCard}>
+          <h3 style={styles.statTitle}>Upcoming Exams</h3>
+          <p style={styles.statValue}>{examSchedules.length}</p>
+        </div>
+      </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-          {[
-            { title: 'User Management', desc: 'Manage teacher and student accounts.', action: '/admin/users', icon: '👥' },
-            { title: 'View Results', desc: 'Review and update student exam results.', action: '/admin/results', icon: '📊' },
-            { title: 'View Analytics', desc: 'Access performance analytics.', action: '/admin/analytics', icon: '🔍' },
-            { title: 'Exam Scheduling', desc: 'Plan and manage upcoming exams.', action: '/admin/exams', icon: '📅' },
-          ].map((item, index) => (
-            <div 
-              key={index} 
-              style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #E0E0E0', transition: 'transform 0.2s' }}
-              onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
-              onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '28px', marginRight: '15px', color: '#4B5320' }}>{item.icon}</span>
-                <div>
-                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#4B5320', fontFamily: 'sans-serif', marginBottom: '8px' }}>{item.title}</h3>
-                  <p style={{ color: '#000000', fontSize: '14px', fontFamily: 'sans-serif', marginBottom: '15px' }}>{item.desc}</p>
-                  <button 
-                    onClick={() => navigate(item.action)}
-                    style={{ padding: '8px 16px', backgroundColor: '#D4A017', color: '#000000', border: '1px solid #000000', borderRadius: '6px', fontFamily: 'sans-serif', fontSize: '14px', cursor: 'pointer' }}
+      <div style={styles.actionsGrid}>
+        {[
+          { title: 'User Management', desc: 'Manage teacher and student accounts', action: '/admin/users', icon: '👥' },
+          { title: 'Test Management', desc: 'Review and approve teacher-created tests', action: '/admin/tests', icon: '📝' },
+          { title: 'View Results', desc: 'Review student exam results', action: '/admin/results', icon: '📊' },
+          { title: 'Exam Scheduling', desc: 'Plan and manage exams', action: '/admin/exams', icon: '📅' },
+        ].map((item, index) => (
+          <div key={index} style={styles.actionCard}>
+            <span style={styles.actionIcon}>{item.icon}</span>
+            <div>
+              <h3 style={styles.actionTitle}>{item.title}</h3>
+              <p style={styles.actionDesc}>{item.desc}</p>
+              <button
+                onClick={() => navigate(item.action)}
+                style={styles.actionButton}
+              >
+                Go to {item.title}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={styles.section}>
+        <h3 style={styles.sectionTitle}>Teacher-Created Tests</h3>
+        <div style={styles.testList}>
+          {tests.map((test) => (
+            <div key={test._id} style={styles.testItem}>
+              <span style={styles.testInfo}>
+                {test.title} ({test.subject}, {test.class}) - {test.status}
+              </span>
+              <div style={styles.testActions}>
+                <button
+                  onClick={() => navigate(`/admin/tests/${test._id}`)}
+                  style={styles.viewButton}
+                >
+                  View
+                </button>
+                {test.status === 'draft' && (
+                  <button
+                    onClick={() => handleApproveTest(test._id)}
+                    style={styles.approveButton}
                   >
-                    Go to {item.title}
+                    Approve
                   </button>
-                </div>
+                )}
               </div>
             </div>
           ))}
         </div>
-
-        <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #E0E0E0' }}>
-          <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFFFFF', fontFamily: 'sans-serif', backgroundColor: '#4B5320', padding: '10px', borderRadius: '4px', marginBottom: '20px' }}>
-            Recent Academic Activity
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {results.slice(0, 5).map((result) => (
-              <div key={result._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', backgroundColor: '#F5F5F5', borderRadius: '4px', border: '1px solid #E0E0E0' }}>
-                <span style={{ fontSize: '14px', color: '#000000', fontFamily: 'sans-serif' }}>
-                  {result.userId ? `${result.userId.name} ${result.userId.surname}` : 'Unknown Student'} scored {result.score}% in {result.subject} ({result.testId.title})
-                </span>
-                <button 
-                  onClick={() => result.testId?._id && navigate(`/results/${result.testId._id}`)} 
-                  style={{ color: '#000000', backgroundColor: '#D4A017', fontFamily: 'sans-serif', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                  View Full Results
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
+};
+
+const styles = {
+  container: { padding: '20px', backgroundColor: '#f8f9fa', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' },
+  header: { backgroundColor: '#4B5320', color: '#FFFFFF', padding: '25px', borderRadius: '8px', marginBottom: '25px', border: '1px solid #000000', boxShadow: '0 4px 6px rgba(0,0,0,0.2)' },
+  headerTitle: { fontSize: '24px', fontWeight: 'bold', margin: '0 0 10px 0' },
+  headerSubtitle: { fontSize: '16px', margin: '0', color: '#D4A017' },
+  alertError: { backgroundColor: '#FFF3F3', color: '#B22222', borderLeft: '4px solid #B22222', padding: '15px', marginBottom: '25px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '10px' },
+  alertIcon: { fontSize: '20px' },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '25px' },
+  statCard: { backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #E0E0E0', textAlign: 'center' },
+  statTitle: { fontSize: '18px', fontWeight: 'bold', color: '#4B5320' },
+  statValue: { fontSize: '24px', color: '#D4A017', margin: '10px 0' },
+  actionsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '25px' },
+  actionCard: { backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #E0E0E0', display: 'flex', alignItems: 'flex-start', transition: 'transform 0.2s' },
+  actionIcon: { fontSize: '28px', marginRight: '15px', color: '#4B5320' },
+  actionTitle: { fontSize: '20px', fontWeight: 'bold', color: '#4B5320', marginBottom: '8px' },
+  actionDesc: { fontSize: '14px', color: '#000000', marginBottom: '15px' },
+  actionButton: { padding: '8px 16px', backgroundColor: '#D4A017', color: '#000000', border: '1px solid #000000', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' },
+  section: { backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #E0E0E0' },
+  sectionTitle: { fontSize: '20px', fontWeight: 'bold', color: '#4B5320', backgroundColor: '#FFFFFF', padding: '10px', borderRadius: '4px', marginBottom: '20px' },
+  testList: { display: 'flex', flexDirection: 'column', gap: '15px' },
+  testItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', backgroundColor: '#F5F5F5', borderRadius: '4px', border: '1px solid #E0E0E0' },
+  testInfo: { fontSize: '14px', color: '#000000' },
+  testActions: { display: 'flex', gap: '10px' },
+  viewButton: { padding: '5px 10px', backgroundColor: '#6B7280', color: '#FFFFFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' },
+  approveButton: { padding: '5px 10px', backgroundColor: '#28a745', color: '#FFFFFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' },
+  accessDenied: { textAlign: 'center', padding: '4rem', backgroundColor: '#FFFFFF', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '600px', margin: '2rem auto' },
+  loading: { padding: '20px', color: '#FFFFFF', backgroundColor: '#4B5320', textAlign: 'center', fontSize: '16px' },
 };
 
 export default AdminHome;

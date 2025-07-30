@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import useTeacherData from '../hooks/useTeacherData';
 import Dashboard from '../components/teacher/Dashboard';
 import AddQuestion from '../components/teacher/AddQuestion';
 import BulkImport from '../components/teacher/BulkImport';
@@ -9,17 +10,17 @@ import ManageTests from '../components/teacher/ManageTests';
 import TestResults from '../pages/TestResults';
 import Analytics from '../components/teacher/Analytics';
 import TestCreation from '../pages/TestCreation';
-import TestQuestions from '../pages/TestQuestions';
 import TestPreview from '../pages/TestPreview';
 import AddTestQuestions from '../components/teacher/AddTestQuestions';
-import { FiHome, FiPlusSquare, FiUpload, FiEdit, FiBook, FiBarChart2, FiLogOut, FiUser } from 'react-icons/fi';
+import { FiHome, FiPlusSquare, FiUpload, FiEdit, FiBook, FiBarChart, FiLogOut, FiUser } from 'react-icons/fi';
 
 const TeacherHome = () => {
   const { user, setUser } = useContext(AuthContext);
+  const { error: dataError, success } = useTeacherData();
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(dataError);
 
   if (!user || user.role !== 'teacher') {
     return (
@@ -44,7 +45,7 @@ const TeacherHome = () => {
     { path: 'bulk-import', icon: <FiUpload />, label: 'Bulk Import' },
     { path: 'questions', icon: <FiEdit />, label: 'Manage Questions' },
     { path: 'tests', icon: <FiBook />, label: 'Manage Tests' },
-    { path: 'analytics', icon: <FiBarChart2 />, label: 'Analytics' },
+    { path: 'analytics', icon: <FiBarChart />, label: 'Analytics' },
   ];
 
   const handleNavigation = (path) => {
@@ -57,6 +58,11 @@ const TeacherHome = () => {
       {error && (
         <div style={styles.alertError}>
           <p>Error: {error}</p>
+        </div>
+      )}
+      {success && (
+        <div style={styles.alertSuccess}>
+          <p>{success}</p>
         </div>
       )}
 
@@ -123,8 +129,7 @@ const TeacherHome = () => {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="test-creation" element={<TestCreation />} />
             <Route path="test-creation/:testId" element={<TestCreation />} />
-            <Route path="test-creation/:testId/add-questions" element={<AddTestQuestions />} />
-            <Route path="test-creation/:testId/questions" element={<TestQuestions />} />
+            <Route path="test-creation/:testId/questions" element={<AddTestQuestions />} />
             <Route path="test-preview/:testId" element={<TestPreview />} />
             <Route path="add-question" element={<AddQuestion />} />
             <Route path="add-question/:testId" element={<AddQuestion />} />
@@ -133,7 +138,7 @@ const TeacherHome = () => {
             <Route path="tests" element={<ManageTests />} />
             <Route path="test-results/:testId" element={<TestResults />} />
             <Route path="analytics" element={<Analytics />} />
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Navigate to="/teacher/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/teacher/dashboard" replace />} />
           </Routes>
         </main>
@@ -264,19 +269,14 @@ const styles = {
     borderRadius: '4px',
     fontSize: '14px',
   },
-  accessDenied: {
-    padding: '20px',
-    color: '#FFFFFF',
-    backgroundColor: '#4B5320',
-    textAlign: 'center',
-    fontSize: '16px',
-  },
-  loading: {
-    padding: '20px',
-    color: '#FFFFFF',
-    backgroundColor: '#4B5320',
-    textAlign: 'center',
-    fontSize: '16px',
+  alertSuccess: {
+    backgroundColor: '#d4edda',
+    color: '#155724',
+    borderLeft: '4px solid #28a745',
+    padding: '15px',
+    margin: '20px 30px',
+    borderRadius: '4px',
+    fontSize: '14px',
   },
 };
 

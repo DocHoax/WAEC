@@ -185,6 +185,32 @@ router.get('/users', auth, async (req, res) => {
   }
 });
 
+router.get('/students/:subject/:class', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    const { subject, class: className } = req.params;
+    console.log('GET /api/auth/students/:subject/:class - Fetching students:', { subject, class: className, user: req.user.username });
+    if (!subject || !className) {
+      console.log('GET /api/auth/students/:subject/:class - Missing subject or class:', { subject, class: className });
+      return res.status(400).json({ error: 'Subject and class are required.' });
+    }
+    const students = await User.find({
+      role: 'student',
+      enrolledSubjects: { $elemMatch: { subject, class: className } },
+    }).select('_id username name');
+    console.log('GET /api/auth/students/:subject/:class - Students fetched:', { count: students.length });
+    res.json(students);
+  } catch (error) {
+    console.error('GET /api/auth/students/:subject/:class - Error:', {
+      error: error.message,
+      stack: error.stack,
+    });
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.put('/users/:id', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {

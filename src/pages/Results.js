@@ -26,17 +26,21 @@ const Results = () => {
       }
 
       try {
-        const testRes = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [testRes, resultsRes] = await Promise.all([
+          axios.get(`http://localhost:5000/api/tests/${testId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`http://localhost:5000/api/tests/${testId}/results`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        console.log('Results - Fetched test:', testRes.data);
+        console.log('Results - Fetched results:', resultsRes.data);
         setTest(testRes.data);
-
-        const resultsRes = await axios.get(`http://localhost:5000/api/results/${testId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
         setResults(resultsRes.data);
         setLoading(false);
       } catch (error) {
+        console.error('Results - Error:', error.response?.data || error.message);
         setError(error.response?.data?.error || 'Failed to load results');
         setLoading(false);
       }
@@ -48,7 +52,7 @@ const Results = () => {
       setError('Access restricted to admins or teachers.');
       setLoading(false);
     }
-  }, [testId, user]);
+  }, [testId, user, navigate]);
 
   const handleEdit = (result) => {
     setEditingResultId(result._id);
@@ -60,10 +64,11 @@ const Results = () => {
     const token = localStorage.getItem('token');
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/results/${resultId}`,
+        `http://localhost:5000/api/tests/results/${resultId}`,
         { score: Number(editScore) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log('Results - Result updated:', response.data);
       setResults(
         results.map((r) =>
           r._id === resultId ? { ...r, score: Number(editScore) } : r
@@ -73,24 +78,14 @@ const Results = () => {
       setEditingResultId(null);
       setError(null);
     } catch (error) {
+      console.error('Results - Update error:', error.response?.data || error.message);
       setError(error.response?.data?.error || 'Failed to update result');
     }
     setLoading(false);
   };
 
-  const handleViewAnswers = async (result) => {
-    setLoading(true);
-    const token = localStorage.getItem('token');
-    try {
-      const response = await axios.get(`http://localhost:5000/api/results/details/${result._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSelectedResult({ ...result, answers: response.data.answers, test: response.data.test });
-      setError(null);
-    } catch (error) {
-      setError(error.response?.data?.error || 'Failed to load answer details');
-    }
-    setLoading(false);
+  const handleViewAnswers = (result) => {
+    setSelectedResult({ ...result, answers: result.answers, test });
   };
 
   const closeAnswers = () => {
@@ -222,22 +217,25 @@ const Results = () => {
               <h3 style={{ fontSize: '20px', color: '#4B5320', fontFamily: 'sans-serif', marginBottom: '15px' }}>
                 Answers for {selectedResult.userId?.name ? `${selectedResult.userId.name} ${selectedResult.userId.surname}` : 'Unknown'}
               </h3>
-              {selectedResult.answers.map((answer, index) => (
-                <div key={index} style={{ marginBottom: '15px', padding: '10px', border: '1px solid #D3D3D3', borderRadius: '4px', backgroundColor: answer.isCorrect ? '#E6FFE6' : '#FFE6E6' }}>
-                  <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
-                    <strong>Question {index + 1}:</strong> {answer.question || 'N/A'}
-                  </p>
-                  <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
-                    <strong>Selected Answer:</strong> {answer.selectedOption || 'N/A'}
-                  </p>
-                  <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
-                    <strong>Correct Answer:</strong> {answer.correctOption || 'N/A'}
-                  </p>
-                  <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: answer.isCorrect ? '#228B22' : '#B22222' }}>
-                    <strong>Status:</strong> {answer.isCorrect ? 'Correct' : 'Incorrect'}
-                  </p>
-                </div>
-              ))}
+              {Object.entries(selectedResult.answers).map(([questionId, selectedAnswer], index) => {
+                const question = selectedResult.test?.questions.find(q => q._id.toString() === questionId);
+                return (
+                  <div key={index} style={{ marginBottom: '15px', padding: '10px', border: '1px solid #D3D3D3', borderRadius: '4px', backgroundColor: selectedAnswer === question?.correctAnswer ? '#E6FFE6' : '#FFE6E6' }}>
+                    <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
+                      <strong>Question {index + 1}:</strong> {question?.text || 'N/A'}
+                    </p>
+                    <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
+                      <strong>Selected Answer:</strong> {selectedAnswer || 'N/A'}
+                    </p>
+                    <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
+                      <strong>Correct Answer:</strong> {question?.correctAnswer || 'N/A'}
+                    </p>
+                    <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: selectedAnswer === question?.correctAnswer ? '#228B22' : '#B22222' }}>
+                      <strong>Status:</strong> {selectedAnswer === question?.correctAnswer ? 'Correct' : 'Incorrect'}
+                    </p>
+                  </div>
+                );
+              })}
               <button
                 onClick={closeAnswers}
                 style={{ padding: '8px 16px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '14px', cursor: 'pointer', marginTop: '10px' }}

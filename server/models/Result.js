@@ -29,13 +29,18 @@ const resultSchema = new mongoose.Schema({
     of: String,
     required: true,
   },
+  correctness: {
+    type: Map,
+    of: Boolean,
+    required: true,
+  },
   score: {
     type: Number,
     required: true,
   },
   totalQuestions: {
     type: Number,
-    required: false,
+    required: true,
   },
   submittedAt: {
     type: Date,

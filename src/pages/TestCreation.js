@@ -13,11 +13,10 @@ const TestCreation = () => {
     subject: '',
     class: '',
     session: '2025/2026 Semester 1',
-    startDate: '',
-    endDate: '',
-    duration: 0,
-    questionCount: 0,
+    duration: '',
+    questionCount: '',
     randomize: false,
+    instructions: '',
   });
   const [loading, setLoading] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
@@ -32,34 +31,34 @@ const TestCreation = () => {
           subject: test.subject || '',
           class: test.class || '',
           session: test.session || '2025/2026 Semester 1',
-          startDate: test.availability?.start ? new Date(test.availability.start).toISOString().slice(0, 16) : '',
-          endDate: test.availability?.end ? new Date(test.availability.end).toISOString().slice(0, 16) : '',
-          duration: test.duration || 0,
-          questionCount: test.questionCount || 0,
+          duration: test.duration || '',
+          questionCount: test.questionCount || '',
           randomize: test.randomize || false,
+          instructions: test.instructions || '',
         });
+      } else {
+        setError('Test not found or you do not have access.');
+        navigate('/teacher/tests');
       }
     }
-  }, [testId, tests]);
+  }, [testId, tests, navigate, setError]);
 
   const isFormValid = () => {
     return (
-      testForm.title &&
-      testForm.subject &&
-      testForm.class &&
-      testForm.session &&
-      testForm.startDate &&
-      testForm.endDate &&
-      testForm.duration > 0 &&
-      testForm.questionCount > 0 &&
-      new Date(testForm.startDate) < new Date(testForm.endDate)
+      testForm.title?.trim() &&
+      testForm.subject?.trim() &&
+      testForm.class?.trim() &&
+      testForm.session?.match(/^\d{4}\/\d{4}( Semester [12])?$/) &&
+      Number(testForm.duration) > 0 &&
+      Number(testForm.questionCount) > 0 &&
+      user?.subjects?.some(sub => sub.subject === testForm.subject && sub.class === testForm.class)
     );
   };
 
   const handleTestSubmit = async (e) => {
     e.preventDefault();
     if (!isFormValid()) {
-      setError('Please fill all fields correctly, ensure end date is after start date, duration and question count are positive numbers.');
+      setError('Please fill all fields correctly, ensure duration and question count are positive numbers, and subject/class are assigned.');
       return;
     }
     setLoading(true);
@@ -69,48 +68,63 @@ const TestCreation = () => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
       const testData = {
-        title: testForm.title,
+        title: testForm.title.trim(),
         subject: testForm.subject,
         class: testForm.class,
         session: testForm.session,
-        availability: {
-          start: new Date(testForm.startDate).toISOString(),
-          end: new Date(testForm.endDate).toISOString(),
-        },
         duration: Number(testForm.duration),
         questionCount: Number(testForm.questionCount),
         randomize: testForm.randomize,
+        instructions: testForm.instructions.trim(),
+        status: 'draft',
       };
-      console.log('TestCreation - Sending payload:', testData); // Debug payload
+      console.log('TestCreation - Sending payload:', JSON.stringify(testData, null, 2));
       let res;
       if (testId) {
+        // Verify test ownership before updating
+        const verifyRes = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!verifyRes.data._id) throw new Error('Test not found.');
         res = await axios.put(`http://localhost:5000/api/tests/${testId}`, testData, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setSuccess('Test updated successfully.');
+        setSuccess('Test updated and saved to draft.');
         await fetchTests();
       } else {
         res = await axios.post('http://localhost:5000/api/tests', testData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCreatedTestId(res.data._id);
-        const verifyRes = await axios.get(`http://localhost:5000/api/tests/${res.data._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        setSuccess('Saved to draft.');
+        setTestForm({
+          title: '',
+          subject: '',
+          class: '',
+          session: '2025/2026 Semester 1',
+          duration: '',
+          questionCount: '',
+          randomize: false,
+          instructions: '',
         });
-        if (!verifyRes.data._id) throw new Error('Test not found after creation.');
-        setSuccess('Test created successfully.');
         await fetchTests();
         setShowPrompt(true);
       }
     } catch (err) {
-      console.error('Test submit error:', err.response?.data || err.message);
+      console.error('Test submit error:', {
+        message: err.message,
+        response: err.response?.data || 'No response data',
+        status: err.response?.status || 'No status',
+      });
       if (err.response?.status === 401) {
         setError('Session expired. Please log in again.');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         navigate('/login');
+      } else if (err.response?.status === 403) {
+        setError('You are not authorized to create or edit this test.');
       } else {
-        setError(err.response?.data?.error || 'Failed to process test. Please check your input and try again.');
+        setError(err.response?.data?.error || err.message || 'Failed to process test. Please check your input and try again.');
       }
     }
     setLoading(false);
@@ -118,12 +132,14 @@ const TestCreation = () => {
 
   const handleSaveTest = async () => {
     setShowPrompt(false);
+    setSuccess(null);
     await fetchTests();
     navigate('/teacher/tests');
   };
 
   const handleAddQuestions = async () => {
     setShowPrompt(false);
+    setSuccess(null);
     const token = localStorage.getItem('token');
     try {
       await axios.get(`http://localhost:5000/api/tests/${createdTestId || testId}`, {
@@ -220,23 +236,12 @@ const TestCreation = () => {
             </select>
           </div>
           <div style={styles.formGroup}>
-            <label style={styles.label}>Start Date & Time*</label>
-            <input
-              type="datetime-local"
-              value={testForm.startDate}
-              onChange={(e) => setTestForm({ ...testForm, startDate: e.target.value })}
-              required
+            <label style={styles.label}>Instructions</label>
+            <textarea
+              value={testForm.instructions}
+              onChange={(e) => setTestForm({ ...testForm, instructions: e.target.value })}
               style={styles.input}
-            />
-          </div>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>End Date & Time*</label>
-            <input
-              type="datetime-local"
-              value={testForm.endDate}
-              onChange={(e) => setTestForm({ ...testForm, endDate: e.target.value })}
-              required
-              style={styles.input}
+              placeholder="Enter test instructions"
             />
           </div>
           <div style={styles.formGroup}>
@@ -244,7 +249,7 @@ const TestCreation = () => {
             <input
               type="number"
               value={testForm.duration}
-              onChange={(e) => setTestForm({ ...testForm, duration: Number(e.target.value) })}
+              onChange={(e) => setTestForm({ ...testForm, duration: e.target.value })}
               required
               min="1"
               style={styles.input}
@@ -256,7 +261,7 @@ const TestCreation = () => {
             <input
               type="number"
               value={testForm.questionCount}
-              onChange={(e) => setTestForm({ ...testForm, questionCount: Number(e.target.value) })}
+              onChange={(e) => setTestForm({ ...testForm, questionCount: e.target.value })}
               required
               min="1"
               style={styles.input}

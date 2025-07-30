@@ -39,15 +39,19 @@ const TestSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  availability: {
-    start: {
-      type: Date,
-      required: [true, 'Start date is required'],
-    },
-    end: {
-      type: Date,
-    },
+  status: {
+    type: String,
+    enum: ['draft', 'scheduled', 'active', 'completed'],
+    default: 'draft',
   },
+  batches: [{
+    name: { type: String, required: true },
+    students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    schedule: {
+      start: { type: Date, required: true },
+      end: { type: Date, required: true },
+    },
+  }],
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -57,6 +61,19 @@ const TestSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Question',
   }],
-}, { timestamps: true });
+}, { 
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true } 
+});
+
+// Add virtual for checking if test is active
+TestSchema.virtual('isActive').get(function() {
+  if (this.status !== 'scheduled') return false;
+  const now = new Date();
+  return this.batches.some(batch => 
+    now >= new Date(batch.schedule.start) && now <= new Date(batch.schedule.end)
+  );
+});
 
 module.exports = mongoose.model('Test', TestSchema);

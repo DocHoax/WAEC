@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Papa from 'papaparse';
 import useTeacherData from '../../hooks/useTeacherData';
-import { FiDownload, FiUpload, FiAlertTriangle, FiCheckCircle, FiClock } from 'react-icons/fi';
+import { FiDownload, FiUpload, FiAlertTriangle, FiCheckCircle, FiClock, FiImage } from 'react-icons/fi';
 
 const BulkImport = () => {
   const { fetchQuestions, error, success, setError, setSuccess, navigate } = useTeacherData();
   const [csvFile, setCsvFile] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleDownloadTemplate = () => {
-    const template = 'subject,class,questionText,option1,option2,option3,option4,correctAnswer,imageUrl\nMaths,SS1,What is 2+2?,2,4,6,8,4,\nEnglish,JS2,What is a noun?,Person,Action,Color,None of the above,Person,';
+    const template = 'subject,class,questionText,option1,option2,option3,option4,correctAnswer,imageName\nMaths,SS1,What is \\( x^2 + 2x + 1 \\)?,x+1,(x+1)^2,x^2,2x,1,\nEnglish,JS2,What is a noun?,Person,Action,Color,None of the above,Person,noun_image.jpg';
     const blob = new Blob([template], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -32,28 +33,39 @@ const BulkImport = () => {
     setError(null);
     setSuccess(null);
     try {
+      const formData = new FormData();
       Papa.parse(csvFile, {
         complete: async (result) => {
           const questions = result.data.map(row => ({
-            subject: row.subject,
-            class: row.class,
-            questionText: row.questionText,
-            options: [row.option1, row.option2, row.option3, row.option4].filter(Boolean),
-            correctAnswer: row.correctAnswer,
-            imageUrl: row.imageUrl || '',
+            subject: row.subject?.trim(),
+            class: row.class?.trim(),
+            questionText: row.questionText?.trim(),
+            options: [row.option1, row.option2, row.option3, row.option4].filter(opt => opt?.trim()),
+            correctAnswer: row.correctAnswer?.trim(),
+            imageName: row.imageName?.trim() || '',
           }));
           for (const q of questions) {
             if (!q.subject || !q.class || !q.questionText || q.options.length < 2 || !q.correctAnswer) {
-              throw new Error('Invalid CSV: Missing required fields.');
+              throw new Error('Invalid CSV: Missing or empty required fields (subject, class, questionText, at least 2 options, correctAnswer).');
+            }
+            if (q.imageName && !imageFiles.some(file => file.name === q.imageName)) {
+              throw new Error(`Image file "${q.imageName}" referenced in CSV but not uploaded.`);
             }
           }
+          formData.append('questions', JSON.stringify(questions));
+          imageFiles.forEach(file => formData.append('images', file));
           const token = localStorage.getItem('token');
           if (!token) throw new Error('No authentication token found.');
-          const res = await axios.post('http://localhost:5000/api/questions/bulk', { questions }, {
-            headers: { Authorization: `Bearer ${token}` },
+          console.log('Submitting bulk import:', { questions: questions.length, images: imageFiles.length });
+          const res = await axios.post('http://localhost:5000/api/questions/bulk', formData, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data',
+            },
           });
           setSuccess(`Successfully imported ${res.data.count} questions.`);
           setCsvFile(null);
+          setImageFiles([]);
           fetchQuestions();
         },
         header: true,
@@ -71,15 +83,33 @@ const BulkImport = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         navigate('/login');
+      } else if (err.response?.status === 400) {
+        setError(err.response?.data?.error || 'Invalid data in CSV or images. Check format and try again.');
       } else {
-        setError(err.response?.data?.error || err.message || 'Failed to import questions. Please try again.');
+        setError(err.message || 'Failed to import questions. Please try again.');
       }
       setLoading(false);
     }
   };
 
   const handleFileChange = (e) => {
-    setCsvFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file && file.type !== 'text/csv') {
+      setError('Please upload a valid CSV file.');
+      return;
+    }
+    setCsvFile(file);
+    setError(null);
+  };
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files).filter(file => file.type.startsWith('image/'));
+    if (files.length !== e.target.files.length) {
+      setError('Only image files (e.g., .jpg, .png) are allowed.');
+      return;
+    }
+    setImageFiles(files);
+    setError(null);
   };
 
   return (
@@ -87,7 +117,7 @@ const BulkImport = () => {
       {/* Header */}
       <div style={styles.header}>
         <h2 style={styles.headerTitle}>Bulk Question Import</h2>
-        <p style={styles.headerSubtitle}>Quickly add multiple questions using a CSV file</p>
+        <p style={styles.headerSubtitle}>Add multiple questions with LaTeX formulas and local images via CSV</p>
       </div>
 
       {/* Alerts */}
@@ -97,7 +127,6 @@ const BulkImport = () => {
           <span>{error}</span>
         </div>
       )}
-      
       {success && (
         <div style={styles.alertSuccess}>
           <FiCheckCircle style={styles.alertIcon} />
@@ -109,12 +138,12 @@ const BulkImport = () => {
       <div style={styles.instructionCard}>
         <h3 style={styles.instructionTitle}>How to Import Questions</h3>
         <ol style={styles.instructionSteps}>
-          <li>Download our CSV template file</li>
-          <li>Fill it with your questions following the format</li>
-          <li>Upload the completed file below</li>
+          <li>Download the CSV template file.</li>
+          <li>Fill it with questions, using LaTeX for formulas (e.g., \\( x^2 \\)).</li>
+          <li>Include image filenames in the imageName column if needed.</li>
+          <li>Upload the CSV and corresponding image files.</li>
         </ol>
-        
-        <button 
+        <button
           onClick={handleDownloadTemplate}
           style={styles.downloadButton}
         >
@@ -128,17 +157,20 @@ const BulkImport = () => {
         <h3 style={styles.exampleTitle}>CSV Format Example</h3>
         <div style={styles.codeBlock}>
           <pre style={styles.codePre}>
-            subject,class,questionText,option1,option2,option3,option4,correctAnswer,imageUrl{"\n"}
-            Maths,SS1,What is 2+2?,2,4,6,8,4,{"\n"}
-            English,JS2,What is a noun?,Person,Action,Color,None of the above,Person,https://example.com/noun.jpg
+            subject,class,questionText,option1,option2,option3,option4,correctAnswer,imageName{"\n"}
+            Maths,SS1,What is \\( x^2 + 2x + 1 \\)?,x+1,(x+1)^2,x^2,2x,(x+1)^2,quadratic.jpg{"\n"}
+            English,JS2,What is a noun?,Person,Action,Color,None of the above,Person,noun_image.jpg
           </pre>
         </div>
+        <p style={styles.exampleNote}>
+          Use LaTeX for formulas (e.g., \\( \\frac{1}{2} \\)). Include imageName only if uploading an image. Images must match filenames in the CSV.
+        </p>
       </div>
 
       {/* Upload Form */}
       <form onSubmit={handleBulkQuestionSubmit} style={styles.uploadForm}>
         <div style={styles.formGroup}>
-          <label style={styles.formLabel}>Select your CSV file</label>
+          <label style={styles.formLabel}>Select CSV File</label>
           <div style={styles.fileUpload}>
             <input
               type="file"
@@ -151,18 +183,38 @@ const BulkImport = () => {
               {csvFile ? (
                 <span style={styles.fileName}>{csvFile.name}</span>
               ) : (
-                <span style={styles.filePlaceholder}>Drag & drop your file here or click to browse</span>
+                <span style={styles.filePlaceholder}>Drag & drop CSV file or click to browse</span>
               )}
             </div>
           </div>
         </div>
-        
-        <button 
-          type="submit" 
+        <div style={styles.formGroup}>
+          <label style={styles.formLabel}>Select Image Files (Optional)</label>
+          <div style={styles.fileUpload}>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}
+              style={styles.fileInput}
+            />
+            <div style={styles.filePreview}>
+              {imageFiles.length > 0 ? (
+                <span style={styles.fileName}>
+                  {imageFiles.map(file => file.name).join(', ')}
+                </span>
+              ) : (
+                <span style={styles.filePlaceholder}>Drag & drop images or click to browse</span>
+              )}
+            </div>
+          </div>
+        </div>
+        <button
+          type="submit"
           disabled={loading}
           style={{
             ...styles.submitButton,
-            backgroundColor: loading ? '#E0E0E0' : '#4B5320'
+            backgroundColor: loading ? '#E0E0E0' : '#4B5320',
           }}
         >
           {loading ? (
@@ -190,7 +242,7 @@ const styles = {
     backgroundColor: '#f8f9fa',
     minHeight: '100vh',
     maxWidth: '800px',
-    margin: '0 auto'
+    margin: '0 auto',
   },
   header: {
     backgroundColor: '#4B5320',
@@ -199,17 +251,17 @@ const styles = {
     borderRadius: '8px',
     marginBottom: '25px',
     border: '1px solid #000000',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
+    boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
   },
   headerTitle: {
     fontSize: '24px',
     fontWeight: 'bold',
-    margin: '0 0 10px 0'
+    margin: '0 0 10px 0',
   },
   headerSubtitle: {
     fontSize: '16px',
     margin: '0',
-    color: '#D4A017'
+    color: '#D4A017',
   },
   alertError: {
     backgroundColor: '#FFF3F3',
@@ -220,7 +272,7 @@ const styles = {
     borderRadius: '4px',
     display: 'flex',
     alignItems: 'center',
-    gap: '10px'
+    gap: '10px',
   },
   alertSuccess: {
     backgroundColor: '#d4edda',
@@ -231,10 +283,10 @@ const styles = {
     borderRadius: '4px',
     display: 'flex',
     alignItems: 'center',
-    gap: '10px'
+    gap: '10px',
   },
   alertIcon: {
-    fontSize: '20px'
+    fontSize: '20px',
   },
   instructionCard: {
     backgroundColor: '#FFFFFF',
@@ -242,22 +294,19 @@ const styles = {
     padding: '25px',
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
     border: '1px solid #E0E0E0',
-    marginBottom: '25px'
+    marginBottom: '25px',
   },
   instructionTitle: {
     fontSize: '20px',
     fontWeight: '600',
     color: '#4B5320',
-    margin: '0 0 15px 0'
+    margin: '0 0 15px 0',
   },
   instructionSteps: {
     paddingLeft: '25px',
     margin: '0 0 20px 0',
     color: '#4B5320',
-    lineHeight: '1.6'
-  },
-  instructionStepsLi: {
-    marginBottom: '8px'
+    lineHeight: '1.6',
   },
   downloadButton: {
     backgroundColor: '#4B5320',
@@ -270,10 +319,10 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '10px',
-    transition: 'all 0.2s'
+    transition: 'all 0.2s',
   },
   buttonIcon: {
-    fontSize: '18px'
+    fontSize: '18px',
   },
   formatExample: {
     backgroundColor: '#FFFFFF',
@@ -281,13 +330,18 @@ const styles = {
     padding: '25px',
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
     border: '1px solid #E0E0E0',
-    marginBottom: '25px'
+    marginBottom: '25px',
   },
   exampleTitle: {
     fontSize: '20px',
     fontWeight: '600',
     color: '#4B5320',
-    margin: '0 0 15px 0'
+    margin: '0 0 15px 0',
+  },
+  exampleNote: {
+    fontSize: '14px',
+    color: '#6B7280',
+    marginTop: '10px',
   },
   codeBlock: {
     backgroundColor: '#2D3748',
@@ -297,36 +351,36 @@ const styles = {
     overflowX: 'auto',
     fontFamily: 'monospace',
     fontSize: '14px',
-    lineHeight: '1.5'
+    lineHeight: '1.5',
   },
   codePre: {
-    margin: '0'
+    margin: '0',
   },
   uploadForm: {
     backgroundColor: '#FFFFFF',
     borderRadius: '8px',
     padding: '25px',
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    border: '1px solid #E0E0E0'
+    border: '1px solid #E0E0E0',
   },
   formGroup: {
-    marginBottom: '20px'
+    marginBottom: '20px',
   },
   formLabel: {
     display: 'block',
     marginBottom: '10px',
     color: '#4B5320',
-    fontWeight: '600'
+    fontWeight: '600',
   },
   fileUpload: {
-    position: 'relative'
+    position: 'relative',
   },
   fileInput: {
     position: 'absolute',
     width: '100%',
     height: '100%',
     opacity: '0',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   filePreview: {
     border: '2px dashed #CBD5E0',
@@ -334,14 +388,14 @@ const styles = {
     padding: '30px',
     textAlign: 'center',
     backgroundColor: '#F8FAFC',
-    transition: 'all 0.2s'
+    transition: 'all 0.2s',
   },
   fileName: {
     color: '#4B5320',
-    fontWeight: '500'
+    fontWeight: '500',
   },
   filePlaceholder: {
-    color: '#718096'
+    color: '#718096',
   },
   submitButton: {
     width: '100%',
@@ -355,8 +409,8 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '10px',
-    transition: 'all 0.2s'
-  }
+    transition: 'all 0.2s',
+  },
 };
 
 export default BulkImport;

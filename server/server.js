@@ -5,12 +5,14 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const questionRoutes = require('./routes/questions');
 const testRoutes = require('./routes/tests');
-const resultRoutes = require('./routes/results');
 const analyticsRoutes = require('./routes/analytics');
 const cheatLogRoutes = require('./routes/cheat-logs');
 const classRoutes = require('./routes/classes');
 
 const app = express();
+
+// Set timezone to WAT (Africa/Lagos)
+process.env.TZ = 'Africa/Lagos';
 
 // Middleware
 app.use(cors({ origin: 'http://localhost:3000' }));
@@ -25,7 +27,6 @@ console.log('Mounting routes...');
 app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/tests', testRoutes);
-app.use('/api/results', resultRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/cheat-logs', cheatLogRoutes);
 app.use('/api/classes', classRoutes);

@@ -26,8 +26,24 @@ const Dashboard = () => {
     navigate(`/teacher/test-results/${testId}`);
   };
 
-  const activeTestsCount = tests.filter(t => new Date(t.availability.end) > new Date()).length;
-  const upcomingTestsCount = tests.filter(t => new Date(t.availability.start) > new Date()).length;
+  // Calculate active and upcoming tests based on batches
+  const activeTestsCount = tests.filter(t => 
+    t.status === 'scheduled' && 
+    t.batches?.some(batch => 
+      batch.schedule?.start && 
+      batch.schedule?.end && 
+      new Date() >= new Date(batch.schedule.start) && 
+      new Date() <= new Date(batch.schedule.end)
+    )
+  ).length;
+
+  const upcomingTestsCount = tests.filter(t => 
+    t.status === 'scheduled' && 
+    t.batches?.some(batch => 
+      batch.schedule?.start && 
+      new Date(batch.schedule.start) > new Date()
+    )
+  ).length;
 
   const quickActions = [
     {
@@ -166,10 +182,10 @@ const Dashboard = () => {
                     <p style={styles.testMeta}>
                       {test.subject} • {test.class} • Created: {new Date(test.createdAt).toLocaleDateString()}
                     </p>
-                    {test.availability && (
+                    {test.batches?.length > 0 && (
                       <p style={styles.testDates}>
-                        {new Date(test.availability.start).toLocaleDateString()} -{' '}
-                        {new Date(test.availability.end).toLocaleDateString()}
+                        {new Date(test.batches[0].schedule.start).toLocaleDateString()} -{' '}
+                        {new Date(test.batches[0].schedule.end).toLocaleDateString()}
                       </p>
                     )}
                   </div>

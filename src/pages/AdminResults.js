@@ -23,7 +23,14 @@ const AdminResults = () => {
         navigate('/login');
         return;
       }
+      if (!testId || testId === 'undefined') {
+        console.error('AdminResults - Invalid test ID:', testId);
+        setError('Please select a test to view results.');
+        navigate('/admin/tests');
+        return;
+      }
       try {
+        console.log('AdminResults - Fetching results:', { testId });
         const [testRes, resultsRes] = await Promise.all([
           axios.get(`http://localhost:5000/api/tests/${testId}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -58,8 +65,9 @@ const AdminResults = () => {
   const handleSave = async (resultId) => {
     const token = localStorage.getItem('token');
     try {
+      console.log('AdminResults - Updating result:', { resultId, score: Number(editScore) });
       const res = await axios.put(
-        `http://localhost:5000/api/results/${resultId}`,
+        `http://localhost:5000/api/tests/results/${resultId}`,
         { score: Number(editScore), answers: editAnswers },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -113,6 +121,20 @@ const AdminResults = () => {
         textAlign: 'center'
       }}>
         Error: {error}
+        <button
+          onClick={() => navigate('/admin/tests')}
+          style={{
+            padding: '10px',
+            backgroundColor: '#D4A017',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginTop: '10px'
+          }}
+        >
+          Back to Tests
+        </button>
       </div>
     );
   }

@@ -13,7 +13,7 @@ const AddTestQuestions = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchTest = async () => {
+    const fetchTestAndQuestions = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found.');
@@ -27,10 +27,10 @@ const AddTestQuestions = () => {
         const errorMessage = err.response?.data?.error || err.message;
         console.error('AddTestQuestions - Fetch test error:', errorMessage);
         setError(errorMessage || 'Failed to load test. Please try again.');
-        navigate('/teacher/tests'); // Redirect if test fetch fails
+        navigate('/teacher/tests');
       }
     };
-    fetchTest();
+    fetchTestAndQuestions();
   }, [testId, setError, navigate]);
 
   const handleQuestionToggle = (questionId) => {
@@ -126,11 +126,17 @@ const AddTestQuestions = () => {
       )}
 
       <div style={styles.section}>
-        <div style={styles.questionList}>
-          {availableQuestions.length === 0 ? (
-            <p>No questions available for this subject and class.</p>
-          ) : (
-            availableQuestions.map(q => (
+        <h3 style={styles.sectionTitle}>Available Questions</h3>
+        <p style={styles.sectionSubtitle}>
+          Showing {availableQuestions.length} question{availableQuestions.length !== 1 ? 's' : ''} from the question bank
+        </p>
+        {availableQuestions.length === 0 ? (
+          <p style={styles.noQuestions}>
+            No questions available for {test.subject} ({test.class}). Add or import questions first.
+          </p>
+        ) : (
+          <div style={styles.questionList}>
+            {availableQuestions.map(q => (
               <div key={q._id} style={styles.questionItem}>
                 <input
                   type="checkbox"
@@ -146,12 +152,29 @@ const AddTestQuestions = () => {
                   <p style={styles.questionDetails}>
                     Options: {q.options.join(', ')} | Correct: {q.correctAnswer}
                   </p>
+                  <p style={styles.questionSource}>
+                    Source: {q.source === 'imported' ? 'Bulk Import' : 'Manually Created'}
+                  </p>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
         <div style={styles.formActions}>
+          <button
+            type="button"
+            onClick={() => navigate('/teacher/add-question')}
+            style={styles.addQuestionButton}
+          >
+            Add New Question
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/teacher/bulk-import')}
+            style={styles.importButton}
+          >
+            Import Questions
+          </button>
           <button
             type="button"
             onClick={() => navigate('/teacher/tests')}
@@ -238,6 +261,22 @@ const styles = {
     border: '1px solid #E0E0E0',
     marginBottom: '25px',
   },
+  sectionTitle: {
+    color: '#4B5320',
+    fontSize: '20px',
+    fontWeight: '600',
+    margin: '0 0 10px 0',
+  },
+  sectionSubtitle: {
+    color: '#6B7280',
+    fontSize: '14px',
+    margin: '0 0 20px 0',
+  },
+  noQuestions: {
+    color: '#4B5320',
+    fontSize: '16px',
+    textAlign: 'center',
+  },
   questionList: {
     display: 'flex',
     flexDirection: 'column',
@@ -265,9 +304,15 @@ const styles = {
     color: '#4B5320',
   },
   questionDetails: {
-    margin: '0',
+    margin: '0 0 5px 0',
     fontSize: '14px',
     color: '#6B7280',
+  },
+  questionSource: {
+    margin: '0',
+    fontSize: '12px',
+    color: '#6B7280',
+    fontStyle: 'italic',
   },
   formActions: {
     display: 'flex',
@@ -291,6 +336,32 @@ const styles = {
     backgroundColor: 'transparent',
     color: '#4B5320',
     border: '1px solid #4B5320',
+    padding: '12px 24px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontSize: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  addQuestionButton: {
+    backgroundColor: '#D4A017',
+    color: '#4B5320',
+    border: 'none',
+    padding: '12px 24px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontSize: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  importButton: {
+    backgroundColor: '#6B7280',
+    color: '#FFFFFF',
+    border: 'none',
     padding: '12px 24px',
     borderRadius: '6px',
     cursor: 'pointer',
