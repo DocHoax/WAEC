@@ -15,7 +15,7 @@ import AddTestQuestions from '../components/teacher/AddTestQuestions';
 import { FiHome, FiPlusSquare, FiUpload, FiEdit, FiBook, FiBarChart, FiLogOut, FiUser } from 'react-icons/fi';
 
 const TeacherHome = () => {
-  const { user, setUser } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const { error: dataError, success } = useTeacherData();
   const navigate = useNavigate();
   const location = useLocation();
@@ -77,9 +77,7 @@ const TeacherHome = () => {
           </span>
           <button
             onClick={() => {
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              setUser(null);
+              logout();
               navigate('/login');
             }}
             style={styles.logoutButton}

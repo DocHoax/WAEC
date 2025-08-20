@@ -1,17 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Papa from 'papaparse';
 import useTeacherData from '../../hooks/useTeacherData';
-import { FiDownload, FiUpload, FiAlertTriangle, FiCheckCircle, FiClock, FiImage } from 'react-icons/fi';
+import { FiDownload, FiUpload, FiAlertTriangle, FiCheckCircle, FiClock } from 'react-icons/fi';
 
 const BulkImport = () => {
-  const { fetchQuestions, error, success, setError, setSuccess, navigate } = useTeacherData();
+  const { user, fetchQuestions, error, success, setError, setSuccess, navigate } = useTeacherData();
   const [csvFile, setCsvFile] = useState(null);
   const [imageFiles, setImageFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+
+  useEffect(() => {
+    if (user && user.role === 'teacher' && user.subjects) {
+      console.log('Teacher subjects:', user.subjects);
+      setSubjects([...new Set(user.subjects.map(s => s.subject))].sort());
+      setClasses([...new Set(user.subjects.map(s => s.class))].sort());
+    } else if (!user) {
+      setError('Session expired. Please log in again.');
+      navigate('/login');
+    }
+  }, [user, setError, navigate]);
 
   const handleDownloadTemplate = () => {
-    const template = 'subject,class,questionText,option1,option2,option3,option4,correctAnswer,imageName\nMaths,SS1,What is \\( x^2 + 2x + 1 \\)?,x+1,(x+1)^2,x^2,2x,1,\nEnglish,JS2,What is a noun?,Person,Action,Color,None of the above,Person,noun_image.jpg';
+    const template = 'text,option1,option2,option3,option4,correctAnswer,marks,imageName\nWhat is \\( x^2 + 2x + 1 \\)?,x+1,(x+1)^2,x^2,2x,(x+1)^2,2,quadratic.jpg\nWhat is a noun?,Person,Action,Color,None of the above,Person,1,\n';
     const blob = new Blob([template], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -29,6 +44,10 @@ const BulkImport = () => {
       setError('Please select a CSV file.');
       return;
     }
+    if (!selectedSubject || !selectedClass) {
+      setError('Please select a subject and class.');
+      return;
+    }
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -36,20 +55,33 @@ const BulkImport = () => {
       const formData = new FormData();
       Papa.parse(csvFile, {
         complete: async (result) => {
-          const questions = result.data.map(row => ({
-            subject: row.subject?.trim(),
-            class: row.class?.trim(),
-            questionText: row.questionText?.trim(),
-            options: [row.option1, row.option2, row.option3, row.option4].filter(opt => opt?.trim()),
-            correctAnswer: row.correctAnswer?.trim(),
-            imageName: row.imageName?.trim() || '',
-          }));
+          const questions = result.data
+            .filter(row => row.text && row.text.trim() && !row.text.startsWith('Note:'))
+            .map(row => ({
+              subject: selectedSubject,
+              class: selectedClass,
+              text: row.text?.trim(),
+              options: [row.option1, row.option2, row.option3, row.option4].filter(opt => opt?.trim()),
+              correctAnswer: row.correctAnswer?.trim(),
+              marks: parseFloat(row.marks) || 1,
+              imageName: row.imageName?.trim() || '',
+            }));
+          console.log('Mapped questions:', questions);
           for (const q of questions) {
-            if (!q.subject || !q.class || !q.questionText || q.options.length < 2 || !q.correctAnswer) {
-              throw new Error('Invalid CSV: Missing or empty required fields (subject, class, questionText, at least 2 options, correctAnswer).');
+            if (!q.text || q.options.length < 2 || !q.correctAnswer || !q.marks) {
+              throw new Error(`Invalid CSV: Missing required fields in question: ${JSON.stringify(q)}`);
             }
             if (q.imageName && !imageFiles.some(file => file.name === q.imageName)) {
-              throw new Error(`Image file "${q.imageName}" referenced in CSV but not uploaded.`);
+              throw new Error(`Image file "${q.imageName}" not uploaded.`);
+            }
+            if (!q.options.includes(q.correctAnswer)) {
+              throw new Error(`Correct answer "${q.correctAnswer}" not in options for question: ${q.text}`);
+            }
+            if (q.marks <= 0) {
+              throw new Error(`Invalid marks "${q.marks}" for question: ${q.text}`);
+            }
+            if (!subjects.includes(q.subject) || !classes.includes(q.class)) {
+              throw new Error(`Selected subject "${q.subject}" or class "${q.class}" not assigned to teacher.`);
             }
           }
           formData.append('questions', JSON.stringify(questions));
@@ -63,10 +95,13 @@ const BulkImport = () => {
               'Content-Type': 'multipart/form-data',
             },
           });
-          setSuccess(`Successfully imported ${res.data.count} questions.`);
+          setSuccess(`Successfully imported ${res.data.count} questions to question bank.`);
           setCsvFile(null);
           setImageFiles([]);
+          setSelectedSubject('');
+          setSelectedClass('');
           fetchQuestions();
+          navigate('/teacher/questions');
         },
         header: true,
         skipEmptyLines: true,
@@ -114,13 +149,11 @@ const BulkImport = () => {
 
   return (
     <div style={styles.container}>
-      {/* Header */}
       <div style={styles.header}>
         <h2 style={styles.headerTitle}>Bulk Question Import</h2>
-        <p style={styles.headerSubtitle}>Add multiple questions with LaTeX formulas and local images via CSV</p>
+        <p style={styles.headerSubtitle}>Add questions with LaTeX, marks, and images to your question bank</p>
       </div>
 
-      {/* Alerts */}
       {error && (
         <div style={styles.alertError}>
           <FiAlertTriangle style={styles.alertIcon} />
@@ -134,41 +167,64 @@ const BulkImport = () => {
         </div>
       )}
 
-      {/* Instructions */}
       <div style={styles.instructionCard}>
         <h3 style={styles.instructionTitle}>How to Import Questions</h3>
         <ol style={styles.instructionSteps}>
-          <li>Download the CSV template file.</li>
-          <li>Fill it with questions, using LaTeX for formulas (e.g., \\( x^2 \\)).</li>
-          <li>Include image filenames in the imageName column if needed.</li>
-          <li>Upload the CSV and corresponding image files.</li>
+          <li>Download the CSV template.</li>
+          <li>Fill with questions, using LaTeX for formulas (e.g., \\( x^2 \\)).</li>
+          <li>Include image filenames and marks if needed.</li>
+          <li>Select subject and class below.</li>
+          <li>Upload CSV and images.</li>
         </ol>
-        <button
-          onClick={handleDownloadTemplate}
-          style={styles.downloadButton}
-        >
+        <button onClick={handleDownloadTemplate} style={styles.downloadButton}>
           <FiDownload style={styles.buttonIcon} />
           Download CSV Template
         </button>
       </div>
 
-      {/* CSV Format Example */}
       <div style={styles.formatExample}>
-        <h3 style={styles.exampleTitle}>CSV Format Example</h3>
+        <h3 style={styles.exampleTitle}>CSV Format</h3>
         <div style={styles.codeBlock}>
           <pre style={styles.codePre}>
-            subject,class,questionText,option1,option2,option3,option4,correctAnswer,imageName{"\n"}
-            Maths,SS1,What is \\( x^2 + 2x + 1 \\)?,x+1,(x+1)^2,x^2,2x,(x+1)^2,quadratic.jpg{"\n"}
-            English,JS2,What is a noun?,Person,Action,Color,None of the above,Person,noun_image.jpg
+            text,option1,option2,option3,option4,correctAnswer,marks,imageName{"\n"}
+            What is \\( x^2 + 2x + 1 \\)?,x+1,(x+1)^2,x^2,2x,(x+1)^2,2,quadratic.jpg{"\n"}
+            What is a noun?,Person,Action,Color,None of the above,Person,1,{"\n"}
           </pre>
         </div>
         <p style={styles.exampleNote}>
-          Use LaTeX for formulas (e.g., \\( \\frac{1}{2} \\)). Include imageName only if uploading an image. Images must match filenames in the CSV.
+          Use LaTeX for formulas (e.g., \\( \\frac{1}{2} \\)). Include imageName and marks if needed.
         </p>
       </div>
 
-      {/* Upload Form */}
       <form onSubmit={handleBulkQuestionSubmit} style={styles.uploadForm}>
+        <div style={styles.formGroup}>
+          <label style={styles.formLabel}>Select Subject</label>
+          <select
+            value={selectedSubject}
+            onChange={e => setSelectedSubject(e.target.value)}
+            style={styles.formInput}
+            required
+          >
+            <option value="">Choose a subject</option>
+            {subjects.map(sub => (
+              <option key={sub} value={sub}>{sub}</option>
+            ))}
+          </select>
+        </div>
+        <div style={styles.formGroup}>
+          <label style={styles.formLabel}>Select Class</label>
+          <select
+            value={selectedClass}
+            onChange={e => setSelectedClass(e.target.value)}
+            style={styles.formInput}
+            required
+          >
+            <option value="">Choose a class</option>
+            {classes.map(cls => (
+              <option key={cls} value={cls}>{cls}</option>
+            ))}
+          </select>
+        </div>
         <div style={styles.formGroup}>
           <label style={styles.formLabel}>Select CSV File</label>
           <div style={styles.fileUpload}>
@@ -234,7 +290,6 @@ const BulkImport = () => {
   );
 };
 
-// Styles
 const styles = {
   container: {
     fontFamily: 'sans-serif',
@@ -371,6 +426,15 @@ const styles = {
     marginBottom: '10px',
     color: '#4B5320',
     fontWeight: '600',
+  },
+  formInput: {
+    width: '100%',
+    padding: '8px 12px',
+    border: '1px solid #D3D3D3',
+    borderRadius: '4px',
+    fontSize: '14px',
+    outline: 'none',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
   },
   fileUpload: {
     position: 'relative',

@@ -209,11 +209,14 @@ router.get('/export/class/:className/subject/:subject', auth, async (req, res) =
   try {
     console.log('Results route - Exporting class results:', { user: req.user.username, className: req.params.className, subject: req.params.subject });
     const { className, subject } = req.params;
-    let query = { class: className, subject };
+    let query = { class: className };
+    if (subject !== 'all') {
+      query.subject = subject;
+    }
     if (req.user.role === 'teacher') {
       const subjects = req.user.subjects.map((sub) => sub.subject);
       const classes = req.user.subjects.map((sub) => sub.class);
-      if (!subjects.includes(subject) || !classes.includes(className)) {
+      if (subject !== 'all' && !subjects.includes(subject) || !classes.includes(className)) {
         console.log('Results route - Access denied:', { user: req.user.username, subject, className });
         return res.status(403).json({ error: 'Not assigned to this subject/class' });
       }
@@ -233,7 +236,7 @@ router.get('/export/class/:className/subject/:subject', auth, async (req, res) =
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename=results_${className}_${subject}.pdf`);
       doc.pipe(res);
-      doc.fontSize(16).text(`Results: ${subject} (${className})`, { align: 'center' });
+      doc.fontSize(16).text(`Results: ${subject === 'all' ? 'All Subjects' : subject} (${className})`, { align: 'center' });
       doc.moveDown();
       doc.fontSize(10);
       doc.text('Student | Test Title | Score | Date', 50, 100);
@@ -268,11 +271,14 @@ router.get('/export/report/:className/:subject', auth, async (req, res) => {
   try {
     console.log('Results route - Exporting report:', { user: req.user.username, className: req.params.className, subject: req.params.subject });
     const { className, subject } = req.params;
-    let query = { class: className, subject };
+    let query = { class: className };
+    if (subject !== 'all') {
+      query.subject = subject;
+    }
     if (req.user.role === 'teacher') {
       const subjects = req.user.subjects.map((sub) => sub.subject);
       const classes = req.user.subjects.map((sub) => sub.class);
-      if (!subjects.includes(subject) || !classes.includes(className)) {
+      if (subject !== 'all' && !subjects.includes(subject) || !classes.includes(className)) {
         console.log('Results route - Access denied:', { user: req.user.username, subject, className });
         return res.status(403).json({ error: 'Not assigned to this subject/class' });
       }
@@ -295,7 +301,7 @@ router.get('/export/report/:className/:subject', auth, async (req, res) => {
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename=report_${className}_${subject}.pdf`);
       doc.pipe(res);
-      doc.fontSize(16).text(`Performance Report: ${subject} (${className})`, { align: 'center' });
+      doc.fontSize(16).text(`Performance Report: ${subject === 'all' ? 'All Subjects' : subject} (${className})`, { align: 'center' });
       doc.moveDown();
       doc.fontSize(12).text(`Average Score: ${avgScore}`);
       doc.text(`Pass Rate: ${passRate}%`);

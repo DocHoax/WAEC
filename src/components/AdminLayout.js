@@ -13,7 +13,7 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/users', label: 'Manage Users' },
     { path: '/admin/tests', label: 'Tests & Exams' },
     { path: '/admin/results', label: 'Results' },
-    { path: '/admin/exams', label: 'Exam Schedules' },
+    { path: '/admin/sessions', label: 'Session Schedules' },
     { path: '/admin/exports', label: 'Data Exports' },
     { path: '/admin/analytics', label: 'View Analytics' },
   ];

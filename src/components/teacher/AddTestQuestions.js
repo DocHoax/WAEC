@@ -10,6 +10,7 @@ const AddTestQuestions = () => {
   const { user, questions, tests, fetchTests, error, setError, success, setSuccess } = useTeacherData();
   const [test, setTest] = useState(null);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const [questionMarks, setQuestionMarks] = useState({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -23,6 +24,12 @@ const AddTestQuestions = () => {
         });
         setTest(res.data);
         setSelectedQuestions(res.data.questions || []);
+        setQuestionMarks(
+          res.data.questions?.reduce((acc, qId, index) => ({
+            ...acc,
+            [qId]: res.data.questionMarks?.[index] || 1,
+          }), {}) || {}
+        );
       } catch (err) {
         const errorMessage = err.response?.data?.error || err.message;
         console.error('AddTestQuestions - Fetch test error:', errorMessage);
@@ -36,10 +43,28 @@ const AddTestQuestions = () => {
   const handleQuestionToggle = (questionId) => {
     if (selectedQuestions.includes(questionId)) {
       setSelectedQuestions(selectedQuestions.filter(id => id !== questionId));
+      setQuestionMarks(prev => {
+        const newMarks = { ...prev };
+        delete newMarks[questionId];
+        return newMarks;
+      });
     } else if (selectedQuestions.length < test?.questionCount) {
       setSelectedQuestions([...selectedQuestions, questionId]);
+      setQuestionMarks(prev => ({ ...prev, [questionId]: 1 }));
     } else {
       setError(`Cannot select more than ${test.questionCount} questions.`);
+    }
+  };
+
+  const handleMarkChange = (questionId, value) => {
+    const newMarks = { ...questionMarks, [questionId]: Math.max(1, Number(value) || 1) };
+    setQuestionMarks(newMarks);
+    const totalMarks = Object.values(newMarks).reduce((sum, mark) => sum + mark, 0);
+    const requiredMarks = test.title.includes('CA') ? 20 : 60;
+    if (totalMarks > requiredMarks) {
+      setError(`Total marks (${totalMarks}) exceed required ${requiredMarks}.`);
+    } else {
+      setError(null);
     }
   };
 
@@ -52,16 +77,25 @@ const AddTestQuestions = () => {
       setError(`Please select exactly ${test.questionCount} questions.`);
       return;
     }
+    const totalMarks = Object.values(questionMarks).reduce((sum, mark) => sum + mark, 0);
+    const requiredMarks = test.title.includes('CA') ? 20 : 60;
+    if (totalMarks !== requiredMarks) {
+      setError(`Total marks (${totalMarks}) must equal ${requiredMarks}.`);
+      return;
+    }
     setLoading(true);
     setError(null);
     setSuccess(null);
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      const payload = { questions: selectedQuestions };
+      const payload = {
+        questions: selectedQuestions,
+        questionMarks: selectedQuestions.map(qId => questionMarks[qId] || 1),
+      };
       console.log('AddTestQuestions - Sending payload:', payload);
       const res = await axios.put(
-        `http://localhost:5000/api/tests/${testId}`,
+        `http://localhost:5000/api/tests/${testId}/questions`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -102,14 +136,20 @@ const AddTestQuestions = () => {
   const availableQuestions = questions.filter(
     q => q.subject === test.subject && q.class === test.class
   );
+  const totalMarks = Object.values(questionMarks).reduce((sum, mark) => sum + mark, 0);
+  const requiredMarks = test.title.includes('CA') ? 20 : 60;
+  const progress = (totalMarks / requiredMarks) * 100;
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.headerTitle}>Add Questions to {test.title}</h2>
         <p style={styles.headerSubtitle}>
-          Select exactly {test.questionCount} questions for {test.subject} ({test.class})
+          Select exactly {test.questionCount} questions for {test.subject} ({test.class}). Total marks: {totalMarks}/{requiredMarks}
         </p>
+        <div style={styles.progressBar}>
+          <div style={{ ...styles.progressFill, width: `${Math.min(progress, 100)}%` }} />
+        </div>
       </div>
 
       {error && (
@@ -155,6 +195,18 @@ const AddTestQuestions = () => {
                   <p style={styles.questionSource}>
                     Source: {q.source === 'imported' ? 'Bulk Import' : 'Manually Created'}
                   </p>
+                  {selectedQuestions.includes(q._id) && (
+                    <div style={styles.marksInput}>
+                      <label style={styles.marksLabel}>Marks:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={questionMarks[q._id] || 1}
+                        onChange={(e) => handleMarkChange(q._id, e.target.value)}
+                        style={styles.marksField}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -185,9 +237,9 @@ const AddTestQuestions = () => {
           </button>
           <button
             onClick={handleSaveQuestions}
-            disabled={loading || selectedQuestions.length !== test.questionCount}
+            disabled={loading || selectedQuestions.length !== test.questionCount || totalMarks !== requiredMarks}
             style={
-              selectedQuestions.length === test.questionCount
+              selectedQuestions.length === test.questionCount && totalMarks === requiredMarks
                 ? styles.submitButton
                 : { ...styles.submitButton, backgroundColor: '#ccc', cursor: 'not-allowed' }
             }
@@ -225,8 +277,19 @@ const styles = {
   },
   headerSubtitle: {
     fontSize: '16px',
-    margin: '0',
+    margin: '0 0 10px 0',
     color: '#D4A017',
+  },
+  progressBar: {
+    height: '10px',
+    backgroundColor: '#E0E0E0',
+    borderRadius: '5px',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#4B5320',
+    transition: 'width 0.3s ease-in-out',
   },
   alertError: {
     backgroundColor: '#FFF3F3',
@@ -313,6 +376,22 @@ const styles = {
     fontSize: '12px',
     color: '#6B7280',
     fontStyle: 'italic',
+  },
+  marksInput: {
+    marginTop: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  marksLabel: {
+    fontSize: '14px',
+    color: '#4B5320',
+  },
+  marksField: {
+    width: '60px',
+    padding: '5px',
+    border: '1px solid #E0E0E0',
+    borderRadius: '4px',
   },
   formActions: {
     display: 'flex',

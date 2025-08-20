@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Result = require('../models/Result');
 const Test = require('../models/Test');
+const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 
 router.get('/subject/:className/:subject', auth, async (req, res) => {
@@ -10,10 +11,10 @@ router.get('/subject/:className/:subject', auth, async (req, res) => {
       return res.status(403).json({ error: 'Access restricted to admins and teachers' });
     }
     const { className, subject } = req.params;
-    const results = await Result.find({ class: className, subject }).populate('userId', 'username');
+    const results = await Result.find({ class: className, subject }).populate('userId', 'username name surname');
     if (!results.length) return res.status(404).json({ error: 'No results found' });
 
-    const avgScore = (results.reduce((sum, r) => sum + r.score, 0) / results.length).toFixed(2);
+    const avgScore = (results.reduce((sum, r) => sum + (r.score || 0), 0) / results.length).toFixed(2);
     const passRate = (results.filter(r => r.score >= 50).length / results.length * 100).toFixed(2);
     const data = {
       className,
@@ -21,10 +22,14 @@ router.get('/subject/:className/:subject', auth, async (req, res) => {
       avgScore,
       passRate,
       studentCount: results.length,
-      scores: results.map(r => ({ student: r.userId?.username || 'N/A', score: r.score })),
+      scores: results.map(r => ({
+        student: `${r.userId?.name || 'N/A'} ${r.userId?.surname || ''}`.trim(),
+        score: r.score || 0,
+      })),
     };
     res.json(data);
   } catch (error) {
+    console.error('Analytics - Subject Error:', { message: error.message, stack: error.stack });
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -34,17 +39,21 @@ router.get('/', auth, async (req, res) => {
     if (req.user.role !== 'admin' && req.user.role !== 'teacher') {
       return res.status(403).json({ error: 'Access restricted to admins and teachers' });
     }
+
+    // Build query based on user role
     const query = req.user.role === 'teacher'
       ? { $or: req.user.subjects.map((sub) => ({ subject: sub.subject, class: sub.class })) }
       : {};
+
+    // Fetch tests
     const tests = await Test.find(query);
     const analytics = await Promise.all(
       tests.map(async (test) => {
-        const results = await Result.find({ testId: test._id }).populate('userId', 'username');
+        const results = await Result.find({ testId: test._id }).populate('userId', 'username name surname');
         const totalStudents = results.length;
         const completed = results.filter((r) => r.submittedAt).length;
         const completionRate = totalStudents > 0 ? ((completed / totalStudents) * 100).toFixed(2) : 0;
-        const scores = results.map((r) => r.score);
+        const scores = results.map((r) => r.score || 0);
         const averageScore = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2) : 0;
         const topResult = results.sort((a, b) => b.score - a.score)[0];
         return {
@@ -55,12 +64,33 @@ router.get('/', auth, async (req, res) => {
           session: test.session,
           averageScore,
           completionRate,
-          topStudent: topResult ? topResult.userId?.username || 'N/A' : 'N/A',
+          topStudent: topResult ? `${topResult.userId?.name || 'N/A'} ${topResult.userId?.surname || ''}`.trim() : 'N/A',
+          type: test.type || 'test', // Include test type (test, exam, etc.)
         };
       })
     );
-    res.json(analytics);
+
+    // Fetch aggregated metrics
+    const studentCount = await User.countDocuments({ role: 'student' });
+    const teacherCount = await User.countDocuments({ role: 'teacher' });
+    const classCount = await Test.distinct('class').then(classes => classes.length);
+    const testCount = await Test.countDocuments({ ...query, type: { $ne: 'examination' } });
+    const examCount = await Test.countDocuments({ ...query, type: 'examination' });
+
+    const response = {
+      analytics,
+      summary: {
+        totalStudents: studentCount,
+        totalTeachers: teacherCount,
+        totalClasses: classCount,
+        totalTests: testCount,
+        totalExams: examCount,
+      },
+    };
+
+    res.json(response);
   } catch (error) {
+    console.error('Analytics - Error:', { message: error.message, stack: error.stack });
     res.status(500).json({ error: 'Server error' });
   }
 });

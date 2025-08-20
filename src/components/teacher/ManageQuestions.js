@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import useTeacherData from '../../hooks/useTeacherData';
 import axios from 'axios';
@@ -18,6 +18,13 @@ const ManageQuestions = () => {
     ...(user?.subjects?.map(s => s.class) || []),
   ])];
 
+  useEffect(() => {
+    // Trigger MathJax typesetting when questions load
+    if (window.MathJax) {
+      window.MathJax.typesetPromise();
+    }
+  }, [questions]);
+
   const handleEditQuestion = (question) => {
     navigate('/teacher/add-question', {
       state: {
@@ -28,9 +35,9 @@ const ManageQuestions = () => {
           text: question.text,
           options: question.options,
           correctAnswer: question.correctAnswer,
-          image: null,
+          formula: question.formula || '',
+          saveToBank: question.saveToBank,
         },
-        imagePreview: question.imageUrl || null,
       },
     });
   };
@@ -78,7 +85,7 @@ const ManageQuestions = () => {
         option3: q.options[2] || '',
         option4: q.options[3] || '',
         correctAnswer: q.correctAnswer,
-        imageUrl: q.imageUrl || '',
+        formula: q.formula || '',
       }));
 
       if (filteredQuestions.length === 0) {
@@ -108,6 +115,7 @@ const ManageQuestions = () => {
 
   return (
     <div>
+      <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" id="MathJax-script"></script>
       {error && (
         <div style={{
           backgroundColor: '#f8d7da',
@@ -260,6 +268,7 @@ const ManageQuestions = () => {
                   color: 'white'
                 }}>
                   <th style={{ padding: '12px 15px', textAlign: 'left' }}>Question</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'left' }}>Formula</th>
                   <th style={{ padding: '12px 15px', textAlign: 'left' }}>Subject</th>
                   <th style={{ padding: '12px 15px', textAlign: 'left' }}>Class</th>
                   <th style={{ padding: '12px 15px', textAlign: 'left' }}>Actions</th>
@@ -271,12 +280,28 @@ const ManageQuestions = () => {
                   .map(question => (
                     <tr key={question._id} style={{
                       borderBottom: '1px solid #eee',
-                      ':hover': {
-                        backgroundColor: '#f9f9f9'
-                      }
                     }}>
                       <td style={{ padding: '12px 15px', maxWidth: '300px', wordBreak: 'break-word' }}>
                         {question.text}
+                      </td>
+                      <td style={{ padding: '12px 15px' }}>
+                        {question.formula ? (
+                          <div className="mathjax" dangerouslySetInnerHTML={{ __html: `\\(${question.formula}\\)` }} />
+                        ) : (
+                          <div style={{
+                            width: '100px',
+                            height: '100px',
+                            backgroundColor: '#f5f5f5',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '4px',
+                            color: '#999',
+                            fontSize: '12px'
+                          }}>
+                            No Formula
+                          </div>
+                        )}
                       </td>
                       <td style={{ padding: '12px 15px' }}>
                         <span style={{

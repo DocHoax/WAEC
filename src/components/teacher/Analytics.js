@@ -1,60 +1,42 @@
 import React from 'react';
 import useTeacherData from '../../hooks/useTeacherData';
 import { FiBarChart2, FiAlertTriangle, FiCheckCircle, FiAward, FiUsers, FiBook, FiClock } from 'react-icons/fi';
-import { Doughnut, Bar, Line } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement } from 'chart.js';
+import { Doughnut, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement } from 'chart.js';
 
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement
-);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement);
 
 const Analytics = () => {
-  const { analytics, error, success } = useTeacherData();
+  const { analytics, tests, results, error, success, loading } = useTeacherData();
 
-  // Sample data for charts (replace with your actual data)
+  // Log analytics to debug
+  console.log('Analytics prop:', analytics);
+
+  // Derive data for charts from analytics
   const performanceData = {
-    labels: ['Math', 'Science', 'English', 'History'],
-    datasets: [
-      {
-        label: 'Average Scores',
-        data: [78, 85, 72, 68],
-        backgroundColor: [
-          '#4B5320',
-          '#D4A017',
-          '#3a5c6e',
-          '#6b8e23'
-        ],
-        borderColor: [
-          '#3a4218',
-          '#c19115',
-          '#2c4859',
-          '#5a7a1a'
-        ],
-        borderWidth: 1,
-      },
-    ],
+    labels: analytics.map(a => `${a.subject} (${a.class})`),
+    datasets: [{
+      label: 'Average Scores',
+      data: analytics.map(a => a.averageScore),
+      backgroundColor: ['#4B5320', '#D4A017', '#3a5c6e', '#6b8e23'],
+      borderColor: ['#3a4218', '#c19115', '#2c4859', '#5a7a1a'],
+      borderWidth: 1,
+    }],
   };
 
   const testTrendsData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+    labels: analytics.map(a => a.testTitle),
     datasets: [
       {
-        label: 'Tests Completed',
-        data: [12, 19, 15, 22, 18],
+        label: 'Completion Rate',
+        data: analytics.map(a => a.completionRate),
         backgroundColor: '#4B5320',
         borderColor: '#3a4218',
         borderWidth: 2,
       },
       {
         label: 'Average Score',
-        data: [65, 72, 68, 75, 78],
+        data: analytics.map(a => a.averageScore),
         backgroundColor: '#D4A017',
         borderColor: '#c19115',
         borderWidth: 2,
@@ -66,28 +48,27 @@ const Analytics = () => {
 
   const studentPerformanceData = {
     labels: ['Top 25%', 'Middle 50%', 'Bottom 25%'],
-    datasets: [
-      {
-        label: 'Students',
-        data: [15, 30, 15],
-        backgroundColor: [
-          '#4B5320',
-          '#D4A017',
-          '#a8a8a8'
-        ],
-        borderColor: [
-          '#3a4218',
-          '#c19115',
-          '#888888'
-        ],
-        borderWidth: 1,
-      },
-    ],
+    datasets: [{
+      label: 'Students',
+      data: [
+        results.filter(r => r.score >= 75).length,
+        results.filter(r => r.score >= 50 && r.score < 75).length,
+        results.filter(r => r.score < 50).length,
+      ],
+      backgroundColor: ['#4B5320', '#D4A017', '#a8a8a8'],
+      borderColor: ['#3a4218', '#c19115', '#888888'],
+      borderWidth: 1,
+    }],
   };
+
+  // Calculate overview metrics
+  const averageScore = analytics.length > 0 ? (analytics.reduce((sum, a) => sum + parseFloat(a.averageScore), 0) / analytics.length).toFixed(2) : 0;
+  const totalStudents = results.length;
+  const testsCompleted = tests.length;
+  const avgTimeSpent = tests.length > 0 ? (tests.reduce((sum, t) => sum + (t.duration || 0), 0) / tests.length).toFixed(0) : 0;
 
   return (
     <div style={styles.container}>
-      {/* Header */}
       <div style={styles.header}>
         <div style={styles.headerContent}>
           <FiBarChart2 style={styles.headerIcon} />
@@ -98,14 +79,12 @@ const Analytics = () => {
         </div>
       </div>
 
-      {/* Alerts */}
       {error && (
         <div style={styles.alertError}>
           <FiAlertTriangle style={styles.alertIcon} />
           <span>{error}</span>
         </div>
       )}
-      
       {success && (
         <div style={styles.alertSuccess}>
           <FiCheckCircle style={styles.alertIcon} />
@@ -113,9 +92,13 @@ const Analytics = () => {
         </div>
       )}
 
-      {/* Main Content */}
       <div style={styles.content}>
-        {analytics.length === 0 ? (
+        {loading ? (
+          <div style={styles.emptyState}>
+            <FiBarChart2 style={styles.emptyIcon} />
+            <h3 style={styles.emptyTitle}>Loading Analytics...</h3>
+          </div>
+        ) : analytics.length === 0 ? (
           <div style={styles.emptyState}>
             <FiBarChart2 style={styles.emptyIcon} />
             <h3 style={styles.emptyTitle}>No Analytics Data Available</h3>
@@ -123,54 +106,45 @@ const Analytics = () => {
           </div>
         ) : (
           <>
-            {/* Overview Cards */}
             <div style={styles.overviewGrid}>
               <div style={styles.overviewCard}>
-                <div style={styles.overviewIcon} className="bg-primary">
+                <div style={styles.overviewIcon}>
                   <FiAward />
                 </div>
                 <div>
                   <h3 style={styles.overviewTitle}>Average Score</h3>
-                  <p style={styles.overviewValue}>78%</p>
-                  <p style={styles.overviewChange} className="positive">+2.5% from last month</p>
+                  <p style={styles.overviewValue}>{averageScore}%</p>
                 </div>
               </div>
-              
               <div style={styles.overviewCard}>
-                <div style={styles.overviewIcon} className="bg-secondary">
+                <div style={styles.overviewIcon}>
                   <FiUsers />
                 </div>
                 <div>
                   <h3 style={styles.overviewTitle}>Students Assessed</h3>
-                  <p style={styles.overviewValue}>42</p>
-                  <p style={styles.overviewChange} className="positive">+8 from last test</p>
+                  <p style={styles.overviewValue}>{totalStudents}</p>
                 </div>
               </div>
-              
               <div style={styles.overviewCard}>
-                <div style={styles.overviewIcon} className="bg-tertiary">
+                <div style={styles.overviewIcon}>
                   <FiBook />
                 </div>
                 <div>
                   <h3 style={styles.overviewTitle}>Tests Completed</h3>
-                  <p style={styles.overviewValue}>15</p>
-                  <p style={styles.overviewChange} className="neutral">Same as last term</p>
+                  <p style={styles.overviewValue}>{testsCompleted}</p>
                 </div>
               </div>
-              
               <div style={styles.overviewCard}>
-                <div style={styles.overviewIcon} className="bg-quaternary">
+                <div style={styles.overviewIcon}>
                   <FiClock />
                 </div>
                 <div>
                   <h3 style={styles.overviewTitle}>Avg. Time Spent</h3>
-                  <p style={styles.overviewValue}>32 min</p>
-                  <p style={styles.overviewChange} className="negative">-5 min from average</p>
+                  <p style={styles.overviewValue}>{avgTimeSpent} min</p>
                 </div>
               </div>
             </div>
 
-            {/* Charts Section */}
             <div style={styles.section}>
               <h2 style={styles.sectionTitle}>Subject Performance</h2>
               <div style={styles.chartContainer}>
@@ -185,7 +159,6 @@ const Analytics = () => {
                   <Bar data={testTrendsData} options={barOptions} />
                 </div>
               </div>
-              
               <div style={styles.chartCard}>
                 <h3 style={styles.chartTitle}>Student Distribution</h3>
                 <div style={styles.chartWrapper}>
@@ -194,20 +167,18 @@ const Analytics = () => {
               </div>
             </div>
 
-            {/* Detailed Metrics */}
             <div style={styles.section}>
               <h2 style={styles.sectionTitle}>Detailed Metrics</h2>
               <div style={styles.metricsGrid}>
                 {analytics.map((metric, index) => (
                   <div key={index} style={styles.metricCard}>
-                    <h3 style={styles.metricTitle}>{metric.title}</h3>
-                    <p style={{
-                      ...styles.metricValue,
-                      color: getMetricColor(metric.value)
-                    }}>
-                      {metric.value}%
+                    <h3 style={styles.metricTitle}>{metric.testTitle} ({metric.subject}, {metric.class})</h3>
+                    <p style={{ ...styles.metricValue, color: getMetricColor(metric.averageScore) }}>
+                      {metric.averageScore}%
                     </p>
-                    <p style={styles.metricDescription}>{metric.description}</p>
+                    <p style={styles.metricDescription}>
+                      Completion: {metric.completionRate}%, Top Student: {metric.topStudent}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -219,27 +190,23 @@ const Analytics = () => {
   );
 };
 
-// Helper function for metric colors
 const getMetricColor = (value) => {
-  if (value >= 75) return '#28a745'; // Green for high performance
-  if (value >= 50) return '#D4A017'; // Gold for medium performance
-  return '#dc3545'; // Red for low performance
+  if (value >= 75) return '#28a745';
+  if (value >= 50) return '#D4A017';
+  return '#dc3545';
 };
 
-// Chart options
 const doughnutOptions = {
   responsive: true,
   plugins: {
-    legend: {
-      position: 'bottom',
-    },
+    legend: { position: 'bottom' },
     tooltip: {
       callbacks: {
-        label: function(context) {
+        label: function (context) {
           return `${context.label}: ${context.raw}%`;
-        }
-      }
-    }
+        },
+      },
+    },
   },
   cutout: '70%',
 };
@@ -251,20 +218,17 @@ const barOptions = {
       beginAtZero: true,
       max: 100,
       ticks: {
-        callback: function(value) {
+        callback: function (value) {
           return value + '%';
-        }
-      }
-    }
+        },
+      },
+    },
   },
   plugins: {
-    legend: {
-      position: 'bottom',
-    }
-  }
+    legend: { position: 'bottom' },
+  },
 };
 
-// Styles
 const styles = {
   container: {
     fontFamily: "'Inter', sans-serif",
@@ -379,6 +343,7 @@ const styles = {
     justifyContent: 'center',
     fontSize: '1.5rem',
     color: '#FFFFFF',
+    backgroundColor: '#4B5320',
   },
   overviewTitle: {
     color: '#4B5320',
@@ -391,10 +356,6 @@ const styles = {
     fontSize: '1.5rem',
     margin: '0 0 0.25rem',
     fontWeight: '700',
-  },
-  overviewChange: {
-    fontSize: '0.875rem',
-    margin: '0',
   },
   section: {
     backgroundColor: '#FFFFFF',

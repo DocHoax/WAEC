@@ -1,4 +1,3 @@
-// src/pages/ManageUsers.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Papa from 'papaparse';
@@ -13,6 +12,12 @@ const ManageUsers = () => {
     role: 'student',
     class: '',
     subjects: [],
+    picture: null,
+    dateOfBirth: '',
+    address: '',
+    phoneNumber: '',
+    sex: '',
+    age: '',
   });
   const [editUserId, setEditUserId] = useState(null);
   const [users, setUsers] = useState([]);
@@ -66,6 +71,12 @@ const ManageUsers = () => {
     if (!formData.name) return 'Name is required.';
     if (!formData.surname) return 'Surname is required.';
     if (!formData.class) return 'Class is required.';
+    if (!formData.dateOfBirth) return 'Date of birth is required.';
+    if (!formData.address) return 'Address is required.';
+    if (!formData.phoneNumber) return 'Phone number is required.';
+    if (!formData.sex) return 'Sex is required.';
+    if (!formData.age || formData.age < 1) return 'Valid age is required.';
+    if (!editUserId && !formData.picture) return 'Profile picture is required.';
     return null;
   };
 
@@ -81,19 +92,30 @@ const ManageUsers = () => {
     setSuccess(null);
     try {
       const token = localStorage.getItem('token');
-      const payload = {
-        ...formData,
-        subjects: formData.subjects.map(subject => ({ subject, class: formData.class })),
-      };
+      const formDataToSend = new FormData();
+      formDataToSend.append('username', formData.username);
+      if (formData.password) formDataToSend.append('password', formData.password);
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('surname', formData.surname);
+      formDataToSend.append('role', formData.role);
+      formDataToSend.append('class', formData.class);
+      formDataToSend.append('subjects', JSON.stringify(formData.subjects.map(subject => ({ subject, class: formData.class }))));
+      if (formData.picture) formDataToSend.append('picture', formData.picture);
+      formDataToSend.append('dateOfBirth', formData.dateOfBirth);
+      formDataToSend.append('address', formData.address);
+      formDataToSend.append('phoneNumber', formData.phoneNumber);
+      formDataToSend.append('sex', formData.sex);
+      formDataToSend.append('age', formData.age);
+
       if (editUserId) {
-        await axios.put(`http://localhost:5000/api/auth/users/${editUserId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
+        await axios.put(`http://localhost:5000/api/auth/users/${editUserId}`, formDataToSend, {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
         });
         setSuccess('User updated successfully.');
         setEditUserId(null);
       } else {
-        await axios.post('http://localhost:5000/api/auth/register', payload, {
-          headers: { Authorization: `Bearer ${token}` },
+        await axios.post('http://localhost:5000/api/auth/register', formDataToSend, {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
         });
         setSuccess('User registered successfully.');
       }
@@ -105,6 +127,12 @@ const ManageUsers = () => {
         role: 'student',
         class: '',
         subjects: [],
+        picture: null,
+        dateOfBirth: '',
+        address: '',
+        phoneNumber: '',
+        sex: '',
+        age: '',
       });
       fetchUsers();
     } catch (err) {
@@ -136,6 +164,7 @@ const ManageUsers = () => {
               subject,
               class: row.class,
             })) : [],
+            picture: row.picture || '',
           }));
           for (const user of users) {
             if (!user.username || !user.password || !user.name || !user.surname || !user.class) {
@@ -176,6 +205,12 @@ const ManageUsers = () => {
       role: user.role,
       class: user.class,
       subjects: user.role === 'teacher' ? user.subjects.map(s => s.subject) : user.enrolledSubjects.map(s => s.subject),
+      picture: null,
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
+      address: user.address || '',
+      phoneNumber: user.phoneNumber || '',
+      sex: user.sex || '',
+      age: user.age || '',
     });
     setTab('single');
   };
@@ -201,6 +236,10 @@ const ManageUsers = () => {
     setCsvFile(e.target.files[0]);
   };
 
+  const handlePictureChange = (e) => {
+    setFormData({ ...formData, picture: e.target.files[0] });
+  };
+
   const handleSubjectChange = (subject) => {
     setFormData(prev => ({
       ...prev,
@@ -211,7 +250,7 @@ const ManageUsers = () => {
   };
 
   const handleDownloadTemplate = () => {
-    const template = 'username,password,name,surname,role,class,subjects\nstudent1,Pass1234,John,Doe,student,SS1 Silver,Math;English\nteacher1,Pass1234,Mr,Smith,teacher,SS1 Silver,Math';
+    const template = 'username,password,name,surname,role,class,subjects,picture\nstudent1,Pass1234,John,Doe,student,SS1 Silver,Math;English,student1.jpg\nteacher1,Pass1234,Mr,Smith,teacher,SS1 Silver,Math,teacher1.jpg';
     const blob = new Blob([template], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -330,7 +369,7 @@ const ManageUsers = () => {
             <div>
               <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Subjects</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                {classes.find(cls => cls.name === formData.class)?.subjects.map(subject => (
+                {classes.find(cls => cls.name === formData.class)?.subjects?.map(subject => (
                   <label key={subject} style={{ display: 'block', marginBottom: '5px' }}>
                     <input
                       type="checkbox"
@@ -340,8 +379,76 @@ const ManageUsers = () => {
                     />
                     <span style={{ color: '#000000', fontFamily: 'sans-serif', fontSize: '14px' }}>{subject}</span>
                   </label>
-                ))}
+                )) || <p style={{ color: '#666', fontFamily: 'sans-serif', fontSize: '14px' }}>Select a class to view subjects</p>}
               </div>
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Profile Picture</label>
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png"
+                onChange={handlePictureChange}
+                required={!editUserId}
+                style={{ padding: '8px', border: '1px solid #000000', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px', backgroundColor: '#F5F5F5', color: '#000000' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Date of Birth</label>
+              <input
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                required
+                style={{ padding: '8px', border: '1px solid #000000', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px', backgroundColor: '#F5F5F5', color: '#000000' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Address</label>
+              <input
+                type="text"
+                placeholder="e.g., 123 Main St"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                required
+                style={{ padding: '8px', border: '1px solid #000000', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px', backgroundColor: '#F5F5F5', color: '#000000' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Phone Number</label>
+              <input
+                type="tel"
+                placeholder="e.g., +2341234567890"
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                required
+                style={{ padding: '8px', border: '1px solid #000000', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px', backgroundColor: '#F5F5F5', color: '#000000' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Sex</label>
+              <select
+                value={formData.sex}
+                onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
+                required
+                style={{ padding: '8px', border: '1px solid #000000', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px', backgroundColor: '#F5F5F5', color: '#000000' }}
+              >
+                <option value="">Select Sex</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Age</label>
+              <input
+                type="number"
+                placeholder="e.g., 25"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                required
+                min="1"
+                style={{ padding: '8px', border: '1px solid #000000', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px', backgroundColor: '#F5F5F5', color: '#000000' }}
+              />
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
@@ -364,7 +471,10 @@ const ManageUsers = () => {
               {editUserId && (
                 <button
                   type="button"
-                  onClick={() => { setEditUserId(null); setFormData({ username: '', password: '', name: '', surname: '', role: 'student', class: '', subjects: [] }); }}
+                  onClick={() => {
+                    setEditUserId(null);
+                    setFormData({ username: '', password: '', name: '', surname: '', role: 'student', class: '', subjects: [], picture: null, dateOfBirth: '', address: '', phoneNumber: '', sex: '', age: '' });
+                  }}
                   style={{
                     padding: '8px 16px',
                     backgroundColor: '#FFFFFF',
@@ -390,7 +500,7 @@ const ManageUsers = () => {
             Bulk User Registration
           </h3>
           <p style={{ color: '#000000', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '15px' }}>
-            Upload a CSV file with columns: username, password, name, surname, role, class, subjects (semicolon-separated, e.g., Math;English)
+            Upload a CSV file with columns: username, password, name, surname, role, class, subjects (semicolon-separated, e.g., Math;English), picture (filename, e.g., student1.jpg). Ensure images are in the backend uploads folder.
           </p>
           <button
             onClick={handleDownloadTemplate}
@@ -455,6 +565,12 @@ const ManageUsers = () => {
                   <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Role</th>
                   <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Class</th>
                   <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Subjects</th>
+                  <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Picture</th>
+                  <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Date of Birth</th>
+                  <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Address</th>
+                  <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Phone Number</th>
+                  <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Sex</th>
+                  <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Age</th>
                   <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Actions</th>
                 </tr>
               </thead>
@@ -471,6 +587,14 @@ const ManageUsers = () => {
                         .map(s => `${s.subject} (${s.class})`)
                         .join(', ') || 'None'}
                     </td>
+                    <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>
+                      {user.picture ? <img src={`http://localhost:5000/uploads/${user.picture}`} alt="Profile" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} /> : 'None'}
+                    </td>
+                    <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : 'N/A'}</td>
+                    <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{user.address || 'N/A'}</td>
+                    <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{user.phoneNumber || 'N/A'}</td>
+                    <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{user.sex || 'N/A'}</td>
+                    <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{user.age || 'N/A'}</td>
                     <td style={{ border: '1px solid #E0E0E0', padding: '8px', display: 'flex', gap: '5px' }}>
                       <button
                         onClick={() => handleEditUser(user)}

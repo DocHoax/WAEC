@@ -14,7 +14,7 @@ import { AuthProvider } from './context/AuthContext';
 import AdminLayout from './components/AdminLayout';
 import ManageClasses from './pages/ManageClasses';
 import ManageUsers from './pages/ManageUsers';
-import ExamSchedules from './pages/ExamSchedules';
+import SessionSchedules from './pages/SessionSchedules'; // Updated import
 import DataExports from './pages/DataExports';
 import ManageTests from './pages/ManageTests';
 import TestDetails from './pages/TestDetails';
@@ -121,8 +121,8 @@ const App = () => {
               element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminResults /></AdminLayout></ProtectedRoute>}
             />
             <Route
-              path="/admin/exams"
-              element={<ProtectedRoute requiredRole="admin"><AdminLayout><ExamSchedules /></AdminLayout></ProtectedRoute>}
+              path="/admin/sessions" // Updated route
+              element={<ProtectedRoute requiredRole="admin"><AdminLayout><SessionSchedules /></AdminLayout></ProtectedRoute>}
             />
             <Route
               path="/admin/exports"

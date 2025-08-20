@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { FiAlertTriangle, FiCheckCircle, FiEye, FiCalendar, FiBarChart, FiSearch, FiArrowLeft } from 'react-icons/fi';
+import { FiAlertTriangle, FiCheckCircle, FiEye, FiCalendar, FiBarChart, FiSearch, FiTrash2 } from 'react-icons/fi';
 
 const ManageTests = () => {
   const { user } = useContext(AuthContext);
@@ -52,6 +52,22 @@ const ManageTests = () => {
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to approve test.');
       console.error('Approve test error:', err.response?.data, err.response?.status);
+    }
+  };
+
+  const handleDelete = async (testId, testTitle) => {
+    if (!window.confirm(`Are you sure you want to delete "${testTitle}"? This will also delete all related results.`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/tests/${testId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTests(tests.filter(test => test._id !== testId));
+      setSuccess('Test deleted successfully.');
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete test.');
+      console.error('Delete test error:', err.response?.data, err.response?.status);
     }
   };
 
@@ -120,56 +136,6 @@ const ManageTests = () => {
       backgroundColor: '#F8F9FA',
       fontFamily: 'sans-serif'
     }}>
-      <header style={{
-        backgroundColor: '#4B5320',
-        color: '#FFFFFF',
-        padding: '16px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img
-              src="/images/sanni.png"
-              alt="Sanniville Academy"
-              style={{
-                height: '48px',
-                border: '2px solid #D4A017',
-                padding: '4px',
-                backgroundColor: '#FFFFFF',
-                borderRadius: '4px'
-              }}
-            />
-            <div>
-              <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>Sanniville Academy</h1>
-              <p style={{ fontSize: '14px', color: '#D4A017' }}>Manage Tests & Exams</p>
-            </div>
-          </div>
-          <button
-            onClick={() => navigate('/admin')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 16px',
-              backgroundColor: '#D4A017',
-              color: '#4B5320',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            <FiArrowLeft /> Back to Dashboard
-          </button>
-        </div>
-      </header>
-
       <main style={{
         maxWidth: '1280px',
         margin: '0 auto',
@@ -406,6 +372,23 @@ const ManageTests = () => {
                     }}
                   >
                     <FiCalendar /> Manage Batches
+                  </button>
+                  <button
+                    onClick={() => handleDelete(test._id, test.title)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 16px',
+                      backgroundColor: '#B22222',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <FiTrash2 /> Delete Test
                   </button>
                 </div>
               </div>

@@ -5,6 +5,7 @@ const TestSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Test title is required'],
     trim: true,
+    enum: ['Continuous Assessment 1 (CA 1)', 'Continuous Assessment 2 (CA 2)', 'Examination'],
   },
   subject: {
     type: String,
@@ -20,6 +21,7 @@ const TestSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Session is required'],
     trim: true,
+    enum: ['2025/2026 First Term', '2025/2026 Second Term', '2025/2026 Third Term', '2026/2027 First Term'],
   },
   instructions: {
     type: String,
@@ -34,6 +36,11 @@ const TestSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Question count is required'],
     min: [1, 'Question count must be a positive number'],
+  },
+  totalMarks: {
+    type: Number,
+    required: [true, 'Total marks are required'],
+    min: [1, 'Total marks must be a positive number'],
   },
   randomize: {
     type: Boolean,
@@ -60,6 +67,10 @@ const TestSchema = new mongoose.Schema({
   questions: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Question',
+  }],
+  questionMarks: [{
+    type: Number,
+    min: [1, 'Question mark must be a positive number'],
   }],
 }, { 
   timestamps: true,

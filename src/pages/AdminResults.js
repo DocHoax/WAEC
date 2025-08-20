@@ -17,18 +17,26 @@ const AdminResults = () => {
 
   useEffect(() => {
     const fetchResults = async () => {
+      if (!user || user.role !== 'admin') {
+        setError('Access restricted to admins.');
+        setLoading(false);
+        return;
+      }
+
       const token = localStorage.getItem('token');
       if (!token) {
         setError('Please login again.');
         navigate('/login');
         return;
       }
+
       if (!testId || testId === 'undefined') {
-        console.error('AdminResults - Invalid test ID:', testId);
         setError('Please select a test to view results.');
+        setLoading(false);
         navigate('/admin/tests');
         return;
       }
+
       try {
         console.log('AdminResults - Fetching results:', { testId });
         const [testRes, resultsRes] = await Promise.all([
@@ -43,17 +51,16 @@ const AdminResults = () => {
         console.log('AdminResults - Fetched results:', resultsRes.data);
         setTest(testRes.data);
         setResults(resultsRes.data);
-        setLoading(false);
+        setError(null);
       } catch (err) {
         console.error('AdminResults - Error:', err.response?.data || err.message);
         setError(err.response?.data?.error || 'Failed to load results.');
+      } finally {
         setLoading(false);
       }
     };
 
-    if (user && user.role === 'admin') {
-      fetchResults();
-    }
+    fetchResults();
   }, [testId, user, navigate]);
 
   const handleEdit = (result) => {
@@ -74,6 +81,7 @@ const AdminResults = () => {
       console.log('AdminResults - Result updated:', res.data);
       setResults(results.map(r => (r._id === resultId ? res.data : r)));
       setEditingResult(null);
+      setError(null);
     } catch (err) {
       console.error('AdminResults - Update error:', err.response?.data || err.message);
       setError(err.response?.data?.error || 'Failed to update result.');
@@ -147,7 +155,7 @@ const AdminResults = () => {
       fontFamily: 'sans-serif'
     }}>
       <h2 style={{ color: '#4B5320', fontSize: '24px', marginBottom: '20px' }}>
-        Results for {test?.title} - {test?.subject} ({test?.class})
+        Results for {test?.title || 'Test'} - {test?.subject || 'Subject'} ({test?.class || 'Class'})
       </h2>
       {results.length === 0 ? (
         <div style={{
@@ -169,7 +177,7 @@ const AdminResults = () => {
             marginBottom: '20px'
           }}>
             <h3 style={{ color: '#4B5320', fontSize: '18px', marginBottom: '10px' }}>
-              Student: {result.userId.username}
+              Student: {result.userId?.username || 'Unknown'}
             </h3>
             {editingResult === result._id ? (
               <div>
@@ -192,10 +200,10 @@ const AdminResults = () => {
                 <div style={{ marginBottom: '10px' }}>
                   <h4 style={{ color: '#4B5320', fontSize: '16px' }}>Answers:</h4>
                   {Object.entries(editAnswers).map(([questionId, selectedAnswer], index) => {
-                    const question = test.questions.find(q => q._id.toString() === questionId);
+                    const question = test?.questions?.find(q => q._id.toString() === questionId);
                     return (
                       <div key={index} style={{ marginTop: '5px' }}>
-                        <p style={{ color: '#4B5320' }}>Question: {question?.text}</p>
+                        <p style={{ color: '#4B5320' }}>Question: {question?.text || 'Unknown'}</p>
                         <select
                           value={selectedAnswer || ''}
                           onChange={(e) => setEditAnswers({ ...editAnswers, [questionId]: e.target.value })}
@@ -206,7 +214,7 @@ const AdminResults = () => {
                           }}
                         >
                           <option value="">None</option>
-                          {question?.options.map((option, i) => (
+                          {question?.options?.map((option, i) => (
                             <option key={i} value={option}>{option}</option>
                           ))}
                         </select>
@@ -253,7 +261,7 @@ const AdminResults = () => {
                 <div style={{ marginTop: '10px' }}>
                   <h4 style={{ color: '#4B5320', fontSize: '16px' }}>Answers:</h4>
                   {Object.entries(result.answers).map(([questionId, selectedAnswer], index) => {
-                    const question = test.questions.find(q => q._id.toString() === questionId);
+                    const question = test?.questions?.find(q => q._id.toString() === questionId);
                     return (
                       <div key={index} style={{
                         padding: '10px',
@@ -262,9 +270,9 @@ const AdminResults = () => {
                         borderRadius: '4px',
                         marginTop: '5px'
                       }}>
-                        <p>Question: {question?.text}</p>
+                        <p>Question: {question?.text || 'Unknown'}</p>
                         <p>Your Answer: {selectedAnswer || 'None'}</p>
-                        <p>Correct Answer: {question?.correctAnswer}</p>
+                        <p>Correct Answer: {question?.correctAnswer || 'Unknown'}</p>
                       </div>
                     );
                   })}

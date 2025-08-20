@@ -12,9 +12,10 @@ const TestCreation = () => {
     title: '',
     subject: '',
     class: '',
-    session: '2025/2026 Semester 1',
+    session: '',
     duration: '',
     questionCount: '',
+    totalMarks: '',
     randomize: false,
     instructions: '',
   });
@@ -23,6 +24,23 @@ const TestCreation = () => {
   const [createdTestId, setCreatedTestId] = useState(null);
 
   useEffect(() => {
+    const fetchActiveSession = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/sessions', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const activeSession = res.data.find(session => session.isActive);
+        if (activeSession) {
+          setTestForm(prev => ({ ...prev, session: activeSession.sessionName }));
+        } else {
+          setError('No active session set. Contact admin.');
+        }
+      } catch (err) {
+        setError(err.response?.data?.error || 'Failed to load active session.');
+      }
+    };
+    fetchActiveSession();
     if (testId) {
       const test = tests.find(t => t._id === testId);
       if (test) {
@@ -30,9 +48,10 @@ const TestCreation = () => {
           title: test.title || '',
           subject: test.subject || '',
           class: test.class || '',
-          session: test.session || '2025/2026 Semester 1',
+          session: test.session || '',
           duration: test.duration || '',
           questionCount: test.questionCount || '',
+          totalMarks: test.totalMarks || (test.title.includes('CA') ? 20 : 60),
           randomize: test.randomize || false,
           instructions: test.instructions || '',
         });
@@ -45,20 +64,28 @@ const TestCreation = () => {
 
   const isFormValid = () => {
     return (
-      testForm.title?.trim() &&
+      testForm.title &&
+      ['Continuous Assessment 1 (CA 1)', 'Continuous Assessment 2 (CA 2)', 'Examination'].includes(testForm.title) &&
       testForm.subject?.trim() &&
       testForm.class?.trim() &&
-      testForm.session?.match(/^\d{4}\/\d{4}( Semester [12])?$/) &&
+      testForm.session?.match(/^\d{4}\/\d{4} (First|Second|Third) Term$/) &&
       Number(testForm.duration) > 0 &&
       Number(testForm.questionCount) > 0 &&
+      Number(testForm.totalMarks) > 0 &&
       user?.subjects?.some(sub => sub.subject === testForm.subject && sub.class === testForm.class)
     );
+  };
+
+  const handleTitleChange = (e) => {
+    const title = e.target.value;
+    const totalMarks = title.includes('CA') ? 20 : 60;
+    setTestForm({ ...testForm, title, totalMarks });
   };
 
   const handleTestSubmit = async (e) => {
     e.preventDefault();
     if (!isFormValid()) {
-      setError('Please fill all fields correctly, ensure duration and question count are positive numbers, and subject/class are assigned.');
+      setError('Please fill all fields correctly, ensure duration, question count, and total marks are positive numbers, and subject/class are assigned.');
       return;
     }
     setLoading(true);
@@ -68,20 +95,19 @@ const TestCreation = () => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
       const testData = {
-        title: testForm.title.trim(),
+        title: testForm.title,
         subject: testForm.subject,
         class: testForm.class,
         session: testForm.session,
         duration: Number(testForm.duration),
         questionCount: Number(testForm.questionCount),
+        totalMarks: Number(testForm.totalMarks),
         randomize: testForm.randomize,
         instructions: testForm.instructions.trim(),
         status: 'draft',
       };
-      console.log('TestCreation - Sending payload:', JSON.stringify(testData, null, 2));
       let res;
       if (testId) {
-        // Verify test ownership before updating
         const verifyRes = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -101,9 +127,10 @@ const TestCreation = () => {
           title: '',
           subject: '',
           class: '',
-          session: '2025/2026 Semester 1',
+          session: testForm.session,
           duration: '',
           questionCount: '',
+          totalMarks: '',
           randomize: false,
           instructions: '',
         });
@@ -186,14 +213,17 @@ const TestCreation = () => {
         <form onSubmit={handleTestSubmit} style={styles.form}>
           <div style={styles.formGroup}>
             <label style={styles.label}>Test Title*</label>
-            <input
-              type="text"
+            <select
               value={testForm.title}
-              onChange={(e) => setTestForm({ ...testForm, title: e.target.value })}
+              onChange={handleTitleChange}
               required
-              style={styles.input}
-              placeholder="Enter test title"
-            />
+              style={styles.select}
+            >
+              <option value="">Select Title</option>
+              <option value="Continuous Assessment 1 (CA 1)">Continuous Assessment 1 (CA 1)</option>
+              <option value="Continuous Assessment 2 (CA 2)">Continuous Assessment 2 (CA 2)</option>
+              <option value="Examination">Examination</option>
+            </select>
           </div>
           <div style={styles.formGroup}>
             <label style={styles.label}>Subject*</label>
@@ -225,15 +255,12 @@ const TestCreation = () => {
           </div>
           <div style={styles.formGroup}>
             <label style={styles.label}>Session*</label>
-            <select
+            <input
+              type="text"
               value={testForm.session}
-              onChange={(e) => setTestForm({ ...testForm, session: e.target.value })}
-              required
-              style={styles.select}
-            >
-              <option value="2025/2026 Semester 1">2025/2026 Semester 1</option>
-              <option value="2025/2026 Semester 2">2025/2026 Semester 2</option>
-            </select>
+              disabled
+              style={{ ...styles.input, backgroundColor: '#e0e0e0' }}
+            />
           </div>
           <div style={styles.formGroup}>
             <label style={styles.label}>Instructions</label>
@@ -266,6 +293,15 @@ const TestCreation = () => {
               min="1"
               style={styles.input}
               placeholder="Enter number of questions"
+            />
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Total Marks*</label>
+            <input
+              type="number"
+              value={testForm.totalMarks}
+              disabled
+              style={{ ...styles.input, backgroundColor: '#e0e0e0' }}
             />
           </div>
           <div style={styles.checkboxGroup}>

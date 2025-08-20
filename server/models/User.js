@@ -10,6 +10,12 @@ const userSchema = new mongoose.Schema({
   subjects: [{ subject: String, class: String }], // For teachers
   enrolledSubjects: [{ subject: String, class: String }], // For students
   blocked: { type: Boolean, default: false },
+  picture: { type: String, default: '' }, // Stores filename or path
+  dateOfBirth: { type: Date },
+  address: { type: String },
+  phoneNumber: { type: String },
+  sex: { type: String, enum: ['male', 'female', 'other'] },
+  age: { type: Number },
 });
 
 module.exports = mongoose.model('User', userSchema);
