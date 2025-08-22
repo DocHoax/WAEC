@@ -393,7 +393,7 @@ router.post('/signatures', auth, async (req, res) => {
 });
 
 // Main Route
-router.get('/export/report/:studentId/:session', auth, async (req, res) => {
+router.get('/export/report/:studentId/:sessionName', auth, async (req, res) => {
   try {
     console.log('ReportCard - Starting:', { 
       user: req.user.username, 

@@ -116,7 +116,7 @@ const addHeader = (doc, session) => {
      .text('TERM REPORT CARD', LAYOUT.margin, logoY + 50, { width: doc.page.width - (LAYOUT.margin * 2), align: 'center' })
      .font(TYPOGRAPHY.fonts.body)
      .fontSize(TYPOGRAPHY.sizes.small)
-     .text(Session: ${session} | Second Term, LAYOUT.margin, logoY + 75, { width: doc.page.width - (LAYOUT.margin * 2), align: 'center' });
+     .text(`Session: ${session} | Second Term`, LAYOUT.margin, logoY + 75, { width: doc.page.width - (LAYOUT.margin * 2), align: 'center' });
   
   return LAYOUT.headerHeight + LAYOUT.sectionGap;
 };
@@ -146,11 +146,11 @@ const addStudentInfo = (doc, y, student, reportData, position, classSize, attend
      .text('Student Photo', photoX + 5, photoY + 20, { width: 40, align: 'center' });
   
   const info = [
-    { label: 'Name:', value: ${student.name || ''} ${student.surname || ''}.trim() || 'N/A' },
+    { label: 'Name:', value: `${student.name || ''} ${student.surname || ''}`.trim() || 'N/A' },
     { label: 'Class:', value: student.class || 'N/A' },
-    { label: 'Subjects:', value: ${reportData.numSubjects || 0} },
-    { label: 'Position:', value: ${position} of ${classSize} },
-    { label: 'Attendance:', value: ${attendance.present || 0}/${attendance.totalDays || 0} }
+    { label: 'Subjects:', value: `${reportData.numSubjects || 0}` },
+    { label: 'Position:', value: `${position} of ${classSize}` },
+    { label: 'Attendance:', value: `${attendance.present || 0}/${attendance.totalDays || 0}` }
   ];
   
   info.forEach((item, index) => {
@@ -218,10 +218,10 @@ const addPerformanceTable = (doc, y, reportData) => {
     
     const rowData = [
       { text: subject, align: 'left', color: COLORS.textPrimary },
-      { text: ${sub.firstCA || 0}, align: 'center', color: COLORS.textPrimary },
-      { text: ${sub.secondCA || 0}, align: 'center', color: COLORS.textPrimary },
-      { text: ${sub.exam || 0}, align: 'center', color: COLORS.textPrimary },
-      { text: ${total}, align: 'center', color: COLORS.textPrimary },
+      { text: `${sub.firstCA || 0}`, align: 'center', color: COLORS.textPrimary },
+      { text: `${sub.secondCA || 0}`, align: 'center', color: COLORS.textPrimary },
+      { text: `${sub.exam || 0}`, align: 'center', color: COLORS.textPrimary },
+      { text: `${total}`, align: 'center', color: COLORS.textPrimary },
       { text: gradeInfo.grade, align: 'center', color: gradeInfo.color },
       { text: gradeInfo.remark, align: 'left', color: gradeInfo.color }
     ];
@@ -260,8 +260,8 @@ const addSummary = (doc, y, reportData, average, results) => {
   const promotion = averageNum >= 50 ? 'Promoted to Next Class' : 'Repeat Class';
   
   const summary = [
-    { label: 'Total Score:', value: ${reportData.totalScore}/${reportData.totalPossible}, color: COLORS.textPrimary },
-    { label: 'Average:', value: ${average}% (${gradeInfo.grade}), color: gradeInfo.color },
+    { label: 'Total Score:', value: `${reportData.totalScore}/${reportData.totalPossible}`, color: COLORS.textPrimary },
+    { label: 'Average:', value: `${average}% (${gradeInfo.grade})`, color: gradeInfo.color },
     { label: 'Status:', value: promotion, color: averageNum >= 50 ? COLORS.excellent : COLORS.poor }
   ];
   
@@ -314,7 +314,7 @@ const addSignatures = (doc, y) => {
   doc.font(TYPOGRAPHY.fonts.body)
      .fontSize(TYPOGRAPHY.sizes.body)
      .fillColor(COLORS.textPrimary)
-     .text(Date: ${new Date().toLocaleDateString('en-GB')}, col1, dateY)
+     .text(`Date: ${new Date().toLocaleDateString('en-GB')}`, col1, dateY)
      .text('Next Term: January 5, 2026', col2, dateY);
   
   const teacherY = dateY + 20;
@@ -341,12 +341,12 @@ const addFooter = (doc) => {
   doc.font(TYPOGRAPHY.fonts.body)
      .fontSize(TYPOGRAPHY.sizes.small)
      .fillColor(COLORS.textWhite)
-     .text(© ${new Date().getFullYear()} Sanniville Academy | Generated on ${new Date().toLocaleDateString('en-GB')}, 
+     .text(`© ${new Date().getFullYear()} Sanniville Academy | Generated on ${new Date().toLocaleDateString('en-GB')}`, 
            LAYOUT.margin, footerY + 6, { width: doc.page.width - (LAYOUT.margin * 2), align: 'center' });
 };
 
 // Main Route
-router.get('/export/report/:studentId/:session', auth, async (req, res) => {
+router.get('/export/report/:studentId/:sessionName', auth, async (req, res) => {
   try {
     console.log('ReportCard - Starting:', { user: req.user.username, studentId: req.params.studentId, session: req.params.session, timestamp: new Date().toLocaleString('en-GB', { timeZone: 'Africa/Lagos' }) });
 
@@ -410,7 +410,7 @@ router.get('/export/report/:studentId/:session', auth, async (req, res) => {
       
       return acc;
     }, {
-      student: ${student.name || ''} ${student.surname || ''}.trim() || 'Unknown Student',
+      student: `${student.name || ''} ${student.surname || ''}`.trim() || 'Unknown Student',
       class: student.class || 'N/A',
       session,
       subjects: {},
@@ -448,14 +448,14 @@ router.get('/export/report/:studentId/:session', auth, async (req, res) => {
       size: 'A4', 
       margin: LAYOUT.margin,
       info: {
-        Title: Report Card - ${reportData.student},
+        Title: `Report Card - ${reportData.student}`,
         Author: 'Sanniville Academy',
-        Subject: Academic Report - ${session}
+        Subject: `Academic Report - ${session}`
       }
     });
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', attachment; filename=report_${studentId}_${session.replace(/\//g, '-')}.pdf);
+    res.setHeader('Content-Disposition', `attachment; filename=report_${studentId}_${session.replace(/\//g, '-')}.pdf`);
     
     doc.pipe(res);
 
@@ -478,4 +478,4 @@ router.get('/export/report/:studentId/:session', auth, async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = router;

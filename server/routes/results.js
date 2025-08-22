@@ -134,7 +134,7 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-router.get('/export/student/:studentId/session/:session', auth, async (req, res) => {
+router.get('/export/student/:studentId/session/:sessionName', auth, async (req, res) => {
   try {
     console.log('Results route - Exporting student results:', { user: req.user.username, studentId: req.params.studentId, session: req.params.session });
     const { studentId, session } = req.params;
