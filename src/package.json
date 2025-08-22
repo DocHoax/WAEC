@@ -1,17 +1,7 @@
 {
-  "name": "waec",
+  "name": "waec-frontend",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "install-deps": "npm install && cd server && npm install && cd ../src && npm install",
-    "client-build": "cd src && npm run build",
-    "start": "node server/server.js",
-    "client": "cd src && npm start",
-    "server": "cd server && node server.js",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "render-build": "npm run build",
-    "fix-vulnerabilities": "cd server && npm audit fix --force && cd ../src && npm audit fix --force && cd .. && npm audit fix --force"
-  },
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
@@ -39,7 +29,6 @@
     "react-icons": "^5.5.0",
     "react-mathquill": "^1.0.3",
     "react-router-dom": "^7.6.3",
-    "react-scripts": "^5.0.1",
     "react-toastify": "^11.0.5",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
@@ -47,9 +36,12 @@
     "url": "^0.11.4",
     "util": "^0.12.5",
     "web-vitals": "^2.1.4"
-   },
-  "devDependencies": {
-    "concurrently": "^7.6.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -68,5 +60,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "homepage": "."
 }
