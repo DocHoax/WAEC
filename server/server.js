@@ -12,8 +12,8 @@ const resultsRoutes = require('./routes/results');
 const reportsRoutes = require('./routes/reports');
 const subjectsRoutes = require('./routes/subjects');
 const sessionsRoutes = require('./routes/sessions');
-const Signature = require('./models/Signature');
-const { auth } = require('./middleware/auth');
+const Signature = require('../models/Signature');
+const { auth } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 
@@ -22,7 +22,7 @@ const app = express();
 // Set timezone to WAT (Africa/Lagos)
 process.env.TZ = 'Africa/Lagos';
 
-// Configure Multer for signature uploads (file-based)
+// Configure Multer for signature uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'Uploads/'),
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
@@ -40,17 +40,18 @@ const upload = multer({
 });
 
 // Configure Multer for form-data fields (no files, for questions)
-const formDataUpload = multer(); // No storage needed, just parse fields
+const formDataUpload = multer();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('Uploads'));
+app.use(express.static(path.join(__dirname, '../src/build'))); // Serve frontend
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.url}`);
   next();
@@ -59,7 +60,7 @@ app.use((req, res, next) => {
 // Routes
 console.log('Mounting routes...');
 app.use('/api/auth', authRoutes);
-app.use('/api/questions', formDataUpload.any(), questionRoutes); // Add formDataUpload middleware
+app.use('/api/questions', formDataUpload.any(), questionRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/cheat-logs', cheatLogRoutes);
@@ -82,7 +83,7 @@ app.post('/api/signatures/upload', auth, upload.fields([
     }
     if (req.files.principalSignature) {
       const signatureData = {
-        class: null, // Principal signature is global
+        class: null,
         principalSignature: req.files.principalSignature[0].filename,
         updatedBy: req.user.userId,
         updatedAt: new Date(),
@@ -113,10 +114,18 @@ app.post('/api/signatures/upload', auth, upload.fields([
   }
 });
 
+// Catch-all for React routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../src/build', 'index.html'));
+});
+
 // MongoDB connection
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb+srv://sodiqolaniyisanni:Controller1@cluster0.gw4ko28.mongodb.net/waec-cbt?retryWrites=true&w=majority');
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
     console.log('MongoDB connected');
   } catch (err) {
     console.error('MongoDB connection error:', err.message);
