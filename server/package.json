@@ -1,5 +1,5 @@
 {
-  "name": "waec-backend",
+  "name": "server",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "Backend for WAEC CBT system",
+  "description": "",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -22,8 +22,5 @@
     "mongoose": "^8.16.1",
     "multer": "^2.0.1",
     "pdfkit": "^0.17.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
   }
 }
