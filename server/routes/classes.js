@@ -1,16 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Class = require('../models/Class');
-const { auth } = require('../middleware/auth');
+const { auth, adminOnly } = require('../middleware/auth');
+const mongoose = require("mongoose");
 
-router.get('/', auth, async (req, res) => {
+
+router.get('/', auth, adminOnly, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-    const classes = await Class.find();
-    console.log('Classes route - Fetched classes:', { count: classes.length });
+    const classes = await Class.find().lean();
     res.json(classes);
   } catch (error) {
     console.error('Classes route - Fetch error:', error.message);
@@ -18,19 +15,21 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, adminOnly, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { name, subjects } = req.body;
-    console.log('Classes route - Create class:', { name, subjects });
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ error: 'Class name is required and must be a non-empty string' });
+    }
+    if (subjects && !Array.isArray(subjects)) {
+      return res.status(400).json({ error: 'Subjects must be an array' });
+    }
     const existingClass = await Class.findOne({ name });
-    if (existingClass) return res.status(400).json({ error: 'Class name exists' });
+    if (existingClass) {
+      return res.status(400).json({ error: 'Class name already exists' });
+    }
     const newClass = new Class({ name, subjects: subjects || [] });
     await newClass.save();
-    console.log('Classes route - Class created:', { name });
     res.status(201).json({ message: 'Class created', class: newClass });
   } catch (error) {
     console.error('Classes route - Create error:', error.message);
@@ -38,24 +37,34 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, adminOnly, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid class ID' });
     }
     const { name, subjects } = req.body;
-    console.log('Classes route - Update class:', { id: req.params.id, name, subjects });
-    const classData = await Class.findById(req.params.id);
-    if (!classData) return res.status(404).json({ error: 'Class not found' });
+    if (!name && !subjects) {
+      return res.status(400).json({ error: 'At least one of name or subjects is required' });
+    }
+    if (subjects && !Array.isArray(subjects)) {
+      return res.status(400).json({ error: 'Subjects must be an array' });
+    }
+    const classData = await Class.findById(id);
+    if (!classData) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
     if (name && name !== classData.name) {
       const existingClass = await Class.findOne({ name });
-      if (existingClass) return res.status(400).json({ error: 'Class name exists' });
+      if (existingClass) {
+        return res.status(400).json({ error: 'Class name already exists' });
+      }
       classData.name = name;
     }
-    if (subjects) classData.subjects = subjects;
+    if (subjects) {
+      classData.subjects = subjects;
+    }
     await classData.save();
-    console.log('Classes route - Class updated:', { id: req.params.id });
     res.json({ message: 'Class updated', class: classData });
   } catch (error) {
     console.error('Classes route - Update error:', error.message);
@@ -63,16 +72,16 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, adminOnly, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid class ID' });
     }
-    console.log('Classes route - Delete class:', { id: req.params.id });
-    const classData = await Class.findByIdAndDelete(req.params.id);
-    if (!classData) return res.status(404).json({ error: 'Class not found' });
-    console.log('Classes route - Class deleted:', { id: req.params.id });
+    const classData = await Class.findByIdAndDelete(id);
+    if (!classData) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
     res.json({ message: 'Class deleted' });
   } catch (error) {
     console.error('Classes route - Delete error:', error.message);
@@ -80,20 +89,21 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-router.post('/subject', auth, async (req, res) => {
+router.post('/subject', auth, adminOnly, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { className, subject } = req.body;
-    console.log('Classes route - Add subject:', { className, subject });
+    if (!className || !subject) {
+      return res.status(400).json({ error: 'Class name and subject are required' });
+    }
     const classData = await Class.findOne({ name: className });
-    if (!classData) return res.status(404).json({ error: 'Class not found' });
-    if (classData.subjects.includes(subject)) return res.status(400).json({ error: 'Subject already exists' });
+    if (!classData) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+    if (classData.subjects.includes(subject)) {
+      return res.status(400).json({ error: 'Subject already exists in class' });
+    }
     classData.subjects.push(subject);
     await classData.save();
-    console.log('Classes route - Subject added:', { className, subject });
     res.json({ message: 'Subject added', class: classData });
   } catch (error) {
     console.error('Classes route - Add subject error:', error.message);
@@ -101,20 +111,24 @@ router.post('/subject', auth, async (req, res) => {
   }
 });
 
-router.delete('/subject/:classId/:subject', auth, async (req, res) => {
+router.delete('/subject/:classId/:subject', auth, adminOnly, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { classId, subject } = req.params;
-    console.log('Classes route - Delete subject:', { classId, subject });
+    if (!mongoose.isValidObjectId(classId)) {
+      return res.status(400).json({ error: 'Invalid class ID' });
+    }
+    if (!subject) {
+      return res.status(400).json({ error: 'Subject is required' });
+    }
     const classData = await Class.findById(classId);
-    if (!classData) return res.status(404).json({ error: 'Class not found' });
-    if (!classData.subjects.includes(subject)) return res.status(400).json({ error: 'Subject not found in class' });
+    if (!classData) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+    if (!classData.subjects.includes(subject)) {
+      return res.status(400).json({ error: 'Subject not found in class' });
+    }
     classData.subjects = classData.subjects.filter(s => s !== subject);
     await classData.save();
-    console.log('Classes route - Subject deleted:', { classId, subject });
     res.json({ message: 'Subject deleted', class: classData });
   } catch (error) {
     console.error('Classes route - Delete subject error:', error.message);
