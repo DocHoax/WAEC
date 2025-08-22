@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "npm install && npm run build:client && npm run build:server",
-    "build:client": "cd src && npm install && npm run build",
-    "build:server": "cd server && npm install",
+    "build": "npm run install-deps && npm run build:client",
+    "install-deps": "npm install && cd server && npm install && cd ../src && npm install",
+    "build:client": "cd src && npm run build",
     "start": "node server/server.js",
     "client": "cd src && npm start",
     "server": "cd server && node server.js",

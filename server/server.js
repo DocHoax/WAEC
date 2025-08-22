@@ -15,12 +15,19 @@ const sessionsRoutes = require('./routes/sessions');
 const Signature = require('./models/Signature');
 const { auth } = require('./middleware/auth');
 const multer = require('multer');
-const path = require('path');
+const path = require('fs');
+const fs = require('fs');
 
 const app = express();
 
 // Set timezone to WAT (Africa/Lagos)
 process.env.TZ = 'Africa/Lagos';
+
+// Create Uploads directory if it doesn't exist
+const uploadsDir = './Uploads';
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Configure Multer for signature uploads (file-based)
 const storage = multer.diskStorage({
@@ -45,13 +52,13 @@ const formDataUpload = multer(); // No storage needed, just parse fields
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL || 'http://localhost:3000' 
+    ? process.env.FRONTEND_URL || 'https://your-app-name.onrender.com' 
     : 'http://localhost:3000',
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static('Uploads'));
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.url}`);
@@ -61,7 +68,7 @@ app.use((req, res, next) => {
 // Routes
 console.log('Mounting routes...');
 app.use('/api/auth', authRoutes);
-app.use('/api/questions', formDataUpload.any(), questionRoutes); // Add formDataUpload middleware
+app.use('/api/questions', formDataUpload.any(), questionRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/cheat-logs', cheatLogRoutes);
@@ -113,6 +120,11 @@ app.post('/api/signatures/upload', auth, upload.fields([
     console.error('Signature upload - Error:', error.message);
     res.status(400).json({ error: error.message });
   }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Server is running' });
 });
 
 // Serve static files from React build in production

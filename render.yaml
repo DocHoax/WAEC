@@ -2,7 +2,7 @@ services:
   - type: web
     name: waec-backend
     env: node
-    buildCommand: npm run build
+    buildCommand: chmod +x render-build.sh && ./render-build.sh
     startCommand: npm start
     envVars:
       - key: NODE_ENV
