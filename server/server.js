@@ -15,7 +15,7 @@ const sessionsRoutes = require('./routes/sessions');
 const Signature = require('./models/Signature');
 const { auth } = require('./middleware/auth');
 const multer = require('multer');
-const path = require('fs');
+const path = require('path'); // Make sure this line is correct
 const fs = require('fs');
 
 const app = express();
@@ -129,10 +129,11 @@ app.get('/health', (req, res) => {
 
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../build')));
+  // Fix the path - use correct relative path
+  app.use(express.static(path.join(__dirname, '../../build')));
   
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../build', 'index.html'));
+    res.sendFile(path.join(__dirname, '../../build', 'index.html'));
   });
 }
 
