@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "install-deps": "npm install && cd server && npm install && cd ../src && npm install",
-    "client-build": "cd src && npm run build",
+    "build": "node render-build.js",
     "start": "node server/server.js",
     "client": "cd src && npm start",
     "server": "cd server && node server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "render-build": "npm run build",
+    "render-build": "node render-build.js",
     "fix-vulnerabilities": "cd server && npm audit fix --force && cd ../src && npm audit fix --force && cd .. && npm audit fix --force"
   },
   "dependencies": {
@@ -48,7 +47,7 @@
     "util": "^0.12.5",
     "web-vitals": "^2.1.4"
    },
-  "devDependencies": {
+   "devDependencies": {
     "concurrently": "^7.6.0"
   },
   "eslintConfig": {
