@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "npm run install-deps && npm run build:client",
+    "build": "npm run install-deps && npm run client-build",
     "install-deps": "npm install && cd server && npm install && cd ../src && npm install",
-    "build:client": "cd src && npm run build",
+    "client-build": "cd src && npm run build",
     "start": "node server/server.js",
     "client": "cd src && npm start",
     "server": "cd server && node server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "render-build": "npm run build"
+    "render-build": "npm run build",
+    "fix-vulnerabilities": "cd server && npm audit fix --force && cd ../src && npm audit fix --force && cd .. && npm audit fix --force"
   },
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
@@ -47,7 +48,7 @@
     "url": "^0.11.4",
     "util": "^0.12.5",
     "web-vitals": "^2.1.4"
-  },
+   },
   "devDependencies": {
     "concurrently": "^7.6.0"
   },
