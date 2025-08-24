@@ -23,7 +23,6 @@ const app = express();
 // Set timezone to WAT (Africa/Lagos)
 process.env.TZ = 'Africa/Lagos';
 
-
 // Configure Multer for signature uploads (file-based)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'Uploads/'),
@@ -62,24 +61,6 @@ app.use((req, res, next) => {
     return res.status(400).json({ error: 'Invalid URL' });
   }
   next();
-});
-
-// Debugging: Check all routes before mounting
-const allRoutes = [
-  ...authRoutes.stack,
-  ...questionRoutes.stack,
-  ...testRoutes.stack,
-  ...analyticsRoutes.stack,
-  ...cheatLogRoutes.stack,
-  ...classRoutes.stack,
-  ...resultsRoutes.stack,
-  ...reportsRoutes.stack,
-  ...subjectsRoutes.stack,
-  ...sessionsRoutes.stack
-];
-
-allRoutes.forEach(route => {
-  console.log(`Route: ${route.route.path} | Methods: ${Object.keys(route.route.methods)}`);
 });
 
 // Routes
