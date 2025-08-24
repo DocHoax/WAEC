@@ -288,6 +288,7 @@ const addFooter = doc => {
 
 router.post('/signatures', auth, adminOnly, async (req, res) => {
   try {
+    console.log('POST /api/reports/signatures - Request:', { body: req.body, url: req.url });
     const { className, teacherSignature, principalSignature } = req.body;
     if (!className && !principalSignature) {
       return res.status(400).json({ error: 'Class name or principal signature required' });
@@ -305,15 +306,17 @@ router.post('/signatures', auth, adminOnly, async (req, res) => {
     );
     res.status(201).json({ message: 'Signatures updated', signature });
   } catch (error) {
-    console.error('Signatures upload - Error:', error.message);
+    console.error('POST /api/reports/signatures - Error:', { message: error.message, stack: error.stack, url: req.url });
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-router.get('/export/report/:studentId/:sessionName', auth, async (req, res) => {
+router.get('/export/report/:studentId([a-zA-Z0-9_-]+)/:sessionName([a-zA-Z0-9_/ -]+)', auth, async (req, res) => {
   try {
+    console.log('GET /api/reports/export/report/:studentId/:sessionName - Request:', { params: req.params, url: req.url });
     const { studentId, sessionName } = req.params;
     if (!mongoose.isValidObjectId(studentId)) {
+      console.log('GET /api/reports/export/report/:studentId/:sessionName - Invalid student ID:', { studentId });
       return res.status(400).json({ error: 'Invalid student ID' });
     }
     const normalizedSession = decodeURIComponent(sessionName)
@@ -321,14 +324,17 @@ router.get('/export/report/:studentId/:sessionName', auth, async (req, res) => {
       .replace(/\s+/g, ' ')
       .trim();
     if (!normalizedSession.match(/^\d{4}\/\d{4} (First|Second|Third) Term$/)) {
+      console.log('GET /api/reports/export/report/:studentId/:sessionName - Invalid session format:', { sessionName });
       return res.status(400).json({ error: 'Invalid session format. Use YYYY/YYYY First/Second/Third Term' });
     }
     const student = await User.findById(studentId).lean();
     if (!student) {
+      console.log('GET /api/reports/export/report/:studentId/:sessionName - Student not found:', { studentId });
       return res.status(404).json({ error: 'Student not found' });
     }
     const sessionExists = await Result.findOne({ session: normalizedSession });
     if (!sessionExists) {
+      console.log('GET /api/reports/export/report/:studentId/:sessionName - Session not found:', { sessionName: normalizedSession });
       return res.status(404).json({ error: `Session "${normalizedSession}" not found` });
     }
     let query = { userId: studentId, session: normalizedSession };
@@ -337,6 +343,7 @@ router.get('/export/report/:studentId/:sessionName', auth, async (req, res) => {
       const classes = req.user.subjects.map(sub => sub.class);
       query = { ...query, subject: { $in: subjects }, class: { $in: classes } };
     } else if (req.user.role !== 'admin') {
+      console.log('GET /api/reports/export/report/:studentId/:sessionName - Unauthorized access:', { userId: req.user.userId });
       return res.status(403).json({ error: 'Unauthorized access' });
     }
     const results = await Result.find(query)
@@ -344,6 +351,7 @@ router.get('/export/report/:studentId/:sessionName', auth, async (req, res) => {
       .populate('userId', 'name surname class picture dateOfBirth sex age')
       .lean();
     if (!results.length) {
+      console.log('GET /api/reports/export/report/:studentId/:sessionName - No results found:', { studentId, sessionName: normalizedSession });
       return res.status(404).json({
         error: `No results found for ${student.name} ${student.surname} (${student.class}) in session ${normalizedSession}`,
       });
@@ -422,7 +430,7 @@ router.get('/export/report/:studentId/:sessionName', auth, async (req, res) => {
     addFooter(doc);
     doc.end();
   } catch (error) {
-    console.error('ReportCard - Error:', error.message);
+    console.error('GET /api/reports/export/report/:studentId/:sessionName - Error:', { message: error.message, stack: error.stack, params: req.params, url: req.url });
     if (!res.headersSent) {
       res.status(500).json({ error: 'Server error', details: error.message });
     }

@@ -5,16 +5,18 @@ const { auth, adminOnly } = require('../middleware/auth');
 
 router.get('/', auth, async (req, res) => {
   try {
+    console.log('GET /api/sessions - Request:', { url: req.url });
     const sessions = await Session.find();
     res.json(sessions);
   } catch (error) {
-    console.error('Sessions route - Fetch error:', error.message);
+    console.error('GET /api/sessions - Error:', { message: error.message, stack: error.stack, url: req.url });
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 router.post('/', auth, adminOnly, async (req, res) => {
   try {
+    console.log('POST /api/sessions - Request:', { body: req.body, url: req.url });
     const { sessionName, isActive } = req.body;
     if (!sessionName) return res.status(400).json({ error: 'Session name is required' });
     if (!sessionName.match(/^\d{4}\/\d{4} (First|Second|Third) Term$/)) {
@@ -24,37 +26,45 @@ router.post('/', auth, adminOnly, async (req, res) => {
     await session.save();
     res.status(201).json({ message: 'Session created', session });
   } catch (error) {
-    console.error('Sessions route - Create error:', error.message);
+    console.error('POST /api/sessions - Error:', { message: error.message, stack: error.stack, url: req.url });
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-router.put('/:id', auth, adminOnly, async (req, res) => {
+router.put('/:id([a-zA-Z0-9_-]+)', auth, adminOnly, async (req, res) => {
   try {
+    console.log('PUT /api/sessions/:id - Request:', { id: req.params.id, body: req.body, url: req.url });
     const { sessionName, isActive } = req.body;
     if (!sessionName) return res.status(400).json({ error: 'Session name is required' });
     if (!sessionName.match(/^\d{4}\/\d{4} (First|Second|Third) Term$/)) {
       return res.status(400).json({ error: 'Session must be in format YYYY/YYYY First/Second/Third Term' });
     }
     const session = await Session.findById(req.params.id);
-    if (!session) return res.status(404).json({ error: 'Session not found' });
+    if (!session) {
+      console.log('PUT /api/sessions/:id - Session not found:', { id: req.params.id });
+      return res.status(404).json({ error: 'Session not found' });
+    }
     session.sessionName = sessionName;
     session.isActive = isActive;
     await session.save();
     res.json({ message: 'Session updated', session });
   } catch (error) {
-    console.error('Sessions route - Update error:', error.message);
+    console.error('PUT /api/sessions/:id - Error:', { message: error.message, stack: error.stack, id: req.params.id, url: req.url });
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-router.delete('/:id', auth, adminOnly, async (req, res) => {
+router.delete('/:id([a-zA-Z0-9_-]+)', auth, adminOnly, async (req, res) => {
   try {
+    console.log('DELETE /api/sessions/:id - Request:', { id: req.params.id, url: req.url });
     const session = await Session.findByIdAndDelete(req.params.id);
-    if (!session) return res.status(404).json({ error: 'Session not found' });
+    if (!session) {
+      console.log('DELETE /api/sessions/:id - Session not found:', { id: req.params.id });
+      return res.status(404).json({ error: 'Session not found' });
+    }
     res.json({ message: 'Session deleted' });
   } catch (error) {
-    console.error('Sessions route - Delete error:', error.message);
+    console.error('DELETE /api/sessions/:id - Error:', { message: error.message, stack: error.stack, id: req.params.id, url: req.url });
     res.status(500).json({ error: 'Server error' });
   }
 });
