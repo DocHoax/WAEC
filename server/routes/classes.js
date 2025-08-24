@@ -38,7 +38,7 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id([a-zA-Z0-9_-]+)', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       console.log('Classes route - Access denied:', { userId: req.user.userId });
@@ -63,7 +63,7 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id([a-zA-Z0-9_-]+)', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       console.log('Classes route - Access denied:', { userId: req.user.userId });
@@ -101,8 +101,9 @@ router.post('/subject', auth, async (req, res) => {
   }
 });
 
-router.delete('/subject/:classId/:subject', auth, async (req, res) => {
+router.delete('/subject/:classId([a-zA-Z0-9_-]+)/:subject([a-zA-Z0-9_-]+)', auth, async (req, res) => {
   try {
+    console.log('Classes route hit: /subject/:classId/:subject', { params: req.params, url: req.url });
     if (req.user.role !== 'admin') {
       console.log('Classes route - Access denied:', { userId: req.user.userId });
       return res.status(403).json({ error: 'Admin access required' });
@@ -117,7 +118,7 @@ router.delete('/subject/:classId/:subject', auth, async (req, res) => {
     console.log('Classes route - Subject deleted:', { classId, subject });
     res.json({ message: 'Subject deleted', class: classData });
   } catch (error) {
-    console.error('Classes route - Delete subject error:', error.message);
+    console.error('Classes route - Delete subject error:', { message: error.message, stack: error.stack, url: req.url });
     res.status(500).json({ error: 'Server error' });
   }
 });

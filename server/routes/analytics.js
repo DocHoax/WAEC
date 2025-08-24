@@ -7,7 +7,7 @@ const { auth } = require('../middleware/auth');
 
 router.get('/subject/:className([a-zA-Z0-9_-]+)/:subject([a-zA-Z0-9_-]+)', auth, async (req, res) => {
   try {
-    console.log('Request params:', req.params); // Log for debugging
+    console.log('Analytics route hit: /subject/:className/:subject', { params: req.params, url: req.url });
     if (req.user.role !== 'admin' && req.user.role !== 'teacher') {
       return res.status(403).json({ error: 'Access restricted to admins and teachers' });
     }
@@ -30,13 +30,14 @@ router.get('/subject/:className([a-zA-Z0-9_-]+)/:subject([a-zA-Z0-9_-]+)', auth,
     };
     res.json(data);
   } catch (error) {
-    console.error('Analytics - Subject Error:', { message: error.message, stack: error.stack });
+    console.error('Analytics - Subject Error:', { message: error.message, stack: error.stack, url: req.url });
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 router.get('/', auth, async (req, res) => {
   try {
+    console.log('Analytics route hit: /', { url: req.url });
     if (req.user.role !== 'admin' && req.user.role !== 'teacher') {
       return res.status(403).json({ error: 'Access restricted to admins and teachers' });
     }
@@ -91,7 +92,7 @@ router.get('/', auth, async (req, res) => {
 
     res.json(response);
   } catch (error) {
-    console.error('Analytics - Error:', { message: error.message, stack: error.stack });
+    console.error('Analytics - Error:', { message: error.message, stack: error.stack, url: req.url });
     res.status(500).json({ error: 'Server error' });
   }
 });

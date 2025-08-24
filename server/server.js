@@ -61,7 +61,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static('Uploads'));
 app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url} | Params: ${JSON.stringify(req.params)}`);
+  console.log(`Incoming request: ${req.method} ${req.url} | Params: ${JSON.stringify(req.params)} | Query: ${JSON.stringify(req.query)}`);
   next();
 });
 
@@ -161,6 +161,7 @@ app.use((err, req, res, next) => {
     url: req.url,
     method: req.method,
     params: req.params,
+    query: req.query,
   });
   res.status(500).json({ error: 'Internal server error' });
 });

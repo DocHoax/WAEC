@@ -164,7 +164,7 @@ router.post('/', auth, teacherOnly, async (req, res) => {
 });
 
 // Admin schedules a test
-router.put('/:id/schedule', auth, adminOnly, async (req, res) => {
+router.put('/:id([a-zA-Z0-9_-]+)/schedule', auth, adminOnly, async (req, res) => {
   try {
     const { batches, status } = req.body;
     console.log('Tests route - Scheduling test:', { id: req.params.id, user: req.user.username, payload: req.body });
@@ -288,7 +288,7 @@ router.get('/admin', auth, adminOnly, async (req, res) => {
 });
 
 // Fetch a specific test
-router.get('/:testId', auth, async (req, res) => {
+router.get('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
   try {
     console.log('Fetching test:', { testId: req.params.testId, user: req.user.username, userId: req.user.userId });
     if (!mongoose.isValidObjectId(req.params.testId)) {
@@ -372,7 +372,7 @@ router.get('/:testId', auth, async (req, res) => {
 });
 
 // Fetch test results
-router.get('/:testId/results', auth, async (req, res) => {
+router.get('/:testId([a-zA-Z0-9_-]+)/results', auth, async (req, res) => {
   try {
     console.log('Fetching results:', { testId: req.params.testId, user: req.user.username, role: req.user.role });
     if (!mongoose.isValidObjectId(req.params.testId)) {
@@ -412,7 +412,7 @@ router.get('/:testId/results', auth, async (req, res) => {
 });
 
 // Submit test answers
-router.post('/:id/submit', auth, async (req, res) => {
+router.post('/:id([a-zA-Z0-9_-]+)/submit', auth, async (req, res) => {
   try {
     const { answers, userId } = req.body;
     console.log('Submitting test:', { testId: req.params.id, userId });
@@ -502,7 +502,7 @@ router.post('/:id/submit', auth, async (req, res) => {
 });
 
 // Teacher updates a test
-router.put('/:id', auth, teacherOnly, async (req, res) => {
+router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
   try {
     const { title, subject, class: className, session, instructions, duration, randomize, questions, questionCount, totalMarks, questionMarks } = req.body;
     console.log('Updating test:', { id: req.params.id, user: req.user.username, payload: req.body });
@@ -633,7 +633,7 @@ router.put('/:id', auth, teacherOnly, async (req, res) => {
 });
 
 // Teacher adds or updates questions for a test
-router.put('/:id/questions', auth, teacherOnly, async (req, res) => {
+router.put('/:id([a-zA-Z0-9_-]+)/questions', auth, teacherOnly, async (req, res) => {
   try {
     const { questions, questionMarks } = req.body;
     console.log('Updating questions:', { id: req.params.id, user: req.user.username, questionCount: questions?.length, questions: questions?.map(id => id.toString()), questionMarks });
@@ -720,7 +720,7 @@ router.put('/:id/questions', auth, teacherOnly, async (req, res) => {
 });
 
 // Delete a test
-router.delete('/:testId', auth, async (req, res) => {
+router.delete('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
   try {
     console.log('Deleting test:', { 
       testId: req.params.testId, 
@@ -773,7 +773,7 @@ router.delete('/:testId', auth, async (req, res) => {
 });
 
 // Update test results
-router.put('/results/:resultId', auth, adminOnly, async (req, res) => {
+router.put('/results/:resultId([a-zA-Z0-9_-]+)', auth, adminOnly, async (req, res) => {
   try {
     const { score, answers, correctness } = req.body;
     console.log('Updating result:', { resultId: req.params.resultId, user: req.user.username });
