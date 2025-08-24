@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import useTeacherData from '../hooks/useTeacherData';
@@ -16,11 +16,9 @@ import { FiHome, FiPlusSquare, FiUpload, FiEdit, FiBook, FiBarChart, FiLogOut, F
 
 const TeacherHome = () => {
   const { user, logout } = useContext(AuthContext);
-  const { error: dataError, success } = useTeacherData();
+  const { loading, error: dataError, success } = useTeacherData();
   const navigate = useNavigate();
   const location = useLocation();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(dataError);
 
   if (!user || user.role !== 'teacher') {
     return (
@@ -55,9 +53,9 @@ const TeacherHome = () => {
 
   return (
     <div style={styles.container}>
-      {error && (
+      {dataError && (
         <div style={styles.alertError}>
-          <p>Error: {error}</p>
+          <p>Error: {dataError}</p>
         </div>
       )}
       {success && (
@@ -65,7 +63,6 @@ const TeacherHome = () => {
           <p>{success}</p>
         </div>
       )}
-
       <header style={styles.header}>
         <div style={styles.headerContent}>
           <img src="/images/sanni.png" alt="Sanniville Academy" style={styles.logo} />
@@ -88,7 +85,6 @@ const TeacherHome = () => {
           </button>
         </div>
       </header>
-
       <div style={styles.layout}>
         <nav style={styles.sidebar}>
           <ul style={styles.navList}>
@@ -121,7 +117,6 @@ const TeacherHome = () => {
             ))}
           </ul>
         </nav>
-
         <main style={styles.main}>
           <Routes>
             <Route path="dashboard" element={<Dashboard />} />
@@ -275,6 +270,13 @@ const styles = {
     margin: '20px 30px',
     borderRadius: '4px',
     fontSize: '14px',
+  },
+  accessDenied: {
+    padding: '20px',
+    textAlign: 'center',
+    color: '#B22222',
+    backgroundColor: '#FFF3F3',
+    borderRadius: '4px',
   },
 };
 

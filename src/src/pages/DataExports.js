@@ -3,10 +3,11 @@ import axios from 'axios';
 import Papa from 'papaparse';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
+
 const DataExports = () => {
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
-  const [results, setResults] = useState([]);
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -30,7 +31,6 @@ const DataExports = () => {
 
   useEffect(() => {
     fetchUsers();
-    fetchResults();
     fetchClasses();
     fetchSubjects();
     fetchSessions();
@@ -41,7 +41,7 @@ const DataExports = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get('http://localhost:5000/api/auth/users', {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data || []);
@@ -54,29 +54,11 @@ const DataExports = () => {
     }
   };
 
-  const fetchResults = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get('http://localhost:5000/api/results', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setResults(res.data || []);
-      setError(null);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to load results.');
-      setSuccess(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchClasses = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get('http://localhost:5000/api/classes', {
+      const res = await axios.get(`${API_BASE_URL}/api/classes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClasses(res.data?.map(cls => cls.name) || []);
@@ -91,7 +73,7 @@ const DataExports = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get('http://localhost:5000/api/subjects', {
+      const res = await axios.get(`${API_BASE_URL}/api/subjects`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSubjects(res.data || []);
@@ -106,7 +88,7 @@ const DataExports = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get('http://localhost:5000/api/sessions', {
+      const res = await axios.get(`${API_BASE_URL}/api/sessions`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSessions(res.data || []);
@@ -152,7 +134,7 @@ const DataExports = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      await axios.post('http://localhost:5000/api/signatures/upload', formData, {
+      await axios.post(`${API_BASE_URL}/api/signatures/upload`, formData, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
       });
       setSuccess('Signatures uploaded successfully.');
@@ -204,11 +186,18 @@ const DataExports = () => {
       let endpoint = '';
       let filename = '';
       if (filters.resultType === 'class' && filters.resultClass) {
-        endpoint = `http://localhost:5000/api/results/export/class/${filters.resultClass}/subject/${filters.resultSubject || 'all'}`;
-        filename = `results_${filters.resultClass}_${filters.resultSubject || 'all'}.csv`;
+        const className = encodeURIComponent(filters.resultClass.replace(/[^a-zA-Z0-9_-]/g, '')); // Sanitize
+        const subjectId = filters.resultSubject
+          ? encodeURIComponent(filters.resultSubject.replace(/[^a-zA-Z0-9_-]/g, '')) // Sanitize
+          : 'all';
+        if (!className) throw new Error('Invalid class name');
+        endpoint = `${API_BASE_URL}/api/results/export/class/${className}/subject/${subjectId}`;
+        filename = `results_${className}_${subjectId}.csv`;
       } else if (filters.resultType === 'student' && filters.resultStudent && filters.reportSession) {
-        const sanitizedSession = filters.reportSession.replace(/[/:]/g, '/').replace(/\s+/g, ' ').trim();
-        endpoint = `http://localhost:5000/api/results/export/student/${filters.resultStudent}/session/${sanitizedSession}`;
+        const sanitizedSession = encodeURIComponent(
+          filters.reportSession.replace(/[/:]/g, '/').replace(/\s+/g, ' ').trim()
+        );
+        endpoint = `${API_BASE_URL}/api/results/export/student/${encodeURIComponent(filters.resultStudent)}/session/${sanitizedSession}`;
         filename = `results_student_${filters.resultStudent}_${sanitizedSession.replace(/[/\s]/g, '_')}.csv`;
       } else {
         setError('Please select valid filters for result export.');
@@ -241,26 +230,19 @@ const DataExports = () => {
       }
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      
-      // Standardize session format to match database (e.g., '2025/2026 First Term')
-      const sanitizedSession = filters.reportSession
-        .replace(/[-:]/g, '/') // Replace hyphens or colons with slashes
-        .replace(/\s+/g, ' ')  // Normalize spaces
-        .trim();
-      
-      const endpoint = `http://localhost:5000/api/reports/export/report/${filters.resultStudent}/${encodeURIComponent(sanitizedSession)}`;
-      
+      const sanitizedSession = encodeURIComponent(
+        filters.reportSession.replace(/[/:]/g, '/').replace(/\s+/g, ' ').trim()
+      );
+      const endpoint = `${API_BASE_URL}/api/reports/export/report/${encodeURIComponent(filters.resultStudent)}/${sanitizedSession}`;
       console.log('Exporting report card:', { 
         studentId: filters.resultStudent, 
         session: sanitizedSession,
         endpoint
       });
-
       const res = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob',
       });
-
       const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
       const link = document.createElement('a');
       link.href = url;
@@ -269,12 +251,10 @@ const DataExports = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
       setSuccess('Report card exported successfully.');
       setError(null);
     } catch (err) {
       let errorMessage = 'Failed to export report card.';
-      
       if (err.response) {
         if (err.response.status === 404) {
           errorMessage = 'No results found for the selected student and session.';
@@ -282,7 +262,6 @@ const DataExports = () => {
           errorMessage = err.response.data.error;
         }
       }
-      
       setError(errorMessage);
       setSuccess(null);
       console.error('ExportReportCard - Error:', {
@@ -325,11 +304,9 @@ const DataExports = () => {
           Success: {success}
         </p>
       )}
-
       <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFFFFF', backgroundColor: '#4B5320', padding: '10px', borderRadius: '4px', marginBottom: '20px' }}>
         Data Exports
       </h3>
-
       <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
         <h4 style={{ fontSize: '16px', color: '#4B5320', marginBottom: '15px', fontWeight: '600' }}>Export Students</h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
@@ -372,7 +349,6 @@ const DataExports = () => {
           </button>
         </div>
       </div>
-
       <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
         <h4 style={{ fontSize: '16px', color: '#4B5320', marginBottom: '15px', fontWeight: '600' }}>Export Results</h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
@@ -454,7 +430,6 @@ const DataExports = () => {
           </button>
         </div>
       </div>
-
       <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
         <h4 style={{ fontSize: '16px', color: '#4B5320', marginBottom: '15px', fontWeight: '600' }}>Export Report Card</h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
@@ -497,7 +472,6 @@ const DataExports = () => {
           </button>
         </div>
       </div>
-
       {user.role === 'admin' && (
         <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h4 style={{ fontSize: '16px', color: '#4B5320', marginBottom: '15px', fontWeight: '600' }}>Upload Signatures for Report Cards</h4>

@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FiAlertTriangle, FiCheckCircle, FiArrowLeft, FiTrash2, FiSearch } from 'react-icons/fi';
+
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
 const SetBatch = () => {
   const { testId } = useParams();
@@ -15,21 +17,15 @@ const SetBatch = () => {
   const [batches, setBatches] = useState([]);
   const [newBatch, setNewBatch] = useState({ name: '', start: '', end: '', students: [] });
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(location.state?.success || null);
+  const [success, setSuccess] = useLocation().state?.success || null;
   const [loading, setLoading] = useState(true);
   const [studentSearch, setStudentSearch] = useState('');
 
-  useEffect(() => {
-    if (user && user.role === 'admin') {
-      fetchTest();
-    }
-  }, [user, testId]);
-
-  const fetchTest = async () => {
+  const fetchTest = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
+      const res = await axios.get(`${API_BASE_URL}/api/tests/${testId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTest(res.data);
@@ -40,13 +36,19 @@ const SetBatch = () => {
       console.error('Fetch test error:', err.response?.data, err.response?.status);
       setLoading(false);
     }
-  };
+  }, [testId]);
+
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      fetchTest();
+    }
+  }, [user, fetchTest]);
 
   const fetchStudents = async (subject, className) => {
     try {
       console.log('Fetching students for:', { testId, subject, className });
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:5000/api/auth/students/${subject}/${className}`, {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/students/${subject}/${className}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStudents(res.data);
@@ -69,7 +71,7 @@ const SetBatch = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `http://localhost:5000/api/tests/${testId}/schedule`,
+        `${API_BASE_URL}/api/tests/${testId}/schedule`,
         { batches: [...batches, { name: newBatch.name, schedule: { start: newBatch.start, end: newBatch.end }, students: newBatch.students }] },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -89,7 +91,7 @@ const SetBatch = () => {
       const token = localStorage.getItem('token');
       const updatedBatches = batches.filter((_, i) => i !== batchIndex);
       await axios.put(
-        `http://localhost:5000/api/tests/${testId}/schedule`,
+        `${API_BASE_URL}/api/tests/${testId}/schedule`,
         { batches: updatedBatches },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -218,7 +220,6 @@ const SetBatch = () => {
           </button>
         </div>
       </header>
-
       <main style={{
         maxWidth: '1280px',
         margin: '0 auto',
@@ -256,7 +257,6 @@ const SetBatch = () => {
             <span>{success}</span>
           </div>
         )}
-
         <h2 style={{
           fontSize: '24px',
           fontWeight: '600',
@@ -265,7 +265,6 @@ const SetBatch = () => {
         }}>
           Set Batches for {test?.title} ({test?.subject}, {test?.class})
         </h2>
-
         <div style={{
           backgroundColor: '#FFFFFF',
           padding: '24px',
@@ -406,7 +405,6 @@ const SetBatch = () => {
             </button>
           </div>
         </div>
-
         {batches.length > 0 && (
           <div style={{
             backgroundColor: '#FFFFFF',

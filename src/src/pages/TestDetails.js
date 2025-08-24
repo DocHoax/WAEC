@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FiAlertTriangle, FiArrowLeft } from 'react-icons/fi';
+
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
 const TestDetails = () => {
   const { user } = useContext(AuthContext);
@@ -12,17 +14,11 @@ const TestDetails = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (user && user.role === 'admin') {
-      fetchTest();
-    }
-  }, [user, testId]);
-
-  const fetchTest = async () => {
+  const fetchTest = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
+      const res = await axios.get(`${API_BASE_URL}/api/tests/${testId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTest(res.data);
@@ -32,7 +28,13 @@ const TestDetails = () => {
       console.error('Fetch test details error:', err.response?.data, err.response?.status);
     }
     setLoading(false);
-  };
+  }, [testId]);
+
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      fetchTest();
+    }
+  }, [user, fetchTest]);
 
   if (loading) {
     return <div style={styles.loading}>Loading Test Details...</div>;

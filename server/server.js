@@ -23,11 +23,6 @@ const app = express();
 // Set timezone to WAT (Africa/Lagos)
 process.env.TZ = 'Africa/Lagos';
 
-// Create Uploads directory if it doesn't exist
-const uploadsDir = './Uploads';
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
 
 // Configure Multer for signature uploads (file-based)
 const storage = multer.diskStorage({
@@ -62,6 +57,10 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static('Uploads'));
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.url} | Params: ${JSON.stringify(req.params)} | Query: ${JSON.stringify(req.query)}`);
+  if (req.url.includes('://') || req.url.includes('(')) {
+    console.error('Malformed URL detected:', req.url);
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
   next();
 });
 
