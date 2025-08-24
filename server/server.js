@@ -15,7 +15,7 @@ const sessionsRoutes = require('./routes/sessions');
 const Signature = require('./models/Signature');
 const { auth } = require('./middleware/auth');
 const multer = require('multer');
-const path = require('path'); // Make sure this line is correct
+const path = require('path');
 const fs = require('fs');
 
 const app = express();
@@ -47,7 +47,7 @@ const upload = multer({
 });
 
 // Configure Multer for form-data fields (no files, for questions)
-const formDataUpload = multer(); // No storage needed, just parse fields
+const formDataUpload = multer();
 
 // Middleware
 app.use(cors({
@@ -61,8 +61,26 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static('Uploads'));
 app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url}`);
+  console.log(`Incoming request: ${req.method} ${req.url} | Params: ${JSON.stringify(req.params)}`);
   next();
+});
+
+// Debugging: Check all routes before mounting
+const allRoutes = [
+  ...authRoutes.stack,
+  ...questionRoutes.stack,
+  ...testRoutes.stack,
+  ...analyticsRoutes.stack,
+  ...cheatLogRoutes.stack,
+  ...classRoutes.stack,
+  ...resultsRoutes.stack,
+  ...reportsRoutes.stack,
+  ...subjectsRoutes.stack,
+  ...sessionsRoutes.stack
+];
+
+allRoutes.forEach(route => {
+  console.log(`Route: ${route.route.path} | Methods: ${Object.keys(route.route.methods)}`);
 });
 
 // Routes
@@ -129,13 +147,23 @@ app.get('/health', (req, res) => {
 
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
-  // Fix the path - use correct relative path
   app.use(express.static(path.join(__dirname, '../../build')));
-  
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../../build', 'index.html'));
   });
 }
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Global error:', {
+    message: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+    params: req.params,
+  });
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 // MongoDB connection
 const connectDB = async () => {

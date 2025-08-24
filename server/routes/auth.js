@@ -7,9 +7,8 @@ const { auth } = require('../middleware/auth');
 const { Parser } = require('json2csv');
 const multer = require('multer');
 const path = require('path');
-const mongoose = require("mongoose");
 
-
+// Configure Multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
@@ -24,22 +23,36 @@ const upload = multer({
       cb(new Error('Only .jpg, .jpeg, and .png files are allowed'), false);
     }
   },
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
 
 router.get('/me', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId)
-      .select('username name surname role class subjects enrolledSubjects blocked picture dateOfBirth address phoneNumber sex age')
-      .lean();
+    const user = await User.findById(req.user.userId).select('username name surname role class subjects enrolledSubjects blocked picture dateOfBirth address phoneNumber sex age');
     if (!user) {
       console.error('GET /api/auth/me - User not found:', req.user.userId);
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json(user);
+    console.log('GET /api/auth/me - Success:', { userId: user._id, role: user.role });
+    res.json({
+      _id: user._id,
+      username: user.username,
+      name: user.name,
+      surname: user.surname,
+      role: user.role,
+      class: user.class,
+      subjects: user.subjects,
+      enrolledSubjects: user.enrolledSubjects,
+      blocked: user.blocked,
+      picture: user.picture,
+      dateOfBirth: user.dateOfBirth,
+      address: user.address,
+      phoneNumber: user.phoneNumber,
+      sex: user.sex,
+      age: user.age,
+    });
   } catch (error) {
     console.error('GET /api/auth/me - Error:', error.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -49,24 +62,14 @@ router.post('/register', auth, upload.single('picture'), async (req, res) => {
       return res.status(403).json({ error: 'Admin access required' });
     }
     const { username, password, name, surname, role, class: className, subjects, dateOfBirth, address, phoneNumber, sex, age } = req.body;
-    if (!username || !password || !name || !surname || !role) {
-      return res.status(400).json({ error: 'Missing required fields: username, password, name, surname, role' });
-    }
     let parsedSubjects = [];
-    if (subjects) {
-      try {
-        parsedSubjects = typeof subjects === 'string' ? JSON.parse(subjects) : subjects;
-        if (!Array.isArray(parsedSubjects)) {
-          return res.status(400).json({ error: 'Subjects must be an array' });
-        }
-      } catch (err) {
-        return res.status(400).json({ error: 'Invalid subjects format' });
-      }
+    try {
+      parsedSubjects = typeof subjects === 'string' ? JSON.parse(subjects) : subjects;
+    } catch (err) {
+      return res.status(400).json({ error: 'Invalid subjects format' });
     }
     const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Username already exists' });
-    }
+    if (existingUser) return res.status(400).json({ error: 'Username exists' });
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({
       username,
@@ -74,16 +77,16 @@ router.post('/register', auth, upload.single('picture'), async (req, res) => {
       name,
       surname,
       role,
-      class: className || null,
+      class: className,
       subjects: role === 'teacher' ? parsedSubjects : [],
       enrolledSubjects: role === 'student' ? parsedSubjects : [],
       blocked: false,
       picture: req.file ? req.file.filename : '',
-      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-      address: address || '',
-      phoneNumber: phoneNumber || '',
-      sex: sex || '',
-      age: age ? Number(age) : null,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+      address,
+      phoneNumber,
+      sex,
+      age: age ? Number(age) : undefined,
     });
     await user.save();
     res.status(201).json({
@@ -107,7 +110,7 @@ router.post('/register', auth, upload.single('picture'), async (req, res) => {
     });
   } catch (error) {
     console.error('POST /api/auth/register - Error:', error.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -117,22 +120,11 @@ router.post('/register/bulk', auth, async (req, res) => {
       return res.status(403).json({ error: 'Admin access required' });
     }
     const { users } = req.body;
-    if (!Array.isArray(users) || users.length === 0) {
-      return res.status(400).json({ error: 'Users must be a non-empty array' });
-    }
     let count = 0;
-    const errors = [];
     for (const userData of users) {
       const { username, password, name, surname, role, class: className, subjects, picture } = userData;
-      if (!username || !password || !name || !surname || !role) {
-        errors.push({ username: username || 'unknown', error: 'Missing required fields' });
-        continue;
-      }
       const existingUser = await User.findOne({ username });
-      if (existingUser) {
-        errors.push({ username, error: 'Username already exists' });
-        continue;
-      }
+      if (existingUser) continue;
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = new User({
         username,
@@ -140,28 +132,25 @@ router.post('/register/bulk', auth, async (req, res) => {
         name,
         surname,
         role,
-        class: className || null,
-        subjects: role === 'teacher' ? subjects || [] : [],
-        enrolledSubjects: role === 'student' ? subjects || [] : [],
+        class: className,
+        subjects: role === 'teacher' ? subjects : [],
+        enrolledSubjects: role === 'student' ? subjects : [],
         blocked: false,
         picture: picture || '',
       });
       await user.save();
       count++;
     }
-    res.status(201).json({ message: `Bulk registration complete: ${count} users created`, count, errors: errors.length > 0 ? errors : undefined });
+    res.status(201).json({ message: 'Bulk registration complete', count });
   } catch (error) {
     console.error('POST /api/auth/register/bulk - Error:', error.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: error.message });
   }
 });
 
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-    }
     const user = await User.findOne({ username });
     if (!user) {
       console.error('POST /api/auth/login - User not found:', username);
@@ -169,7 +158,7 @@ router.post('/login', async (req, res) => {
     }
     if (user.blocked) {
       console.error('POST /api/auth/login - Account blocked:', username);
-      return res.status(403).json({ error: 'Account is blocked' });
+      return res.status(403).json({ error: 'Account blocked' });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -188,6 +177,7 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET || 'your_jwt_secret',
       { expiresIn: '1h' }
     );
+    console.log('POST /api/auth/login - Success:', { username, userId: user._id, role: user.role });
     res.json({
       token,
       user: {
@@ -209,22 +199,20 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('POST /api/auth/login - Error:', error.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: error.message });
   }
 });
 
 router.post('/refresh', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId)
-      .select('username name surname role class subjects enrolledSubjects blocked picture dateOfBirth address phoneNumber sex age')
-      .lean();
+    const user = await User.findById(req.user.userId).select('username name surname role class subjects enrolledSubjects blocked picture dateOfBirth address phoneNumber sex age');
     if (!user) {
       console.error('POST /api/auth/refresh - User not found:', req.user.userId);
       return res.status(404).json({ error: 'User not found' });
     }
     if (user.blocked) {
       console.error('POST /api/auth/refresh - Account blocked:', req.user.username);
-      return res.status(403).json({ error: 'Account is blocked' });
+      return res.status(403).json({ error: 'Account blocked' });
     }
     const token = jwt.sign(
       {
@@ -238,10 +226,11 @@ router.post('/refresh', auth, async (req, res) => {
       process.env.JWT_SECRET || 'your_jwt_secret',
       { expiresIn: '1h' }
     );
+    console.log('POST /api/auth/refresh - Success:', { username: user.username, userId: user._id });
     res.json({ token });
   } catch (error) {
     console.error('POST /api/auth/refresh - Error:', error.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -250,13 +239,11 @@ router.get('/users', auth, async (req, res) => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
-    const users = await User.find()
-      .select('username name surname role class subjects enrolledSubjects blocked picture dateOfBirth address phoneNumber sex age')
-      .lean();
+    const users = await User.find({}, 'username name surname role class subjects enrolledSubjects blocked picture dateOfBirth address phoneNumber sex age');
     res.json(users);
   } catch (error) {
     console.error('GET /api/auth/users - Error:', error.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -266,17 +253,22 @@ router.get('/students/:subject/:class', auth, async (req, res) => {
       return res.status(403).json({ error: 'Admin access required' });
     }
     const { subject, class: className } = req.params;
+    console.log('GET /api/auth/students/:subject/:class - Fetching students:', { subject, class: className, user: req.user.username });
     if (!subject || !className) {
-      console.error('GET /api/auth/students/:subject/:class - Missing subject or class:', { subject, class: className });
-      return res.status(400).json({ error: 'Subject and class are required' });
+      console.log('GET /api/auth/students/:subject/:class - Missing subject or class:', { subject, class: className });
+      return res.status(400).json({ error: 'Subject and class are required.' });
     }
     const students = await User.find({
       role: 'student',
       enrolledSubjects: { $elemMatch: { subject, class: className } },
-    }).select('_id username name surname').lean();
+    }).select('_id username name');
+    console.log('GET /api/auth/students/:subject/:class - Students fetched:', { count: students.length });
     res.json(students);
   } catch (error) {
-    console.error('GET /api/auth/students/:subject/:class - Error:', error.message);
+    console.error('GET /api/auth/students/:subject/:class - Error:', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -286,36 +278,21 @@ router.put('/users/:id', auth, upload.single('picture'), async (req, res) => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
-    const { id } = req.params;
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ error: 'Invalid user ID' });
-    }
     const { username, password, name, surname, role, class: className, subjects, dateOfBirth, address, phoneNumber, sex, age } = req.body;
     let parsedSubjects = [];
-    if (subjects) {
-      try {
-        parsedSubjects = typeof subjects === 'string' ? JSON.parse(subjects) : subjects;
-        if (!Array.isArray(parsedSubjects)) {
-          return res.status(400).json({ error: 'Subjects must be an array' });
-        }
-      } catch (err) {
-        return res.status(400).json({ error: 'Invalid subjects format' });
-      }
+    try {
+      parsedSubjects = typeof subjects === 'string' ? JSON.parse(subjects) : subjects;
+    } catch (err) {
+      return res.status(400).json({ error: 'Invalid subjects format' });
     }
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
     if (username && username !== user.username) {
       const existingUser = await User.findOne({ username });
-      if (existingUser) {
-        return res.status(400).json({ error: 'Username already exists' });
-      }
-      user.username = username;
+      if (existingUser) return res.status(400).json({ error: 'Username exists' });
     }
-    if (password) {
-      user.password = await bcrypt.hash(password, 10);
-    }
+    user.username = username || user.username;
+    if (password) user.password = await bcrypt.hash(password, 10);
     user.name = name || user.name;
     user.surname = surname || user.surname;
     user.role = role || user.role;
@@ -350,7 +327,7 @@ router.put('/users/:id', auth, upload.single('picture'), async (req, res) => {
     });
   } catch (error) {
     console.error('PUT /api/auth/users/:id - Error:', error.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -359,24 +336,15 @@ router.put('/users/:id/block', auth, async (req, res) => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
-    const { id } = req.params;
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ error: 'Invalid user ID' });
-    }
     const { blocked } = req.body;
-    if (typeof blocked !== 'boolean') {
-      return res.status(400).json({ error: 'Blocked status must be a boolean' });
-    }
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
     user.blocked = blocked;
     await user.save();
     res.json({ message: 'User block status updated', user: { _id: user._id, blocked: user.blocked } });
   } catch (error) {
     console.error('PUT /api/auth/users/:id/block - Error:', error.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -385,18 +353,12 @@ router.delete('/users/:id', auth, async (req, res) => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
-    const { id } = req.params;
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ error: 'Invalid user ID' });
-    }
-    const user = await User.findByIdAndDelete(id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ message: 'User deleted' });
   } catch (error) {
     console.error('DELETE /api/auth/users/:id - Error:', error.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -405,7 +367,7 @@ router.get('/export/students', auth, async (req, res) => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
-    const users = await User.find({ role: 'student' }).lean();
+    const users = await User.find({ role: 'student' });
     const fields = ['username', 'name', 'surname', 'class', 'enrolledSubjects', 'picture', 'dateOfBirth', 'address', 'phoneNumber', 'sex', 'age'];
     const csv = new Parser({ fields }).parse(users.map(u => ({
       username: u.username,
@@ -425,7 +387,7 @@ router.get('/export/students', auth, async (req, res) => {
     res.send(csv);
   } catch (error) {
     console.error('GET /api/auth/export/students - Error:', error.message);
-    res.status(500).json({ error: 'Server error' });
+    res.status(400).json({ error: error.message });
   }
 });
 
