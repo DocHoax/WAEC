@@ -30,8 +30,13 @@ router.get('/', auth, teacherOnly, async (req, res) => {
 });
 
 // Get single question
-router.get('/:id', auth, teacherOnly, async (req, res) => {
+router.get('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
   try {
+    console.log('GET /api/questions/:id - Request:', { id: req.params.id, url: req.url });
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      console.log('Questions route - Invalid ID:', { id: req.params.id });
+      return res.status(400).json({ error: 'Invalid question ID format' });
+    }
     const question = await Question.findById(req.params.id).select('-correctAnswer');
     if (!question) {
       console.log('Questions route - Question not found:', { id: req.params.id });
@@ -47,6 +52,7 @@ router.get('/:id', auth, teacherOnly, async (req, res) => {
       message: error.message,
       stack: error.stack,
       user: req.user.username,
+      id: req.params.id,
       timestamp: new Date().toISOString(),
     });
     res.status(400).json({ error: 'Invalid question ID or server error' });
@@ -81,7 +87,7 @@ router.get('/search', auth, teacherOnly, async (req, res) => {
 // Create question
 router.post('/', auth, teacherOnly, async (req, res) => {
   try {
-    console.log('POST /api/questions - req.body:', req.body);
+    console.log('POST /api/questions - Request:', { body: req.body, url: req.url });
     const { subject, class: className, text, options, correctAnswer, marks, tags, testId, saveToBank, formula } = req.body;
     if (!subject || !className || !text || !options || !correctAnswer || !marks) {
       return res.status(400).json({ error: 'Missing required fields: subject, class, text, options, correctAnswer, marks' });
@@ -146,6 +152,7 @@ router.post('/', auth, teacherOnly, async (req, res) => {
       message: error.message,
       stack: error.stack,
       user: req.user?.username || 'unknown',
+      url: req.url,
       timestamp: new Date().toISOString(),
     });
     res.status(400).json({ error: error.message || 'Failed to create question' });
@@ -155,7 +162,7 @@ router.post('/', auth, teacherOnly, async (req, res) => {
 // Bulk import questions
 router.post('/bulk', auth, teacherOnly, async (req, res) => {
   try {
-    console.log('POST /api/questions/bulk - req.body:', req.body);
+    console.log('POST /api/questions/bulk - Request:', { body: req.body, url: req.url });
     const { questions, testId } = req.body;
     if (!questions || !Array.isArray(questions) || questions.length === 0) {
       return res.status(400).json({ error: 'Questions must be a non-empty array' });
@@ -237,6 +244,7 @@ router.post('/bulk', auth, teacherOnly, async (req, res) => {
       message: error.message,
       stack: error.stack,
       user: req.user?.username || 'unknown',
+      url: req.url,
       timestamp: new Date().toISOString(),
     });
     res.status(400).json({ error: error.message || 'Failed to import questions' });
@@ -244,9 +252,13 @@ router.post('/bulk', auth, teacherOnly, async (req, res) => {
 });
 
 // Update question
-router.put('/:id', auth, teacherOnly, async (req, res) => {
+router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
   try {
-    console.log('PUT /api/questions/:id - req.body:', req.body);
+    console.log('PUT /api/questions/:id - Request:', { body: req.body, id: req.params.id, url: req.url });
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      console.log('Questions route - Invalid ID:', { id: req.params.id });
+      return res.status(400).json({ error: 'Invalid question ID format' });
+    }
     const { subject, class: className, text, options, correctAnswer, marks, tags, testId, saveToBank, formula } = req.body;
     if (!subject || !className || !text || !options || !correctAnswer || !marks) {
       return res.status(400).json({ error: 'Missing required fields: subject, class, text, options, correctAnswer, marks' });
@@ -310,6 +322,7 @@ router.put('/:id', auth, teacherOnly, async (req, res) => {
       stack: error.stack,
       user: req.user?.username || 'unknown',
       questionId: req.params.id,
+      url: req.url,
       timestamp: new Date().toISOString(),
     });
     res.status(400).json({ error: error.message || 'Failed to update question' });
@@ -317,8 +330,13 @@ router.put('/:id', auth, teacherOnly, async (req, res) => {
 });
 
 // Delete question
-router.delete('/:id', auth, teacherOnly, async (req, res) => {
+router.delete('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
   try {
+    console.log('DELETE /api/questions/:id - Request:', { id: req.params.id, url: req.url });
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      console.log('Questions route - Invalid ID:', { id: req.params.id });
+      return res.status(400).json({ error: 'Invalid question ID format' });
+    }
     const question = await Question.findById(req.params.id);
     if (!question) {
       console.log('Questions route - Question not found:', { id: req.params.id });
@@ -341,6 +359,7 @@ router.delete('/:id', auth, teacherOnly, async (req, res) => {
       stack: error.stack,
       user: req.user?.username || 'unknown',
       questionId: req.params.id,
+      url: req.url,
       timestamp: new Date().toISOString(),
     });
     res.status(400).json({ error: error.message || 'Failed to delete question' });

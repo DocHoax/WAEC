@@ -10,7 +10,7 @@ const path = require('path');
 
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
+  destination: (req, file, cb) => cb(null, 'Uploads/'),
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
 });
 const upload = multer({
@@ -247,13 +247,14 @@ router.get('/users', auth, async (req, res) => {
   }
 });
 
-router.get('/students/:subject/:class', auth, async (req, res) => {
+router.get('/students/:subject([a-zA-Z0-9_-]+)/:class([a-zA-Z0-9_-]+)', auth, async (req, res) => {
   try {
+    console.log('GET /api/auth/students/:subject/:class - Request:', { params: req.params, url: req.url });
     if (req.user.role !== 'admin') {
+      console.log('GET /api/auth/students/:subject/:class - Access denied:', { userId: req.user.userId });
       return res.status(403).json({ error: 'Admin access required' });
     }
     const { subject, class: className } = req.params;
-    console.log('GET /api/auth/students/:subject/:class - Fetching students:', { subject, class: className, user: req.user.username });
     if (!subject || !className) {
       console.log('GET /api/auth/students/:subject/:class - Missing subject or class:', { subject, class: className });
       return res.status(400).json({ error: 'Subject and class are required.' });
@@ -266,14 +267,16 @@ router.get('/students/:subject/:class', auth, async (req, res) => {
     res.json(students);
   } catch (error) {
     console.error('GET /api/auth/students/:subject/:class - Error:', {
-      error: error.message,
+      message: error.message,
       stack: error.stack,
+      url: req.url,
+      params: req.params,
     });
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-router.put('/users/:id', auth, upload.single('picture'), async (req, res) => {
+router.put('/users/:id([a-zA-Z0-9_-]+)', auth, upload.single('picture'), async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
@@ -331,7 +334,7 @@ router.put('/users/:id', auth, upload.single('picture'), async (req, res) => {
   }
 });
 
-router.put('/users/:id/block', auth, async (req, res) => {
+router.put('/users/:id([a-zA-Z0-9_-]+)/block', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
@@ -348,7 +351,7 @@ router.put('/users/:id/block', auth, async (req, res) => {
   }
 });
 
-router.delete('/users/:id', auth, async (req, res) => {
+router.delete('/users/:id([a-zA-Z0-9_-]+)', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
