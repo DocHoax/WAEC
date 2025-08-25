@@ -247,7 +247,8 @@ router.get('/users', auth, async (req, res) => {
   }
 });
 
-router.get('/students/:subject([a-zA-Z0-9_-]+)/:class([a-zA-Z0-9_-]+)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex patterns from route paths
+router.get('/students/:subject/:class', auth, async (req, res) => {
   try {
     console.log('GET /api/auth/students/:subject/:class - Request:', { params: req.params, url: req.url });
     if (req.user.role !== 'admin') {
@@ -276,7 +277,8 @@ router.get('/students/:subject([a-zA-Z0-9_-]+)/:class([a-zA-Z0-9_-]+)', auth, as
   }
 });
 
-router.put('/users/:id([a-zA-Z0-9_-]+)', auth, upload.single('picture'), async (req, res) => {
+// ✅ CORRECTED - Removed regex patterns from route paths
+router.put('/users/:id', auth, upload.single('picture'), async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
@@ -334,7 +336,8 @@ router.put('/users/:id([a-zA-Z0-9_-]+)', auth, upload.single('picture'), async (
   }
 });
 
-router.put('/users/:id([a-zA-Z0-9_-]+)/block', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex patterns from route paths
+router.put('/users/:id/block', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
@@ -351,7 +354,8 @@ router.put('/users/:id([a-zA-Z0-9_-]+)/block', auth, async (req, res) => {
   }
 });
 
-router.delete('/users/:id([a-zA-Z0-9_-]+)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex patterns from route paths
+router.delete('/users/:id', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });

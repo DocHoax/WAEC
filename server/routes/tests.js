@@ -164,7 +164,7 @@ router.post('/', auth, teacherOnly, async (req, res) => {
 });
 
 // Admin schedules a test
-router.put('/:id([a-zA-Z0-9_-]+)/schedule', auth, adminOnly, async (req, res) => {
+router.put('/:id([0-9a-fA-F]{24})/schedule', auth, adminOnly, async (req, res) => {
   try {
     const { batches, status } = req.body;
     console.log('Tests route - Scheduling test:', { id: req.params.id, user: req.user.username, payload: req.body });
@@ -232,7 +232,7 @@ router.put('/:id([a-zA-Z0-9_-]+)/schedule', auth, adminOnly, async (req, res) =>
     });
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({ error: errors.join(', ') });
+      return res.status(400).json({ error: `Validation failed: ${errors.join(', ')}` });
     }
     res.status(500).json({ error: 'Server error' });
   }
@@ -241,7 +241,7 @@ router.put('/:id([a-zA-Z0-9_-]+)/schedule', auth, adminOnly, async (req, res) =>
 // Fetch all tests
 router.get('/', auth, async (req, res) => {
   try {
-    console.log('Fetching tests for:', { user: req.user.username, role: req.user.role });
+    console.log('Tests route - Fetching tests:', { user: req.user.username, role: req.user.role });
     let query = {};
     if (req.user.role === 'teacher') {
       query = { 
@@ -256,16 +256,16 @@ router.get('/', auth, async (req, res) => {
         class: { $in: req.user.enrolledSubjects?.map(sub => sub.class) || [] },
       };
     } else if (req.user.role !== 'admin') {
-      console.log('Tests query - Access denied:', { user: req.user.username });
+      console.log('Tests route - Access denied:', { user: req.user.username });
       return res.status(403).json({ error: 'Access restricted to authorized users.' });
     }
     const tests = await Test.find(query).populate('createdBy', 'username');
-    console.log('Tests fetched:', { count: tests.length, testIds: tests.map(t => t._id.toString()) });
+    console.log('Tests route - Fetched:', { count: tests.length, testIds: tests.map(t => t._id.toString()) });
     return res.json(tests);
-  } catch (err) {
-    console.error('Tests query error:', {
-      error: err.message,
-      stack: err.stack
+  } catch (error) {
+    console.error('Tests route - Error:', {
+      error: error.message,
+      stack: error.stack
     });
     return res.status(500).json({ error: 'Server error' });
   }
@@ -274,25 +274,25 @@ router.get('/', auth, async (req, res) => {
 // Fetch all tests for admin
 router.get('/admin', auth, adminOnly, async (req, res) => {
   try {
-    console.log('Admin fetch tests:', { user: req.user.username });
+    console.log('Tests route - Admin fetch tests:', { user: req.user.username });
     const tests = await Test.find().populate('createdBy', 'username');
-    console.log('Admin fetched:', { count: tests.length, testIds: tests.map(t => t._id.toString()) });
+    console.log('Tests route - Admin fetched:', { count: tests.length, testIds: tests.map(t => t._id.toString()) });
     return res.json(tests);
-  } catch (err) {
-    console.error('Admin fetch error:', {
-      error: err.message,
-      stack: err.stack
+  } catch (error) {
+    console.error('Tests route - Error:', {
+      error: error.message,
+      stack: error.stack
     });
     return res.status(500).json({ error: 'Server error' });
   }
 });
 
 // Fetch a specific test
-router.get('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
+router.get('/:testId([0-9a-fA-F]{24})', auth, async (req, res) => {
   try {
-    console.log('Fetching test:', { testId: req.params.testId, user: req.user.username, userId: req.user.userId });
+    console.log('Tests route - Fetching test:', { testId: req.params.testId, user: req.user.username, userId: req.user.userId });
     if (!mongoose.isValidObjectId(req.params.testId)) {
-      console.log('Invalid test ID:', { testId: req.params.testId });
+      console.log('Tests route - Invalid test ID:', { testId: req.params.testId });
       return res.status(400).json({ error: 'Invalid test ID format.' });
     }
     const test = await Test.findById(req.params.testId).populate({
@@ -305,7 +305,7 @@ router.get('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
       }
     }).populate('createdBy', 'username').lean();
     if (!test) {
-      console.log('Test not found:', { testId: req.params.testId });
+      console.log('Tests route - Test not found:', { testId: req.params.testId });
       return res.status(404).json({ error: 'Test not found.' });
     }
     test.questions = (test.questions || []).filter(
@@ -316,7 +316,7 @@ router.get('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
            typeof q.correctAnswer === 'string' && q.correctAnswer.trim()
     );
     if (req.user.role === 'teacher' && !req.user.subjects.some(sub => sub.subject === test.subject && sub.class === test.class)) {
-      console.log('Not assigned:', { user: req.user.username, subject: test.subject, class: test.class });
+      console.log('Tests route - Not assigned:', { user: req.user.username, subject: test.subject, class: test.class });
       return res.status(403).json({ error: 'You are not assigned to this test\'s subject/class.' });
     }
     if (req.user.role === 'student') {
@@ -324,7 +324,7 @@ router.get('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
         b.students.some(id => id.equals(new mongoose.Types.ObjectId(req.user.userId)))
       );
       if (!batch) {
-        console.log('Student not in batch:', { 
+        console.log('Tests route - Student not in batch:', { 
           userId: req.user.userId, 
           batches: test.batches?.map(b => ({ name: b.name, students: b.students })) 
         });
@@ -334,7 +334,7 @@ router.get('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
       const start = new Date(batch.schedule.start);
       const end = new Date(batch.schedule.end);
       if (now < start || now > end) {
-        console.log('Test not available:', { 
+        console.log('Tests route - Test not available:', { 
           userId: req.user.userId, 
           now: now.toISOString(), 
           start: start.toISOString(), 
@@ -351,7 +351,7 @@ router.get('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
         marks: q.marks,
       }));
     }
-    console.log('Test fetch success:', { 
+    console.log('Tests route - Fetch success:', { 
       testId: test._id, 
       questionCount: test.questions.length, 
       totalMarks: test.totalMarks,
@@ -360,7 +360,7 @@ router.get('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
     });
     res.json(test);
   } catch (error) {
-    console.error('Test fetch error:', {
+    console.error('Tests route - Error:', {
       error: error.message,
       testId: req.params.testId,
       user: req.user.username,
@@ -372,24 +372,24 @@ router.get('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
 });
 
 // Fetch test results
-router.get('/:testId([a-zA-Z0-9_-]+)/results', auth, async (req, res) => {
+router.get('/:testId([0-9a-fA-F]{24})/results', auth, async (req, res) => {
   try {
-    console.log('Fetching results:', { testId: req.params.testId, user: req.user.username, role: req.user.role });
+    console.log('Tests route - Fetching results:', { testId: req.params.testId, user: req.user.username, role: req.user.role });
     if (!mongoose.isValidObjectId(req.params.testId)) {
-      console.log('Invalid test ID:', { testId: req.params.testId });
+      console.log('Tests route - Invalid test ID:', { testId: req.params.testId });
       return res.status(400).json({ error: 'Invalid test ID format.' });
     }
     const test = await Test.findById(req.params.testId);
     if (!test) {
-      console.log('Test not found:', { testId: req.params.testId });
+      console.log('Tests route - Test not found:', { testId: req.params.testId });
       return res.status(404).json({ error: 'Test not found.' });
     }
     if (req.user.role === 'student') {
-      console.log('Access denied:', { user: req.user.username });
+      console.log('Tests route - Access denied:', { user: req.user.username });
       return res.status(403).json({ error: 'Students cannot view test results.' });
     }
     if (req.user.role === 'teacher' && !req.user.subjects.some(sub => sub.subject === test.subject && sub.class === test.class)) {
-      console.log('Not assigned:', { user: req.user.username });
+      console.log('Tests route - Not assigned:', { user: req.user.username });
       return res.status(403).json({ error: 'You are not assigned to this test\'s subject/class.' });
     }
     const results = await Result.find({ testId: req.params.testId })
@@ -398,10 +398,10 @@ router.get('/:testId([a-zA-Z0-9_-]+)/results', auth, async (req, res) => {
         path: 'testId',
         populate: { path: 'questions', select: '_id text correctAnswer marks' }
       });
-    console.log('Results fetched:', { count: results.length, testId: req.params.testId });
+    console.log('Tests route - Results fetched:', { count: results.length, testId: req.params.testId });
     res.json(results);
   } catch (error) {
-    console.error('Results fetch error:', {
+    console.error('Tests route - Error:', {
       error: error.message,
       testId: req.params.testId,
       user: req.user.username,
@@ -412,16 +412,16 @@ router.get('/:testId([a-zA-Z0-9_-]+)/results', auth, async (req, res) => {
 });
 
 // Submit test answers
-router.post('/:id([a-zA-Z0-9_-]+)/submit', auth, async (req, res) => {
+router.post('/:id([0-9a-fA-F]{24})/submit', auth, async (req, res) => {
   try {
     const { answers, userId } = req.body;
-    console.log('Submitting test:', { testId: req.params.id, userId });
+    console.log('Tests route - Submitting test:', { testId: req.params.id, userId });
     if (!mongoose.isValidObjectId(req.params.id)) {
-      console.log('Invalid test ID:', { testId: req.params.id });
+      console.log('Tests route - Invalid test ID:', { testId: req.params.id });
       return res.status(400).json({ error: 'Invalid test ID format.' });
     }
     if (!mongoose.isValidObjectId(userId)) {
-      console.log('Invalid user ID:', { userId });
+      console.log('Tests route - Invalid user ID:', { userId });
       return res.status(400).json({ error: 'Invalid user ID format.' });
     }
     const test = await Test.findById(req.params.id).populate({
@@ -434,38 +434,38 @@ router.post('/:id([a-zA-Z0-9_-]+)/submit', auth, async (req, res) => {
       }
     });
     if (!test) {
-      console.log('Test not found:', { testId: req.params.id });
+      console.log('Tests route - Test not found:', { testId: req.params.id });
       return res.status(404).json({ error: 'Test not found.' });
     }
     if (test.status !== 'scheduled') {
-      console.log('Test not scheduled:', { testId: req.params.id });
+      console.log('Tests route - Test not scheduled:', { testId: req.params.id });
       return res.status(403).json({ error: 'Test is not scheduled.' });
     }
     const batch = test.batches?.find(b => 
       b.students.some(id => id.equals(new mongoose.Types.ObjectId(userId)))
     );
     if (!batch) {
-      console.log('Student not in batch:', { userId });
+      console.log('Tests route - Student not in batch:', { userId });
       return res.status(403).json({ error: 'You are not assigned to this test.' });
     }
     const now = new Date();
     if (now < new Date(batch.schedule.start) || now > new Date(batch.schedule.end)) {
-      console.log('Test not available:', { userId, start: batch.schedule.start, end: batch.schedule.end });
+      console.log('Tests route - Test not available:', { userId, start: batch.schedule.start, end: batch.schedule.end });
       return res.status(403).json({ error: 'Test not available at this time.' });
     }
     if (
       req.user.role === 'student' &&
       !req.user.enrolledSubjects.some(sub => sub.subject === test.subject && sub.class === test.class)
     ) {
-      console.log('Not enrolled:', { user: req.user.username, subject: test.subject, class: test.class });
+      console.log('Tests route - Not enrolled:', { user: req.user.username, subject: test.subject, class: test.class });
       return res.status(403).json({ error: 'You are not enrolled in this subject/class.' });
     }
     if (test.questions.length === 0) {
-      console.log('No valid questions:', { testId: test._id, questionCount: test.questionCount });
+      console.log('Tests route - No valid questions:', { testId: test._id, questionCount: test.questionCount });
       return res.status(400).json({ error: 'No valid questions available for this test.' });
     }
     if (test.questions.length !== test.questionCount) {
-      console.log('Question count mismatch:', { testId: test._id, questions: test.questions.length, questionCount: test.questionCount });
+      console.log('Tests route - Question count mismatch:', { testId: test._id, questions: test.questions.length, questionCount: test.questionCount });
       return res.status(400).json({ error: 'Test questions do not match the specified question count.' });
     }
     let score = 0;
@@ -489,12 +489,13 @@ router.post('/:id([a-zA-Z0-9_-]+)/submit', auth, async (req, res) => {
       session: test.session,
     });
     await result.save();
-    console.log('Submission success:', { testId: req.params.id, score, totalMarks: test.totalMarks });
+    console.log('Tests route - Submission success:', { testId: req.params.id, score, totalMarks: test.totalMarks });
     res.json({ message: 'Test submitted' });
   } catch (error) {
-    console.error('Submission error:', {
+    console.error('Tests route - Error:', {
       error: error.message,
-      request: req.body,
+      testId: req.params.id,
+      userId: req.body.userId,
       stack: error.stack
     });
     res.status(500).json({ error: 'Server error' });
@@ -502,21 +503,21 @@ router.post('/:id([a-zA-Z0-9_-]+)/submit', auth, async (req, res) => {
 });
 
 // Teacher updates a test
-router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
+router.put('/:id([0-9a-fA-F]{24})', auth, teacherOnly, async (req, res) => {
   try {
     const { title, subject, class: className, session, instructions, duration, randomize, questions, questionCount, totalMarks, questionMarks } = req.body;
-    console.log('Updating test:', { id: req.params.id, user: req.user.username, payload: req.body });
+    console.log('Tests route - Updating test:', { id: req.params.id, user: req.user.username, payload: req.body });
     if (!mongoose.isValidObjectId(req.params.id)) {
-      console.log('Invalid test ID:', { id: req.params.id });
+      console.log('Tests route - Invalid test ID:', { id: req.params.id });
       return res.status(400).json({ error: 'Invalid test ID format.' });
     }
     const test = await Test.findById(req.params.id);
     if (!test) {
-      console.log('Test not found:', { id: req.params.id });
+      console.log('Tests route - Test not found:', { id: req.params.id });
       return res.status(404).json({ error: 'Test not found.' });
     }
     if (!req.user.subjects.some(sub => sub.subject === test.subject && sub.class === test.class)) {
-      console.log('Not assigned:', { user: req.user.username, subject: test.subject, class: test.class });
+      console.log('Tests route - Not assigned:', { user: req.user.username, subject: test.subject, class: test.class });
       return res.status(403).json({ error: 'You are not assigned to this test\'s subject/class.' });
     }
     const invalidFields = [];
@@ -524,24 +525,24 @@ router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
     if (subject !== undefined && (typeof subject !== 'string' || subject.trim() === '')) invalidFields.push('subject');
     if (className !== undefined && (typeof className !== 'string' || className.trim() === '')) invalidFields.push('class');
     if (duration !== undefined && (isNaN(Number(duration)) || Number(duration) < 1)) invalidFields.push('duration');
-    if (session !== undefined && (typeof session !== 'string' || session.trim() === '')) invalidFields.push('session');
+    if (session !== undefined && (typeof session !== 'string' || !session.match(/^\d{4}\/\d{4} (First|Second|Third) Term$/))) invalidFields.push('session');
     if (questionCount !== undefined && (isNaN(Number(questionCount)) || Number(questionCount) < 1)) invalidFields.push('questionCount');
     if (totalMarks !== undefined && (isNaN(Number(totalMarks)) || Number(totalMarks) < 1)) invalidFields.push('totalMarks');
     if (invalidFields.length > 0) {
-      console.log('Invalid fields:', invalidFields);
+      console.log('Tests route - Invalid fields:', invalidFields);
       return res.status(400).json({ error: `Invalid fields: ${invalidFields.join(', ')}` });
     }
     if (title !== undefined && !['Continuous Assessment 1 (CA 1)', 'Continuous Assessment 2 (CA 2)', 'Examination'].includes(title)) {
-      console.log('Invalid title:', title);
+      console.log('Tests route - Invalid title:', title);
       return res.status(400).json({ error: 'Title must be Continuous Assessment 1 (CA 1), Continuous Assessment 2 (CA 2), or Examination.' });
     }
     if (totalMarks !== undefined) {
       if (title && title.includes('CA') && Number(totalMarks) !== 20) {
-        console.log('Invalid totalMarks for CA:', totalMarks);
+        console.log('Tests route - Invalid totalMarks for CA:', totalMarks);
         return res.status(400).json({ error: 'Continuous Assessments must have exactly 20 marks.' });
       }
       if (title && title === 'Examination' && Number(totalMarks) !== 60) {
-        console.log('Invalid totalMarks for Examination:', totalMarks);
+        console.log('Tests route - Invalid totalMarks for Examination:', totalMarks);
         return res.status(400).json({ error: 'Examinations must have exactly 60 marks.' });
       }
     }
@@ -549,19 +550,19 @@ router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
     const parsedDuration = duration !== undefined ? Number(duration) : test.duration;
     const parsedTotalMarks = totalMarks !== undefined ? Number(totalMarks) : test.totalMarks;
     if (subject && className && !req.user.subjects.some(sub => sub.subject === subject && sub.class === className)) {
-      console.log('Not assigned:', { user: req.user.username, subject, class: className });
+      console.log('Tests route - Not assigned:', { user: req.user.username, subject, class: className });
       return res.status(403).json({ error: 'You are not assigned to this subject/class.' });
     }
     if (questions && questions.length > 0) {
       const questionDocs = await Question.find({ _id: { $in: questions.map(id => new mongoose.Types.ObjectId(id)) } });
       if (questionDocs.length !== questions.length) {
-        console.log('Invalid question IDs:', { questions });
+        console.log('Tests route - Invalid question IDs:', { questions });
         return res.status(400).json({ error: 'One or more question IDs are invalid.' });
       }
       const testSubject = subject || test.subject;
       const testClass = className || test.class;
       if (!questionDocs.every(q => q.subject === testSubject && q.class === testClass)) {
-        console.log('Questions mismatch:', { subject: testSubject, class: testClass });
+        console.log('Tests route - Questions mismatch:', { subject: testSubject, class: testClass });
         return res.status(400).json({ error: 'Questions must match test subject and class.' });
       }
       if (!questionDocs.every(q => 
@@ -573,7 +574,7 @@ router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
         typeof q.correctAnswer === 'string' && 
         q.correctAnswer.trim()
       )) {
-        console.log('Invalid question data:', {
+        console.log('Tests route - Invalid question data:', {
           invalidQuestions: questionDocs
             .filter(q => 
               !Array.isArray(q.options) || 
@@ -589,7 +590,7 @@ router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
         return res.status(400).json({ error: 'All questions must have valid text, non-empty options array, and a correct answer.' });
       }
       if (questions.length > parsedQuestionCount) {
-        console.log('Too many questions:', { parsedQuestionCount, questionsLength: questions.length });
+        console.log('Tests route - Too many questions:', { parsedQuestionCount, questionsLength: questions.length });
         return res.status(400).json({ error: `Number of questions (${questions.length}) exceeds question count (${parsedQuestionCount}).` });
       }
       if (questionMarks && Array.isArray(questionMarks)) {
@@ -616,11 +617,12 @@ router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
     if (questionCount !== undefined) test.questionCount = parsedQuestionCount;
     if (totalMarks !== undefined) test.totalMarks = parsedTotalMarks;
     await test.save();
-    console.log('Test updated:', { testId: test._id, status: test.status, questionCount: test.questions.length, totalMarks, questionMarks });
+    console.log('Tests route - Test updated:', { testId: test._id, status: test.status, questionCount: test.questions.length, totalMarks, questionMarks });
     res.json(test);
   } catch (error) {
-    console.error('Test update error:', {
+    console.error('Tests route - Error:', {
       error: error.message,
+      testId: req.params.id,
       request: req.body,
       stack: error.stack
     });
@@ -633,38 +635,38 @@ router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
 });
 
 // Teacher adds or updates questions for a test
-router.put('/:id([a-zA-Z0-9_-]+)/questions', auth, teacherOnly, async (req, res) => {
+router.put('/:id([0-9a-fA-F]{24})/questions', auth, teacherOnly, async (req, res) => {
   try {
     const { questions, questionMarks } = req.body;
-    console.log('Updating questions:', { id: req.params.id, user: req.user.username, questionCount: questions?.length, questions: questions?.map(id => id.toString()), questionMarks });
+    console.log('Tests route - Updating questions:', { id: req.params.id, user: req.user.username, questionCount: questions?.length, questions: questions?.map(id => id.toString()), questionMarks });
     if (!mongoose.isValidObjectId(req.params.id)) {
-      console.log('Invalid test ID:', { id: req.params.id });
+      console.log('Tests route - Invalid test ID:', { id: req.params.id });
       return res.status(400).json({ error: 'Invalid test ID format.' });
     }
     const test = await Test.findById(req.params.id);
     if (!test) {
-      console.log('Test not found:', { id: req.params.id });
+      console.log('Tests route - Test not found:', { id: req.params.id });
       return res.status(404).json({ error: 'Test not found.' });
     }
     if (!req.user.subjects.some(sub => sub.subject === test.subject && sub.class === test.class)) {
-      console.log('Not assigned:', { user: req.user.username, subject: test.subject, class: test.class });
+      console.log('Tests route - Not assigned:', { user: req.user.username, subject: test.subject, class: test.class });
       return res.status(403).json({ error: 'You are not assigned to this test\'s subject/class.' });
     }
     if (!Array.isArray(questions)) {
-      console.log('Invalid questions format:', { questions });
+      console.log('Tests route - Invalid questions format:', { questions });
       return res.status(400).json({ error: 'Questions must be an array.' });
     }
     if (questions.length > test.questionCount) {
-      console.log('Too many questions:', { questionCount: test.questionCount, questionsLength: questions.length });
+      console.log('Tests route - Too many questions:', { questionCount: test.questionCount, questionsLength: questions.length });
       return res.status(400).json({ error: `Number of questions (${questions.length}) exceeds question count (${test.questionCount}).` });
     }
     const questionDocs = await Question.find({ _id: { $in: questions.map(id => new mongoose.Types.ObjectId(id)) } });
     if (questionDocs.length !== questions.length) {
-      console.log('Invalid question IDs:', { questions });
+      console.log('Tests route - Invalid question IDs:', { questions });
       return res.status(400).json({ error: 'One or more question IDs are invalid.' });
     }
     if (!questionDocs.every(q => q.subject === test.subject && q.class === test.class)) {
-      console.log('Questions mismatch:', { subject: test.subject, class: test.class });
+      console.log('Tests route - Questions mismatch:', { subject: test.subject, class: test.class });
       return res.status(400).json({ error: 'Questions must match test subject and class.' });
     }
     if (!questionDocs.every(q => 
@@ -676,7 +678,7 @@ router.put('/:id([a-zA-Z0-9_-]+)/questions', auth, teacherOnly, async (req, res)
       typeof q.correctAnswer === 'string' && 
       q.correctAnswer.trim()
     )) {
-      console.log('Invalid question data:', {
+      console.log('Tests route - Invalid question data:', {
         invalidQuestions: questionDocs
           .filter(q => 
             !Array.isArray(q.options) || 
@@ -692,22 +694,23 @@ router.put('/:id([a-zA-Z0-9_-]+)/questions', auth, teacherOnly, async (req, res)
       return res.status(400).json({ error: 'All questions must have valid text, non-empty options array, and a correct answer.' });
     }
     if (!Array.isArray(questionMarks) || questionMarks.length !== questions.length) {
-      console.log('Invalid questionMarks:', { questionMarks, expectedLength: questions.length });
+      console.log('Tests route - Invalid questionMarks:', { questionMarks, expectedLength: questions.length });
       return res.status(400).json({ error: 'Question marks must be an array matching the number of questions.' });
     }
     const totalMarksSum = questionMarks.reduce((sum, mark) => sum + Number(mark), 0);
     if (totalMarksSum !== test.totalMarks) {
-      console.log('Invalid total marks:', { totalMarksSum, expected: test.totalMarks });
+      console.log('Tests route - Invalid total marks:', { totalMarksSum, expected: test.totalMarks });
       return res.status(400).json({ error: `Sum of question marks (${totalMarksSum}) must equal total marks (${test.totalMarks}).` });
     }
     test.questions = questions.map(id => new mongoose.Types.ObjectId(id));
     test.questionMarks = questionMarks;
     await test.save();
-    console.log('Questions updated:', { testId: test._id, status: test.status, questionCount: questions.length, questionMarks });
+    console.log('Tests route - Questions updated:', { testId: test._id, status: test.status, questionCount: questions.length, questionMarks });
     res.json(test);
   } catch (error) {
-    console.error('Questions update error:', {
+    console.error('Tests route - Error:', {
       error: error.message,
+      testId: req.params.id,
       request: req.body,
       stack: error.stack
     });
@@ -720,9 +723,9 @@ router.put('/:id([a-zA-Z0-9_-]+)/questions', auth, teacherOnly, async (req, res)
 });
 
 // Delete a test
-router.delete('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
+router.delete('/:testId([0-9a-fA-F]{24})', auth, async (req, res) => {
   try {
-    console.log('Deleting test:', { 
+    console.log('Tests route - Deleting test:', { 
       testId: req.params.testId, 
       user: req.user.username, 
       role: req.user.role, 
@@ -730,17 +733,17 @@ router.delete('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
       subjects: req.user.subjects 
     });
     if (!mongoose.isValidObjectId(req.params.testId)) {
-      console.log('Invalid test ID:', { testId: req.params.testId });
+      console.log('Tests route - Invalid test ID:', { testId: req.params.testId });
       return res.status(400).json({ error: 'Invalid test ID format.' });
     }
     const test = await Test.findById(req.params.testId);
     if (!test) {
-      console.log('Test not found:', { testId: req.params.testId });
+      console.log('Tests route - Test not found:', { testId: req.params.testId });
       return res.status(404).json({ error: 'Test not found.' });
     }
     if (req.user.role !== 'admin') {
       if (!req.user.subjects.some(sub => sub.subject === test.subject && sub.class === test.class)) {
-        console.log('Access denied - Not assigned:', { 
+        console.log('Tests route - Access denied - Not assigned:', { 
           user: req.user.username, 
           role: req.user.role, 
           subject: test.subject, 
@@ -749,7 +752,7 @@ router.delete('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
         return res.status(403).json({ error: 'Access restricted to test creator or admins.' });
       }
       if (test.status !== 'draft') {
-        console.log('Cannot delete non-draft test:', { 
+        console.log('Tests route - Cannot delete non-draft test:', { 
           testId: req.params.testId, 
           status: test.status 
         });
@@ -758,10 +761,10 @@ router.delete('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
     }
     await Test.deleteOne({ _id: req.params.testId });
     await Result.deleteMany({ testId: req.params.testId });
-    console.log('Deleted test and results:', { testId: req.params.testId });
+    console.log('Tests route - Deleted test and results:', { testId: req.params.testId });
     res.json({ message: 'Test and related results deleted successfully.' });
   } catch (error) {
-    console.error('Delete error:', {
+    console.error('Tests route - Error:', {
       error: error.message,
       testId: req.params.testId,
       user: req.user.username,
@@ -773,49 +776,54 @@ router.delete('/:testId([a-zA-Z0-9_-]+)', auth, async (req, res) => {
 });
 
 // Update test results
-router.put('/results/:resultId([a-zA-Z0-9_-]+)', auth, adminOnly, async (req, res) => {
+router.put('/results/:resultId([0-9a-fA-F]{24})', auth, adminOnly, async (req, res) => {
   try {
     const { score, answers, correctness } = req.body;
-    console.log('Updating result:', { resultId: req.params.resultId, user: req.user.username });
+    console.log('Tests route - Updating result:', { resultId: req.params.resultId, user: req.user.username });
     if (!mongoose.isValidObjectId(req.params.resultId)) {
-      console.log('Invalid result ID:', { resultId: req.params.resultId });
+      console.log('Tests route - Invalid result ID:', { resultId: req.params.resultId });
       return res.status(400).json({ error: 'Invalid result ID format.' });
     }
     const result = await Result.findById(req.params.resultId);
     if (!result) {
-      console.log('Result not found:', { resultId: req.params.resultId });
+      console.log('Tests route - Result not found:', { resultId: req.params.resultId });
       return res.status(404).json({ error: 'Result not found.' });
     }
     if (score !== undefined) {
       if (isNaN(score) || score < 0 || score > result.totalMarks) {
-        console.log('Invalid score:', { score, totalMarks: result.totalMarks });
+        console.log('Tests route - Invalid score:', { score, totalMarks: result.totalMarks });
         return res.status(400).json({ error: 'Score must be a number between 0 and total marks.' });
       }
       result.score = score;
     }
     if (answers !== undefined) {
       if (typeof answers !== 'object' || answers === null) {
-        console.log('Invalid answers:', { answers });
+        console.log('Tests route - Invalid answers:', { answers });
         return res.status(400).json({ error: 'Answers must be an object.' });
       }
       result.answers = answers;
     }
     if (correctness !== undefined) {
-      if (typeof correctness !== 'object' || correctness === null) {
-        console.log('Invalid correctness:', { correctness });
-        return res.status(400).json({ error: 'Correctness must be an object.' });
+      if (!(correctness instanceof Map) && (typeof correctness !== 'object' || correctness === null)) {
+        console.log('Tests route - Invalid correctness:', { correctness });
+        return res.status(400).json({ error: 'Correctness must be an object or Map.' });
       }
-      result.correctness = correctness;
+      result.correctness = correctness instanceof Map ? Object.fromEntries(correctness) : correctness;
     }
     await result.save();
-    console.log('Result updated:', { resultId: result._id });
+    console.log('Tests route - Result updated:', { resultId: result._id });
     res.json(result);
   } catch (error) {
-    console.error('Result update error:', {
+    console.error('Tests route - Error:', {
       error: error.message,
       resultId: req.params.resultId,
+      user: req.user.username,
       stack: error.stack
     });
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ error: `Validation failed: ${errors.join(', ')}` });
+    }
     res.status(500).json({ error: 'Server error' });
   }
 });

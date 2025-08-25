@@ -346,6 +346,7 @@ const addFooter = (doc) => {
 };
 
 // Main Route
+// ✅ CORRECTED - Removed regex patterns from route path
 router.get('/export/report/:studentId/:session', auth, async (req, res) => {
   try {
     console.log('ReportCard - Starting:', { user: req.user.username, studentId: req.params.studentId, session: req.params.session, timestamp: new Date().toLocaleString('en-GB', { timeZone: 'Africa/Lagos' }) });

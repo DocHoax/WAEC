@@ -28,7 +28,8 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-router.get('/:testId([a-fA-F0-9]{24})', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.get('/:testId', auth, async (req, res) => {
   try {
     console.log('GET /api/results/:testId - Request:', { testId: req.params.testId, url: req.url });
     if (!mongoose.isValidObjectId(req.params.testId)) {
@@ -63,7 +64,8 @@ router.get('/:testId([a-fA-F0-9]{24})', auth, async (req, res) => {
   }
 });
 
-router.get('/details/:resultId([a-fA-F0-9]{24})', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.get('/details/:resultId', auth, async (req, res) => {
   try {
     console.log('GET /api/results/details/:resultId - Request:', { resultId: req.params.resultId, url: req.url });
     if (!mongoose.isValidObjectId(req.params.resultId)) {
@@ -98,7 +100,8 @@ router.get('/details/:resultId([a-fA-F0-9]{24})', auth, async (req, res) => {
   }
 });
 
-router.put('/:id([a-fA-F0-9]{24})', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.put('/:id', auth, async (req, res) => {
   try {
     console.log('PUT /api/results/:id - Request:', { id: req.params.id, url: req.url });
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -127,7 +130,8 @@ router.put('/:id([a-fA-F0-9]{24})', auth, async (req, res) => {
   }
 });
 
-router.get('/export/student/:studentId([a-fA-F0-9]{24})/session/:sessionId([a-zA-Z0-9_/ -]+)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex patterns from route path
+router.get('/export/student/:studentId/session/:sessionId', auth, async (req, res) => {
   try {
     console.log('GET /api/results/export/student/:studentId/session/:sessionId - Request:', { params: req.params, url: req.url });
     const { studentId, sessionId } = req.params;
@@ -205,7 +209,8 @@ router.get('/export/student/:studentId([a-fA-F0-9]{24})/session/:sessionId([a-zA
   }
 });
 
-router.get('/export/class/:className([a-zA-Z0-9_-]{1,50})/subject/:subjectId([a-zA-Z0-9_-]{1,50}|all)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex patterns from route path
+router.get('/export/class/:className/subject/:subjectId', auth, async (req, res) => {
   try {
     console.log('GET /api/results/export/class/:className/subject/:subjectId - Request:', {
       params: req.params,
@@ -287,7 +292,8 @@ router.get('/export/class/:className([a-zA-Z0-9_-]{1,50})/subject/:subjectId([a-
   }
 });
 
-router.get('/export/report/:className([a-zA-Z0-9_-]{1,50})/:subjectId([a-zA-Z0-9_-]{1,50}|all)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex patterns from route path
+router.get('/export/report/:className/:subjectId', auth, async (req, res) => {
   try {
     console.log('GET /api/results/export/report/:className/:subjectId - Request:', { params: req.params, url: req.url });
     const { className, subjectId } = req.params;
@@ -346,7 +352,8 @@ router.get('/export/report/:className([a-zA-Z0-9_-]{1,50})/:subjectId([a-zA-Z0-9
   }
 });
 
-router.get('/export/student/:studentId([a-fA-F0-9]{24})/test/:testId([a-fA-F0-9]{24})', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex patterns from route path
+router.get('/export/student/:studentId/test/:testId', auth, async (req, res) => {
   try {
     console.log('GET /api/results/export/student/:studentId/test/:testId - Request:', { params: req.params, url: req.url });
     const { studentId, testId } = req.params;
@@ -365,7 +372,7 @@ router.get('/export/student/:studentId([a-fA-F0-9]{24})/test/:testId([a-fA-F0-9]
       if (!test) {
         console.log('GET /api/results/export/student/:studentId/test/:testId - Test not found:', { testId });
         return res.status(404).json({ error: 'Test not found' });
-      }
+    }
       if (!req.user.subjects.some((sub) => sub.subject === test.subject && sub.class === test.class)) {
         console.log('GET /api/results/export/student/:studentId/test/:testId - Not assigned:', { user: req.user.username, subject: test.subject, class: test.class });
         return res.status(403).json({ error: 'Not assigned to this subject/class' });

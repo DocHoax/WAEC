@@ -53,56 +53,36 @@ app.use((req, res, next) => {
   next();
 });
 
-// Load only the working routes for now
-try {
-  console.log('Loading cheat-logs routes...');
-  const cheatLogRoutes = require('./routes/cheat-logs');
-  app.use('/api/cheat-logs', cheatLogRoutes);
-  console.log('✅ Successfully loaded cheat-logs routes');
-} catch (error) {
-  console.error('❌ Error loading cheat-logs routes:', error.message);
-}
+// Load routes one by one to identify the problematic one
+const routesToLoad = [
+  { name: 'auth', path: './routes/auth', mount: '/api/auth' },
+  { name: 'questions', path: './routes/questions', mount: '/api/questions' },
+  { name: 'tests', path: './routes/tests', mount: '/api/tests' },
+  { name: 'analytics', path: './routes/analytics', mount: '/api/analytics' },
+  { name: 'cheat-logs', path: './routes/cheat-logs', mount: '/api/cheat-logs' },
+  { name: 'classes', path: './routes/classes', mount: '/api/classes' },
+  { name: 'results', path: './routes/results', mount: '/api/results' },
+  { name: 'reports', path: './routes/reports', mount: '/api/reports' },
+  { name: 'subjects', path: './routes/subjects', mount: '/api/subjects' },
+  { name: 'sessions', path: './routes/sessions', mount: '/api/sessions' }
+];
 
-try {
-  console.log('Loading subjects routes...');
-  const subjectsRoutes = require('./routes/subjects');
-  app.use('/api/subjects', subjectsRoutes);
-  console.log('✅ Successfully loaded subjects routes');
-} catch (error) {
-  console.error('❌ Error loading subjects routes:', error.message);
-}
-
-// Temporary placeholder routes for the broken ones
-app.use('/api/auth', (req, res) => {
-  res.status(503).json({ error: 'Auth routes temporarily unavailable - being fixed' });
-});
-
-app.use('/api/questions', (req, res) => {
-  res.status(503).json({ error: 'Questions routes temporarily unavailable - being fixed' });
-});
-
-app.use('/api/tests', (req, res) => {
-  res.status(503).json({ error: 'Tests routes temporarily unavailable - being fixed' });
-});
-
-app.use('/api/analytics', (req, res) => {
-  res.status(503).json({ error: 'Analytics routes temporarily unavailable - being fixed' });
-});
-
-app.use('/api/classes', (req, res) => {
-  res.status(503).json({ error: 'Classes routes temporarily unavailable - being fixed' });
-});
-
-app.use('/api/results', (req, res) => {
-  res.status(503).json({ error: 'Results routes temporarily unavailable - being fixed' });
-});
-
-app.use('/api/reports', (req, res) => {
-  res.status(503).json({ error: 'Reports routes temporarily unavailable - being fixed' });
-});
-
-app.use('/api/sessions', (req, res) => {
-  res.status(503).json({ error: 'Sessions routes temporarily unavailable - being fixed' });
+routesToLoad.forEach(({ name, path: routePath, mount }) => {
+  try {
+    console.log(`Loading ${name} routes from ${routePath}...`);
+    const routeModule = require(routePath);
+    
+    if (name === 'questions') {
+      app.use(mount, formDataUpload.any(), routeModule);
+    } else {
+      app.use(mount, routeModule);
+    }
+    console.log(`✅ Successfully loaded ${name} routes`);
+  } catch (error) {
+    console.error(`❌ Error loading ${name} routes:`, error.message);
+    console.error(`Stack trace:`, error.stack);
+    // Don't exit, continue with other routes
+  }
 });
 
 // Manual signature upload route
@@ -153,12 +133,7 @@ app.post('/api/signatures/upload', auth, upload.fields([
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
-    message: 'Server is running', 
-    workingRoutes: ['cheat-logs', 'subjects', 'signatures'],
-    brokenRoutes: ['auth', 'questions', 'tests', 'analytics', 'classes', 'results', 'reports', 'sessions']
-  });
+  res.status(200).json({ status: 'OK', message: 'Server is running' });
 });
 
 // Serve static files from React build in production

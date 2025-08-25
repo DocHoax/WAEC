@@ -36,7 +36,8 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-router.put('/:id([a-zA-Z0-9_-]+)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.put('/:id', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       console.log('Exams route - Access denied:', { userId: req.user.userId });
@@ -60,7 +61,8 @@ router.put('/:id([a-zA-Z0-9_-]+)', auth, async (req, res) => {
   }
 });
 
-router.delete('/:id([a-zA-Z0-9_-]+)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.delete('/:id', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       console.log('Exams route - Access denied:', { userId: req.user.userId });

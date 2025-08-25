@@ -31,7 +31,8 @@ router.post('/', auth, adminOnly, async (req, res) => {
   }
 });
 
-router.put('/:id([a-zA-Z0-9_-]+)', auth, adminOnly, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.put('/:id', auth, adminOnly, async (req, res) => {
   try {
     console.log('PUT /api/sessions/:id - Request:', { id: req.params.id, body: req.body, url: req.url });
     const { sessionName, isActive } = req.body;
@@ -54,7 +55,8 @@ router.put('/:id([a-zA-Z0-9_-]+)', auth, adminOnly, async (req, res) => {
   }
 });
 
-router.delete('/:id([a-zA-Z0-9_-]+)', auth, adminOnly, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.delete('/:id', auth, adminOnly, async (req, res) => {
   try {
     console.log('DELETE /api/sessions/:id - Request:', { id: req.params.id, url: req.url });
     const session = await Session.findByIdAndDelete(req.params.id);

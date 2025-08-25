@@ -311,7 +311,8 @@ router.post('/signatures', auth, adminOnly, async (req, res) => {
   }
 });
 
-router.get('/export/report/:studentId([a-zA-Z0-9_-]+)/:sessionName([a-zA-Z0-9_/ -]+)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex patterns from route path
+router.get('/export/report/:studentId/:sessionName', auth, async (req, res) => {
   try {
     console.log('GET /api/reports/export/report/:studentId/:sessionName - Request:', { params: req.params, url: req.url });
     const { studentId, sessionName } = req.params;

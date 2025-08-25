@@ -38,7 +38,8 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-router.put('/:id([a-zA-Z0-9_-]+)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.put('/:id', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       console.log('Classes route - Access denied:', { userId: req.user.userId });
@@ -63,7 +64,8 @@ router.put('/:id([a-zA-Z0-9_-]+)', auth, async (req, res) => {
   }
 });
 
-router.delete('/:id([a-zA-Z0-9_-]+)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.delete('/:id', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       console.log('Classes route - Access denied:', { userId: req.user.userId });
@@ -101,7 +103,8 @@ router.post('/subject', auth, async (req, res) => {
   }
 });
 
-router.delete('/subject/:classId([a-zA-Z0-9_-]+)/:subject([a-zA-Z0-9_-]+)', auth, async (req, res) => {
+// ✅ CORRECTED - Removed regex patterns from route path
+router.delete('/subject/:classId/:subject', auth, async (req, res) => {
   try {
     console.log('Classes route hit: /subject/:classId/:subject', { params: req.params, url: req.url });
     if (req.user.role !== 'admin') {

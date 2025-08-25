@@ -30,7 +30,8 @@ router.get('/', auth, teacherOnly, async (req, res) => {
 });
 
 // Get single question
-router.get('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.get('/:id', auth, teacherOnly, async (req, res) => {
   try {
     console.log('GET /api/questions/:id - Request:', { id: req.params.id, url: req.url });
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -190,7 +191,7 @@ router.post('/bulk', auth, teacherOnly, async (req, res) => {
         invalidQuestions.push({ index: index + 1, error: 'Marks must be greater than 0' });
         return null;
       }
-      if (!req.user.subjects.some(sub => sub.subject === subject && sub.class === className)) {
+    if (!req.user.subjects.some(sub => sub.subject === subject && sub.class === className)) {
         invalidQuestions.push({ index: index + 1, error: 'Not assigned to this subject/class' });
         return null;
       }
@@ -252,7 +253,8 @@ router.post('/bulk', auth, teacherOnly, async (req, res) => {
 });
 
 // Update question
-router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.put('/:id', auth, teacherOnly, async (req, res) => {
   try {
     console.log('PUT /api/questions/:id - Request:', { body: req.body, id: req.params.id, url: req.url });
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -330,7 +332,8 @@ router.put('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
 });
 
 // Delete question
-router.delete('/:id([a-zA-Z0-9_-]+)', auth, teacherOnly, async (req, res) => {
+// ✅ CORRECTED - Removed regex pattern from route path
+router.delete('/:id', auth, teacherOnly, async (req, res) => {
   try {
     console.log('DELETE /api/questions/:id - Request:', { id: req.params.id, url: req.url });
     if (!mongoose.isValidObjectId(req.params.id)) {
