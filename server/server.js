@@ -2,16 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const authRoutes = require('./routes/auth');
-const questionRoutes = require('./routes/questions');
-const testRoutes = require('./routes/tests');
-const analyticsRoutes = require('./routes/analytics');
-const cheatLogRoutes = require('./routes/cheat-logs');
-const classRoutes = require('./routes/classes');
-const resultsRoutes = require('./routes/results');
-const reportsRoutes = require('./routes/reports');
-const subjectsRoutes = require('./routes/subjects');
-const sessionsRoutes = require('./routes/sessions');
 const Signature = require('./models/Signature');
 const { auth } = require('./middleware/auth');
 const multer = require('multer');
@@ -22,12 +12,6 @@ const app = express();
 
 // Set timezone to WAT (Africa/Lagos)
 process.env.TZ = 'Africa/Lagos';
-
-// Create Uploads directory if it doesn't exist
-const uploadsDir = './Uploads';
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
 
 // Configure Multer for signature uploads (file-based)
 const storage = multer.diskStorage({
@@ -61,25 +45,47 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static('Uploads'));
 app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url}`);
+  console.log(`Incoming request: ${req.method} ${req.url} | Params: ${JSON.stringify(req.params)} | Query: ${JSON.stringify(req.query)}`);
+  if (req.url.includes('://') || req.url.includes('(') || req.url.includes(':')) {
+    console.error('Malformed URL detected:', req.url);
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
   next();
 });
 
-// REMOVED THE PROBLEMATIC DEBUGGING CODE
-
-// Routes
+// Load routes one by one to identify the problematic one
 console.log('Mounting routes...');
-app.use('/api/auth', authRoutes);
-app.use('/api/questions', formDataUpload.any(), questionRoutes);
-app.use('/api/tests', testRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/cheat-logs', cheatLogRoutes);
-app.use('/api/classes', classRoutes);
-app.use('/api/results', resultsRoutes);
-app.use('/api/reports', reportsRoutes);
-app.use('/api/subjects', subjectsRoutes);
-app.use('/api/sessions', sessionsRoutes);
+const routesToLoad = [
+  { name: 'auth', path: './routes/auth', mount: '/api/auth' },
+  { name: 'questions', path: './routes/questions', mount: '/api/questions' },
+  { name: 'tests', path: './routes/tests', mount: '/api/tests' },
+  { name: 'analytics', path: './routes/analytics', mount: '/api/analytics' },
+  { name: 'cheat-logs', path: './routes/cheat-logs', mount: '/api/cheat-logs' },
+  { name: 'classes', path: './routes/classes', mount: '/api/classes' },
+  { name: 'results', path: './routes/results', mount: '/api/results' },
+  { name: 'reports', path: './routes/reports', mount: '/api/reports' },
+  { name: 'subjects', path: './routes/subjects', mount: '/api/subjects' },
+  { name: 'sessions', path: './routes/sessions', mount: '/api/sessions' }
+];
 
+routesToLoad.forEach(({ name, path: routePath, mount }) => {
+  try {
+    console.log(`Loading ${name} routes from ${routePath} at ${mount}`);
+    const routeModule = require(routePath);
+    
+    if (name === 'questions') {
+      app.use(mount, formDataUpload.any(), routeModule);
+    } else {
+      app.use(mount, routeModule);
+    }
+    console.log(`✅ Successfully loaded ${name} routes`);
+  } catch (error) {
+    console.error(`❌ Error loading ${name} routes:`, error.message);
+    console.error(`Stack trace:`, error.stack);
+  }
+});
+
+// Manual signature upload route
 app.post('/api/signatures/upload', auth, upload.fields([
   { name: 'classTeacherSignature', maxCount: 1 },
   { name: 'principalSignature', maxCount: 1 },
@@ -94,7 +100,7 @@ app.post('/api/signatures/upload', auth, upload.fields([
     }
     if (req.files.principalSignature) {
       const signatureData = {
-        class: null, // Principal signature is global
+        class: null,
         principalSignature: req.files.principalSignature[0].filename,
         updatedBy: req.user.userId,
         updatedAt: new Date(),
@@ -133,7 +139,8 @@ app.get('/health', (req, res) => {
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../build')));
-  app.get('*', (req, res) => {
+  console.log('Mounting catch-all route for React frontend at /*');
+  app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, '../../build', 'index.html'));
   });
 }
@@ -145,6 +152,8 @@ app.use((err, req, res, next) => {
     stack: err.stack,
     url: req.url,
     method: req.method,
+    params: req.params,
+    query: req.query,
   });
   res.status(500).json({ error: 'Internal server error' });
 });
