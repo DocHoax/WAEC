@@ -5,13 +5,20 @@ const Test = require('../models/Test');
 const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 
-router.get('/subject/:className([a-zA-Z0-9_-]+)/:subject([a-zA-Z0-9_-]+)', auth, async (req, res) => {
+// ✅ Fixed: Removed regex patterns from route parameters
+router.get('/subject/:className/:subject', auth, async (req, res) => {
   try {
     console.log('Analytics route hit: /subject/:className/:subject', { params: req.params, url: req.url });
     if (req.user.role !== 'admin' && req.user.role !== 'teacher') {
       return res.status(403).json({ error: 'Access restricted to admins and teachers' });
     }
     const { className, subject } = req.params;
+    
+    // ✅ Add validation in the route handler instead of URL regex
+    if (!className || !subject) {
+      return res.status(400).json({ error: 'Class name and subject are required' });
+    }
+    
     const results = await Result.find({ class: className, subject }).populate('userId', 'username name surname');
     if (!results.length) return res.status(404).json({ error: 'No results found' });
 

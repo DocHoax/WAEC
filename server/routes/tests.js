@@ -7,6 +7,15 @@ const Result = require('../models/Result');
 const User = require('../models/User');
 const { auth, teacherOnly, adminOnly } = require('../middleware/auth');
 
+// Middleware to validate MongoDB ObjectId
+const validateObjectId = (paramName) => (req, res, next) => {
+  if (!mongoose.isValidObjectId(req.params[paramName])) {
+    console.log(`Tests route - Invalid ${paramName}:`, { [paramName]: req.params[paramName] });
+    return res.status(400).json({ error: `Invalid ${paramName} format.` });
+  }
+  next();
+};
+
 // Teacher creates a test
 router.post('/', auth, teacherOnly, async (req, res) => {
   try {
@@ -164,15 +173,11 @@ router.post('/', auth, teacherOnly, async (req, res) => {
 });
 
 // Admin schedules a test
-router.put('/:id([0-9a-fA-F]{24})/schedule', auth, adminOnly, async (req, res) => {
+router.put('/:id/schedule', [auth, adminOnly, validateObjectId('id')], async (req, res) => {
   try {
     const { batches, status } = req.body;
     console.log('Tests route - Scheduling test:', { id: req.params.id, user: req.user.username, payload: req.body });
 
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      console.log('Tests route - Invalid test ID:', { id: req.params.id });
-      return res.status(400).json({ error: 'Invalid test ID format.' });
-    }
     const test = await Test.findById(req.params.id);
     if (!test) {
       console.log('Tests route - Test not found:', { id: req.params.id });
@@ -288,13 +293,9 @@ router.get('/admin', auth, adminOnly, async (req, res) => {
 });
 
 // Fetch a specific test
-router.get('/:testId([0-9a-fA-F]{24})', auth, async (req, res) => {
+router.get('/:testId', [auth, validateObjectId('testId')], async (req, res) => {
   try {
     console.log('Tests route - Fetching test:', { testId: req.params.testId, user: req.user.username, userId: req.user.userId });
-    if (!mongoose.isValidObjectId(req.params.testId)) {
-      console.log('Tests route - Invalid test ID:', { testId: req.params.testId });
-      return res.status(400).json({ error: 'Invalid test ID format.' });
-    }
     const test = await Test.findById(req.params.testId).populate({
       path: 'questions',
       select: '_id text options correctAnswer subject class marks',
@@ -372,13 +373,9 @@ router.get('/:testId([0-9a-fA-F]{24})', auth, async (req, res) => {
 });
 
 // Fetch test results
-router.get('/:testId([0-9a-fA-F]{24})/results', auth, async (req, res) => {
+router.get('/:testId/results', [auth, validateObjectId('testId')], async (req, res) => {
   try {
     console.log('Tests route - Fetching results:', { testId: req.params.testId, user: req.user.username, role: req.user.role });
-    if (!mongoose.isValidObjectId(req.params.testId)) {
-      console.log('Tests route - Invalid test ID:', { testId: req.params.testId });
-      return res.status(400).json({ error: 'Invalid test ID format.' });
-    }
     const test = await Test.findById(req.params.testId);
     if (!test) {
       console.log('Tests route - Test not found:', { testId: req.params.testId });
@@ -412,14 +409,10 @@ router.get('/:testId([0-9a-fA-F]{24})/results', auth, async (req, res) => {
 });
 
 // Submit test answers
-router.post('/:id([0-9a-fA-F]{24})/submit', auth, async (req, res) => {
+router.post('/:id/submit', [auth, validateObjectId('id')], async (req, res) => {
   try {
     const { answers, userId } = req.body;
     console.log('Tests route - Submitting test:', { testId: req.params.id, userId });
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      console.log('Tests route - Invalid test ID:', { testId: req.params.id });
-      return res.status(400).json({ error: 'Invalid test ID format.' });
-    }
     if (!mongoose.isValidObjectId(userId)) {
       console.log('Tests route - Invalid user ID:', { userId });
       return res.status(400).json({ error: 'Invalid user ID format.' });
@@ -503,14 +496,10 @@ router.post('/:id([0-9a-fA-F]{24})/submit', auth, async (req, res) => {
 });
 
 // Teacher updates a test
-router.put('/:id([0-9a-fA-F]{24})', auth, teacherOnly, async (req, res) => {
+router.put('/:id', [auth, teacherOnly, validateObjectId('id')], async (req, res) => {
   try {
     const { title, subject, class: className, session, instructions, duration, randomize, questions, questionCount, totalMarks, questionMarks } = req.body;
     console.log('Tests route - Updating test:', { id: req.params.id, user: req.user.username, payload: req.body });
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      console.log('Tests route - Invalid test ID:', { id: req.params.id });
-      return res.status(400).json({ error: 'Invalid test ID format.' });
-    }
     const test = await Test.findById(req.params.id);
     if (!test) {
       console.log('Tests route - Test not found:', { id: req.params.id });
@@ -635,14 +624,10 @@ router.put('/:id([0-9a-fA-F]{24})', auth, teacherOnly, async (req, res) => {
 });
 
 // Teacher adds or updates questions for a test
-router.put('/:id([0-9a-fA-F]{24})/questions', auth, teacherOnly, async (req, res) => {
+router.put('/:id/questions', [auth, teacherOnly, validateObjectId('id')], async (req, res) => {
   try {
     const { questions, questionMarks } = req.body;
     console.log('Tests route - Updating questions:', { id: req.params.id, user: req.user.username, questionCount: questions?.length, questions: questions?.map(id => id.toString()), questionMarks });
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      console.log('Tests route - Invalid test ID:', { id: req.params.id });
-      return res.status(400).json({ error: 'Invalid test ID format.' });
-    }
     const test = await Test.findById(req.params.id);
     if (!test) {
       console.log('Tests route - Test not found:', { id: req.params.id });
@@ -723,7 +708,7 @@ router.put('/:id([0-9a-fA-F]{24})/questions', auth, teacherOnly, async (req, res
 });
 
 // Delete a test
-router.delete('/:testId([0-9a-fA-F]{24})', auth, async (req, res) => {
+router.delete('/:testId', [auth, validateObjectId('testId')], async (req, res) => {
   try {
     console.log('Tests route - Deleting test:', { 
       testId: req.params.testId, 
@@ -732,10 +717,6 @@ router.delete('/:testId([0-9a-fA-F]{24})', auth, async (req, res) => {
       userId: req.user.userId, 
       subjects: req.user.subjects 
     });
-    if (!mongoose.isValidObjectId(req.params.testId)) {
-      console.log('Tests route - Invalid test ID:', { testId: req.params.testId });
-      return res.status(400).json({ error: 'Invalid test ID format.' });
-    }
     const test = await Test.findById(req.params.testId);
     if (!test) {
       console.log('Tests route - Test not found:', { testId: req.params.testId });
@@ -776,14 +757,10 @@ router.delete('/:testId([0-9a-fA-F]{24})', auth, async (req, res) => {
 });
 
 // Update test results
-router.put('/results/:resultId([0-9a-fA-F]{24})', auth, adminOnly, async (req, res) => {
+router.put('/results/:resultId', [auth, adminOnly, validateObjectId('resultId')], async (req, res) => {
   try {
     const { score, answers, correctness } = req.body;
     console.log('Tests route - Updating result:', { resultId: req.params.resultId, user: req.user.username });
-    if (!mongoose.isValidObjectId(req.params.resultId)) {
-      console.log('Tests route - Invalid result ID:', { resultId: req.params.resultId });
-      return res.status(400).json({ error: 'Invalid result ID format.' });
-    }
     const result = await Result.findById(req.params.resultId);
     if (!result) {
       console.log('Tests route - Result not found:', { resultId: req.params.resultId });
