@@ -56,16 +56,16 @@ app.use((req, res, next) => {
 // Load routes one by one to identify the problematic one
 console.log('Mounting routes...');
 const routesToLoad = [
-  { name: 'auth', path: './routes/auth', mount: '/api/auth' },
-  { name: 'questions', path: './routes/questions', mount: '/api/questions' },
-  { name: 'tests', path: './routes/tests', mount: '/api/tests' },
-  { name: 'analytics', path: './routes/analytics', mount: '/api/analytics' },
-  { name: 'cheat-logs', path: './routes/cheat-logs', mount: '/api/cheat-logs' },
-  { name: 'classes', path: './routes/classes', mount: '/api/classes' },
-  { name: 'results', path: './routes/results', mount: '/api/results' },
-  { name: 'reports', path: './routes/reports', mount: '/api/reports' },
-  { name: 'subjects', path: './routes/subjects', mount: '/api/subjects' },
-  { name: 'sessions', path: './routes/sessions', mount: '/api/sessions' }
+  { name: 'auth', path: './routes/auth.js', mount: '/api/auth' },
+  { name: 'questions', path: './routes/questions.js', mount: '/api/questions' },
+  { name: 'tests', path: './routes/tests.js', mount: '/api/tests' },
+  { name: 'analytics', path: './routes/analytics.js', mount: '/api/analytics' },
+  { name: 'cheat-logs', path: './routes/cheat-logs.js', mount: '/api/cheat-logs' },
+  { name: 'classes', path: './routes/classes.js', mount: '/api/classes' },
+  { name: 'results', path: './routes/results.js', mount: '/api/results' },
+  { name: 'reports', path: './routes/reports.js', mount: '/api/reports' },
+  { name: 'subjects', path: './routes/subjects.js', mount: '/api/subjects' },
+  { name: 'sessions', path: './routes/sessions.js', mount: '/api/sessions' }
 ];
 
 routesToLoad.forEach(({ name, path: routePath, mount }) => {
@@ -140,7 +140,7 @@ app.get('/health', (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../build')));
   console.log('Mounting catch-all route for React frontend at /*');
-  app.get('/*', (req, res) => {
+  app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../../build', 'index.html'));
   });
 }
