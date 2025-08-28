@@ -53,6 +53,63 @@ app.use((req, res, next) => {
   next();
 });
 
+// Function to validate route patterns in a router
+function validateRouterRoutes(router, routeName) {
+  console.log(`🔍 Analyzing routes in ${routeName}...`);
+  
+  if (!router || !router.stack) {
+    console.log(`⚠️  No routes found in ${routeName}`);
+    return [];
+  }
+  
+  const problematicRoutes = [];
+  
+  router.stack.forEach((layer, index) => {
+    try {
+      const route = layer.route;
+      if (route) {
+        console.log(`  📍 Route ${index}: ${Object.keys(route.methods).join(',')} ${route.path}`);
+        
+        // Check for common malformed patterns
+        if (route.path) {
+          // Check for empty parameters (:)
+          if (route.path.includes('/:') && route.path.match(/:\s*[^a-zA-Z_]/)) {
+            console.error(`  ❌ MALFORMED: Empty parameter in route: ${route.path}`);
+            problematicRoutes.push(route.path);
+          }
+          
+          // Check for parameters ending with nothing
+          if (route.path.match(/:[^\/\s]*$/)) {
+            const paramMatch = route.path.match(/:([^\/\s]*)$/);
+            if (paramMatch && paramMatch[1] === '') {
+              console.error(`  ❌ MALFORMED: Empty parameter name in route: ${route.path}`);
+              problematicRoutes.push(route.path);
+            }
+          }
+          
+          // Check for double colons or other suspicious patterns
+          if (route.path.includes('::') || route.path.includes(':/')) {
+            console.error(`  ❌ MALFORMED: Suspicious pattern in route: ${route.path}`);
+            problematicRoutes.push(route.path);
+          }
+        }
+      } else if (layer.name === 'router') {
+        // Nested router
+        console.log(`  📁 Nested router at layer ${index}`);
+        if (layer.handle && layer.handle.stack) {
+          const nestedProblematic = validateRouterRoutes(layer.handle, `${routeName} (nested)`);
+          problematicRoutes.push(...nestedProblematic);
+        }
+      }
+    } catch (error) {
+      console.error(`  ❌ Error analyzing route ${index} in ${routeName}:`, error.message);
+      problematicRoutes.push(`Route ${index} (error: ${error.message})`);
+    }
+  });
+  
+  return problematicRoutes;
+}
+
 // Enhanced route loading with better error isolation
 console.log('Mounting routes...');
 const routesToLoad = [
@@ -68,10 +125,16 @@ const routesToLoad = [
   { name: 'sessions', path: './routes/sessions.js', mount: '/api/sessions' }
 ];
 
-// Load routes with enhanced error handling to isolate the problematic route
-routesToLoad.forEach(({ name, path: routePath, mount }) => {
+// Load and mount routes one by one with detailed debugging
+const successfullyMountedRoutes = [];
+const failedRoutes = [];
+
+for (const { name, path: routePath, mount } of routesToLoad) {
   try {
-    console.log(`Loading ${name} routes from ${routePath} at ${mount}`);
+    console.log(`\n🔧 Loading ${name} routes from ${routePath} at ${mount}`);
+    
+    // Clear require cache to avoid stale modules
+    delete require.cache[require.resolve(routePath)];
     const routeModule = require(routePath);
     
     // Validate the route module before mounting
@@ -79,7 +142,24 @@ routesToLoad.forEach(({ name, path: routePath, mount }) => {
       throw new Error(`Invalid route module: expected function or router object, got ${typeof routeModule}`);
     }
     
+    // Analyze routes before mounting
+    console.log(`🔍 Pre-mount analysis of ${name}:`);
+    const problematicRoutes = validateRouterRoutes(routeModule, name);
+    
+    if (problematicRoutes.length > 0) {
+      console.error(`❌ Found ${problematicRoutes.length} problematic routes in ${name}:`);
+      problematicRoutes.forEach(route => console.error(`   - ${route}`));
+      
+      // In production, skip problematic routes; in development, continue for debugging
+      if (process.env.NODE_ENV === 'production') {
+        console.error(`⏭️  Skipping ${name} routes due to malformed patterns`);
+        failedRoutes.push({ name, reason: 'Malformed route patterns', routes: problematicRoutes });
+        continue;
+      }
+    }
+    
     // Wrap route mounting in try-catch to isolate path-to-regexp errors
+    console.log(`🚀 Attempting to mount ${name} routes...`);
     try {
       if (name === 'questions') {
         app.use(mount, formDataUpload.any(), routeModule);
@@ -87,9 +167,12 @@ routesToLoad.forEach(({ name, path: routePath, mount }) => {
         app.use(mount, routeModule);
       }
       console.log(`✅ Successfully loaded and mounted ${name} routes`);
+      successfullyMountedRoutes.push(name);
     } catch (mountError) {
       console.error(`❌ Error mounting ${name} routes:`, mountError.message);
       console.error('This route file likely contains a malformed route pattern');
+      
+      failedRoutes.push({ name, reason: mountError.message, error: mountError });
       
       // Skip this route and continue with others
       if (process.env.NODE_ENV !== 'production') {
@@ -100,8 +183,17 @@ routesToLoad.forEach(({ name, path: routePath, mount }) => {
   } catch (error) {
     console.error(`❌ Error loading ${name} routes:`, error.message);
     console.error(`Stack trace:`, error.stack);
+    failedRoutes.push({ name, reason: error.message, error });
   }
-});
+}
+
+// Summary
+console.log('\n📊 ROUTE LOADING SUMMARY:');
+console.log(`✅ Successfully mounted: ${successfullyMountedRoutes.join(', ')}`);
+if (failedRoutes.length > 0) {
+  console.error(`❌ Failed to mount: ${failedRoutes.map(r => r.name).join(', ')}`);
+  console.error('Failed routes details:', failedRoutes.map(r => `${r.name}: ${r.reason}`).join('\n'));
+}
 
 // Manual signature upload route
 app.post('/api/signatures/upload', auth, upload.fields([
