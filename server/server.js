@@ -194,7 +194,7 @@ app.get('/health', async (req, res) => {
     const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
     const uploadDir = path.join(__dirname, 'Uploads');
     const uploadDirExists = fs.existsSync(uploadDir);
-    const buildPath = path.join(__dirname, '../client/build');
+    const buildPath = path.join(__dirname, '../build');
     const buildExists = fs.existsSync(buildPath);
     const indexExists = fs.existsSync(path.join(buildPath, 'index.html'));
     res.status(200).json({
@@ -224,7 +224,7 @@ app.use('/api', (req, res) => {
 
 if (process.env.NODE_ENV === 'production') {
   console.log('🏗️ Setting up production static file serving...');
-  const buildPath = path.join(__dirname, '../client/build');
+  const buildPath = path.join(__dirname, '../build');
   console.log(`🔍 Checking build directory: ${buildPath}`);
   if (fs.existsSync(buildPath)) {
     console.log(`✅ Build directory found: ${buildPath}`);
@@ -245,7 +245,7 @@ if (process.env.NODE_ENV === 'production') {
     console.log('✅ React Router catch-all configured');
   } else {
     console.error(`❌ Build directory not found: ${buildPath}`);
-    console.error('Make sure your React app is built into client/build before deployment');
+    console.error('Make sure your React app is built into build/ before deployment');
   }
 }
 
