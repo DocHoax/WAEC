@@ -15,7 +15,7 @@ process.env.TZ = 'Africa/Lagos';
 
 // Configure Multer for signature uploads (file-based)
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'Uploads/'),
+  destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
 });
 const upload = multer({
@@ -43,7 +43,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use('/uploads', express.static('Uploads'));
+app.use('/uploads', express.static('uploads')); // Lowercase 'uploads'
 
 // Load routes
 console.log('Mounting routes...');
@@ -132,6 +132,7 @@ app.use('/api/*', (req, res) => {
 });
 
 // Serve React frontend in production
+// Remove this block if deploying frontend separately (e.g., on Netlify/Vercel)
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../build')));
   console.log('Mounting catch-all route for React frontend at /*');
@@ -150,11 +151,12 @@ if (process.env.NODE_ENV === 'production') {
 app.use((err, req, res, next) => {
   console.error('Global error:', {
     message: err.message,
-    stack: err.stack,
     url: req.url,
     method: req.method,
     params: req.params,
     query: req.query,
+    // Log stack trace only in development
+    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
   });
   res.status(500).json({ error: 'Internal server error' });
 });
@@ -162,7 +164,7 @@ app.use((err, req, res, next) => {
 // MongoDB connection
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://sodiqolaniyisanni:Controller1@cluster0.gw4ko28.mongodb.net/waec-cbt?retryWrites=true&w=majority');
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB connected');
   } catch (err) {
     console.error('MongoDB connection error:', err.message);
