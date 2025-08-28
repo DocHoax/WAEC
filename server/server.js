@@ -132,11 +132,10 @@ app.use('/api/*', (req, res) => {
 });
 
 // Serve React frontend in production
-// Remove this block if deploying frontend separately (e.g., on Netlify/Vercel)
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../build')));
-  console.log('Mounting catch-all route for React frontend at /*');
-  app.get('/*', (req, res) => {
+  console.log('Mounting catch-all route for React frontend at /.*/');
+  app.get(/.*/, (req, res) => {
     console.log(`Serving React frontend for path: ${req.path}`);
     const indexPath = path.join(__dirname, '../../build', 'index.html');
     if (fs.existsSync(indexPath)) {
@@ -155,7 +154,6 @@ app.use((err, req, res, next) => {
     method: req.method,
     params: req.params,
     query: req.query,
-    // Log stack trace only in development
     stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
   });
   res.status(500).json({ error: 'Internal server error' });
@@ -176,4 +174,4 @@ connectDB();
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
