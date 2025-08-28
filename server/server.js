@@ -53,7 +53,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Load routes one by one to identify the problematic one
+// Enhanced route loading with better error isolation
 console.log('Mounting routes...');
 const routesToLoad = [
   { name: 'auth', path: './routes/auth.js', mount: '/api/auth' },
@@ -68,17 +68,35 @@ const routesToLoad = [
   { name: 'sessions', path: './routes/sessions.js', mount: '/api/sessions' }
 ];
 
+// Load routes with enhanced error handling to isolate the problematic route
 routesToLoad.forEach(({ name, path: routePath, mount }) => {
   try {
     console.log(`Loading ${name} routes from ${routePath} at ${mount}`);
     const routeModule = require(routePath);
     
-    if (name === 'questions') {
-      app.use(mount, formDataUpload.any(), routeModule);
-    } else {
-      app.use(mount, routeModule);
+    // Validate the route module before mounting
+    if (typeof routeModule !== 'function' && typeof routeModule !== 'object') {
+      throw new Error(`Invalid route module: expected function or router object, got ${typeof routeModule}`);
     }
-    console.log(`✅ Successfully loaded ${name} routes`);
+    
+    // Wrap route mounting in try-catch to isolate path-to-regexp errors
+    try {
+      if (name === 'questions') {
+        app.use(mount, formDataUpload.any(), routeModule);
+      } else {
+        app.use(mount, routeModule);
+      }
+      console.log(`✅ Successfully loaded and mounted ${name} routes`);
+    } catch (mountError) {
+      console.error(`❌ Error mounting ${name} routes:`, mountError.message);
+      console.error('This route file likely contains a malformed route pattern');
+      
+      // Skip this route and continue with others
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Mount error stack:', mountError.stack);
+      }
+    }
+    
   } catch (error) {
     console.error(`❌ Error loading ${name} routes:`, error.message);
     console.error(`Stack trace:`, error.stack);
@@ -136,12 +154,35 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Server is running' });
 });
 
+// Handle API 404s before the catch-all route
+app.use('/api*', (req, res) => {
+  res.status(404).json({ 
+    error: 'API endpoint not found',
+    path: req.path,
+    method: req.method
+  });
+});
+
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../build')));
-  console.log('Mounting catch-all route for React frontend at /*');
+  console.log('Mounting catch-all route for React frontend at *');
+  
+  // ✅ FIXED: Proper catch-all route for React Router
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../build', 'index.html'));
+    // Double-check that we're not serving API routes
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
+    const indexPath = path.join(__dirname, '../../build', 'index.html');
+    
+    // Verify the file exists before serving
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Frontend build not found');
+    }
   });
 }
 
