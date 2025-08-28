@@ -6,21 +6,13 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
-// Import models and middleware
 const Signature = require('./models/Signature');
 const { auth } = require('./middleware/auth');
 
-// Initialize Express app
 const app = express();
 
-// Set timezone to WAT (West Africa Time)
 process.env.TZ = 'Africa/Lagos';
 
-// ================================
-// UTILITY FUNCTIONS
-// ================================
-
-// Ensure upload directory exists
 const ensureUploadDir = () => {
   const uploadDir = path.join(__dirname, 'Uploads');
   if (!fs.existsSync(uploadDir)) {
@@ -30,55 +22,34 @@ const ensureUploadDir = () => {
   return uploadDir;
 };
 
-// Validate environment variables
 const validateEnvironment = () => {
   const required = ['MONGODB_URI'];
   const missing = required.filter(key => !process.env[key]);
-  
   if (missing.length > 0) {
     console.error('Missing required environment variables:', missing);
-    if (process.env.NODE_ENV === 'production') {
-      process.exit(1);
-    }
+    if (process.env.NODE_ENV === 'production') process.exit(1);
   }
 };
 
-// ================================
-// MULTER CONFIGURATION
-// ================================
-
-// File storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = ensureUploadDir();
-    cb(null, uploadDir);
+    cb(null, ensureUploadDir());
   },
   filename: (req, file, cb) => {
-    // Create unique filename with timestamp
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '');
     cb(null, `${uniqueSuffix}-${sanitizedName}`);
   },
 });
 
-// File upload configuration for signatures
 const signatureUpload = multer({
   storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-    files: 2 // Maximum 2 files
-  },
+  limits: { fileSize: 5 * 1024 * 1024, files: 2 },
   fileFilter: (req, file, cb) => {
-    // Check file extension
     const allowedExtensions = ['.jpg', '.jpeg', '.png'];
     const ext = path.extname(file.originalname).toLowerCase();
-    
-    // Check MIME type
     const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png'];
-    const isValidMime = allowedMimes.includes(file.mimetype);
-    const isValidExt = allowedExtensions.includes(ext);
-    
-    if (isValidExt && isValidMime) {
+    if (allowedExtensions.includes(ext) && allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
       cb(new Error('Only JPG, JPEG, and PNG image files are allowed'), false);
@@ -86,18 +57,8 @@ const signatureUpload = multer({
   },
 });
 
-// Form data upload configuration (no files)
-const formDataUpload = multer({
-  limits: {
-    fieldSize: 1024 * 1024 // 1MB limit for form fields
-  }
-});
+const formDataUpload = multer({ limits: { fieldSize: 1024 * 1024 } });
 
-// ================================
-// MIDDLEWARE SETUP
-// ================================
-
-// Security headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -105,16 +66,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS configuration
-const corsOptions = {
+app.use(cors({
   origin: function (origin, callback) {
     const allowedOrigins = process.env.NODE_ENV === 'production'
-      ? [process.env.FRONTEND_URL || 'https://your-app-name.onrender.com']
+      ? [process.env.FRONTEND_URL || 'https://waec-gfv0.onrender.com']
       : ['http://localhost:3000', 'http://127.0.0.1:3000'];
-    
-    // Allow requests with no origin (mobile apps, etc.)
     if (!origin) return callback(null, true);
-    
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -124,41 +81,25 @@ const corsOptions = {
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
-};
+}));
 
-app.use(cors(corsOptions));
-
-// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Static file serving for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'Uploads'), {
   maxAge: process.env.NODE_ENV === 'production' ? '1d' : '1h'
 }));
 
-// Request logging and validation middleware
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${req.method} ${req.url} | IP: ${req.ip}`);
-  
-  // Enhanced URL validation
   const suspiciousPatterns = ['://', '(', ')', '<', '>', '"', "'", '\\'];
-  const hasSuspiciousChars = suspiciousPatterns.some(pattern => req.url.includes(pattern));
-  
-  if (hasSuspiciousChars) {
+  if (suspiciousPatterns.some(pattern => req.url.includes(pattern))) {
     console.error('Potentially malicious URL detected:', req.url);
     return res.status(400).json({ error: 'Invalid URL format' });
   }
-  
   next();
 });
 
-// ================================
-// ROUTE CONFIGURATION
-// ================================
-
-// Routes to load
 const routes = [
   { name: 'auth', file: 'auth.js', mount: '/api/auth' },
   { name: 'questions', file: 'questions.js', mount: '/api/questions' },
@@ -172,43 +113,27 @@ const routes = [
   { name: 'sessions', file: 'sessions.js', mount: '/api/sessions' }
 ];
 
-// Load routes with comprehensive error handling
 console.log('🚀 Loading application routes...');
-
 routes.forEach(({ name, file, mount }) => {
   try {
     console.log(`📂 Loading ${name} routes...`);
-    
     const routePath = path.join(__dirname, 'routes', file);
-    
-    // Check if route file exists
     if (!fs.existsSync(routePath)) {
-      console.warn(`⚠️  Route file not found: ${routePath}`);
+      console.warn(`⚠️ Route file not found: ${routePath}`);
       return;
     }
-    
-    // Load the route module
     const routeModule = require(`./routes/${file}`);
-    
-    // Validate route module
     if (!routeModule || (typeof routeModule !== 'function' && typeof routeModule !== 'object')) {
       throw new Error(`Invalid route export in ${file}`);
     }
-    
-    // Mount routes with appropriate middleware
     if (name === 'questions') {
-      // Questions route needs form data middleware
       app.use(mount, formDataUpload.any(), routeModule);
     } else {
       app.use(mount, routeModule);
     }
-    
     console.log(`✅ ${name} routes loaded successfully at ${mount}`);
-    
   } catch (error) {
     console.error(`❌ Failed to load ${name} routes:`, error.message);
-    
-    // In production, log error but continue
     if (process.env.NODE_ENV === 'production') {
       console.error('Continuing despite route load failure...');
     } else {
@@ -216,141 +141,78 @@ routes.forEach(({ name, file, mount }) => {
     }
   }
 });
-
 console.log('📋 All routes processed');
 
-// ================================
-// SIGNATURE UPLOAD ENDPOINT
-// ================================
-
-app.post('/api/signatures/upload', 
-  auth,
-  (req, res, next) => {
-    // Handle multer errors gracefully
-    signatureUpload.fields([
-      { name: 'classTeacherSignature', maxCount: 1 },
-      { name: 'principalSignature', maxCount: 1 },
-    ])(req, res, (err) => {
-      if (err) {
-        console.error('File upload error:', err.message);
-        return res.status(400).json({ 
-          error: `Upload failed: ${err.message}` 
-        });
-      }
-      next();
-    });
-  },
-  async (req, res) => {
-    try {
-      const { className } = req.body;
-      const { files } = req;
-      
-      // Validation
-      if (!className && !files?.principalSignature) {
-        return res.status(400).json({ 
-          error: 'Please select a class or upload a principal signature.' 
-        });
-      }
-      
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ 
-          error: 'Administrative privileges required' 
-        });
-      }
-
-      const operations = [];
-
-      // Handle principal signature
-      if (files?.principalSignature) {
-        const file = files.principalSignature[0];
-        const signatureData = {
-          class: null,
-          principalSignature: file.filename,
-          updatedBy: req.user.userId,
-          updatedAt: new Date(),
-        };
-        
-        operations.push(
-          Signature.findOneAndUpdate(
-            { class: null },
-            signatureData,
-            { upsert: true, new: true }
-          )
-        );
-      }
-
-      // Handle class teacher signature
-      if (className && files?.classTeacherSignature) {
-        const file = files.classTeacherSignature[0];
-        const signatureData = {
-          class: className,
-          classTeacherSignature: file.filename,
-          updatedBy: req.user.userId,
-          updatedAt: new Date(),
-        };
-        
-        operations.push(
-          Signature.findOneAndUpdate(
-            { class: className },
-            signatureData,
-            { upsert: true, new: true }
-          )
-        );
-      }
-
-      // Execute all database operations
-      await Promise.all(operations);
-
-      res.status(201).json({ 
-        message: 'Signatures uploaded successfully',
-        uploadCount: operations.length
-      });
-      
-    } catch (error) {
-      console.error('Signature upload error:', error.message);
-      res.status(500).json({ 
-        error: 'Failed to save signatures. Please try again.' 
-      });
+app.post('/api/signatures/upload', auth, (req, res, next) => {
+  signatureUpload.fields([
+    { name: 'classTeacherSignature', maxCount: 1 },
+    { name: 'principalSignature', maxCount: 1 },
+  ])(req, res, (err) => {
+    if (err) {
+      console.error('File upload error:', err.message);
+      return res.status(400).json({ error: `Upload failed: ${err.message}` });
     }
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const { className } = req.body;
+    const { files } = req;
+    if (!className && !files?.principalSignature) {
+      return res.status(400).json({ error: 'Please select a class or upload a principal signature.' });
+    }
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Administrative privileges required' });
+    }
+    const operations = [];
+    if (files?.principalSignature) {
+      const file = files.principalSignature[0];
+      operations.push(Signature.findOneAndUpdate(
+        { class: null },
+        { class: null, principalSignature: file.filename, updatedBy: req.user.userId, updatedAt: new Date() },
+        { upsert: true, new: true }
+      ));
+    }
+    if (className && files?.classTeacherSignature) {
+      const file = files.classTeacherSignature[0];
+      operations.push(Signature.findOneAndUpdate(
+        { class: className },
+        { class: className, classTeacherSignature: file.filename, updatedBy: req.user.userId, updatedAt: new Date() },
+        { upsert: true, new: true }
+      ));
+    }
+    await Promise.all(operations);
+    res.status(201).json({ message: 'Signatures uploaded successfully', uploadCount: operations.length });
+  } catch (error) {
+    console.error('Signature upload error:', error.message);
+    res.status(500).json({ error: 'Failed to save signatures. Please try again.' });
   }
-);
-
-// ================================
-// HEALTH CHECK ENDPOINT
-// ================================
+});
 
 app.get('/health', async (req, res) => {
   try {
-    // Check database connection
     const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-    
-    // Check upload directory
     const uploadDir = path.join(__dirname, 'Uploads');
     const uploadDirExists = fs.existsSync(uploadDir);
-    
+    const buildPath = path.join(__dirname, '../client/build');
+    const buildExists = fs.existsSync(buildPath);
+    const indexExists = fs.existsSync(path.join(buildPath, 'index.html'));
     res.status(200).json({
       status: 'OK',
       message: 'Server is running',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
       database: dbStatus,
-      uploadDirectory: uploadDirExists ? 'available' : 'missing'
+      uploadDirectory: uploadDirExists ? 'available' : 'missing',
+      buildDirectory: buildExists ? 'available' : 'missing',
+      indexFile: indexExists ? 'available' : 'missing'
     });
-    
   } catch (error) {
     console.error('Health check error:', error.message);
-    res.status(503).json({
-      status: 'ERROR',
-      message: 'Service temporarily unavailable'
-    });
+    res.status(503).json({ status: 'ERROR', message: 'Service temporarily unavailable' });
   }
 });
 
-// ================================
-// API 404 HANDLER
-// ================================
-
-// Handle 404 for API routes before static file serving
 app.use('/api', (req, res) => {
   res.status(404).json({
     error: 'API endpoint not found',
@@ -360,66 +222,35 @@ app.use('/api', (req, res) => {
   });
 });
 
-// ================================
-// PRODUCTION STATIC FILE SERVING
-// ================================
-
 if (process.env.NODE_ENV === 'production') {
-  console.log('🏗️  Setting up production static file serving...');
-  
-  const buildPath = path.join(__dirname, '../../build');
-  
-  // Check if build directory exists
+  console.log('🏗️ Setting up production static file serving...');
+  const buildPath = path.join(__dirname, '../client/build');
+  console.log(`🔍 Checking build directory: ${buildPath}`);
   if (fs.existsSync(buildPath)) {
-    // Serve static files
-    app.use(express.static(buildPath, {
-      maxAge: '1d',
-      etag: false,
-      index: false // Prevent automatic index.html serving
-    }));
-    
-    console.log(`📁 Static files served from: ${buildPath}`);
-    
-    // React Router catch-all handler using middleware (safer than route patterns)
-    app.use((req, res, next) => {
-      // Skip if it's an API request (already handled above)
-      if (req.path.startsWith('/api')) {
-        return next();
-      }
-      
-      // Skip if it's a static file request
-      if (req.path.includes('.')) {
-        return next();
-      }
-      
-      // Serve React app for all other routes
+    console.log(`✅ Build directory found: ${buildPath}`);
+    const indexPath = path.join(buildPath, 'index.html');
+    console.log(`🔍 Checking index.html: ${indexPath}`);
+    console.log(`✅ index.html exists: ${fs.existsSync(indexPath)}`);
+    app.use(express.static(buildPath, { maxAge: '1d', etag: false }));
+    app.get('*', (req, res) => {
+      console.log(`📄 Serving React app for route: ${req.path}`);
       const indexFile = path.join(buildPath, 'index.html');
-      
       if (fs.existsSync(indexFile)) {
-        console.log(`📄 Serving React app for route: ${req.path}`);
         res.sendFile(indexFile);
       } else {
-        console.error('❌ React index.html not found');
+        console.error('❌ index.html not found at:', indexFile);
         res.status(404).send('Application not available');
       }
     });
-    
     console.log('✅ React Router catch-all configured');
-    
   } else {
     console.error(`❌ Build directory not found: ${buildPath}`);
-    console.error('Make sure your React app is built before deployment');
+    console.error('Make sure your React app is built into client/build before deployment');
   }
 }
 
-// ================================
-// ERROR HANDLING
-// ================================
-
-// Handle remaining 404s
 app.use((req, res) => {
   console.log(`🔍 404 - Not found: ${req.method} ${req.path}`);
-  
   if (req.path.startsWith('/api')) {
     res.status(404).json({ error: 'API endpoint not found' });
   } else {
@@ -427,10 +258,8 @@ app.use((req, res) => {
   }
 });
 
-// Global error handler
 app.use((err, req, res, next) => {
   const errorId = Math.random().toString(36).substr(2, 9);
-  
   console.error(`🚨 [Error ${errorId}] Global error:`, {
     message: err.message,
     url: req.url,
@@ -439,81 +268,36 @@ app.use((err, req, res, next) => {
     timestamp: new Date().toISOString(),
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
-
-  // Handle specific error types
   if (err.name === 'ValidationError') {
-    return res.status(400).json({
-      error: 'Validation failed',
-      details: err.message,
-      errorId
-    });
+    return res.status(400).json({ error: 'Validation failed', details: err.message, errorId });
   }
-  
   if (err.name === 'CastError') {
-    return res.status(400).json({
-      error: 'Invalid data format',
-      errorId
-    });
+    return res.status(400).json({ error: 'Invalid data format', errorId });
   }
-  
   if (err.code === 11000) {
-    return res.status(409).json({
-      error: 'Duplicate entry',
-      errorId
-    });
+    return res.status(409).json({ error: 'Duplicate entry', errorId });
   }
-
-  // Generic error response
-  const message = process.env.NODE_ENV === 'production'
-    ? 'An unexpected error occurred. Please try again later.'
-    : err.message;
-    
-  res.status(500).json({
-    error: message,
-    errorId
-  });
+  const message = process.env.NODE_ENV === 'production' ? 'An unexpected error occurred.' : err.message;
+  res.status(500).json({ error: message, errorId });
 });
-
-// ================================
-// DATABASE CONNECTION
-// ================================
 
 const connectDB = async (retryCount = 0) => {
   try {
     const mongoUri = process.env.MONGODB_URI;
-    
-    if (!mongoUri) {
-      throw new Error('MONGODB_URI environment variable is required');
-    }
-    
+    if (!mongoUri) throw new Error('MONGODB_URI environment variable is required');
     console.log('🔌 Connecting to MongoDB...');
-    
     await mongoose.connect(mongoUri, {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       bufferCommands: false,
     });
-    
     console.log('✅ MongoDB connected successfully');
-    
-    // Handle connection events
-    mongoose.connection.on('error', (err) => {
-      console.error('🔥 MongoDB connection error:', err.message);
-    });
-    
-    mongoose.connection.on('disconnected', () => {
-      console.warn('⚠️  MongoDB disconnected');
-    });
-    
-    mongoose.connection.on('reconnected', () => {
-      console.log('🔄 MongoDB reconnected');
-    });
-    
+    mongoose.connection.on('error', (err) => console.error('🔥 MongoDB connection error:', err.message));
+    mongoose.connection.on('disconnected', () => console.warn('⚠️ MongoDB disconnected'));
+    mongoose.connection.on('reconnected', () => console.log('🔄 MongoDB reconnected'));
   } catch (error) {
     console.error(`❌ MongoDB connection failed (attempt ${retryCount + 1}):`, error.message);
-    
-    // Retry with exponential backoff
     if (retryCount < 5) {
       const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
       console.log(`🔄 Retrying connection in ${delay}ms...`);
@@ -525,71 +309,46 @@ const connectDB = async (retryCount = 0) => {
   }
 };
 
-// ================================
-// GRACEFUL SHUTDOWN
-// ================================
-
 const gracefulShutdown = async (signal) => {
   console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
-  
   try {
-    // Close database connection
     await mongoose.connection.close();
     console.log('✅ MongoDB connection closed');
-    
-    // Exit process
     console.log('👋 Graceful shutdown complete');
     process.exit(0);
-    
   } catch (error) {
     console.error('❌ Error during shutdown:', error.message);
     process.exit(1);
   }
 };
 
-// Handle shutdown signals
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
   console.error('💥 Uncaught Exception:', error.message);
   console.error(error.stack);
   process.exit(1);
 });
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
   console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
 });
 
-// ================================
-// SERVER STARTUP
-// ================================
-
 const startServer = async () => {
   try {
-    // Validate environment
     validateEnvironment();
-    
-    // Ensure upload directory exists
     ensureUploadDir();
-    
-    // Connect to database
     await connectDB();
-    
-    // Start server
     const PORT = process.env.PORT || 5000;
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log('🎉 Server startup complete!');
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`⏰ Timezone: ${process.env.TZ}`);
       console.log(`📅 Started at: ${new Date().toISOString()}`);
     });
-    
-    // Handle server errors
     server.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
         console.error(`❌ Port ${PORT} is already in use`);
@@ -598,17 +357,13 @@ const startServer = async () => {
       }
       process.exit(1);
     });
-    
     return server;
-    
   } catch (error) {
     console.error('💀 Failed to start server:', error.message);
     process.exit(1);
   }
 };
 
-// Start the server
 startServer();
 
-// Export app for testing purposes
 module.exports = app;
