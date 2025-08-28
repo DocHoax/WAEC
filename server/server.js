@@ -258,24 +258,45 @@ app.use('/api*', (req, res) => {
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../build')));
-  console.log('Mounting catch-all route for React frontend at *');
+  console.log('Setting up React frontend serving...');
   
-  // ✅ FIXED: Proper catch-all route for React Router
-  app.get('*', (req, res) => {
-    // Double-check that we're not serving API routes
-    if (req.path.startsWith('/api')) {
-      return res.status(404).json({ error: 'API endpoint not found' });
-    }
+  // ✅ ALTERNATIVE: Use a more specific pattern instead of '*'
+  // This avoids potential issues with path-to-regexp parsing '*'
+  try {
+    console.log('🚀 Attempting to mount catch-all route for React frontend...');
     
-    const indexPath = path.join(__dirname, '../../build', 'index.html');
+    // Method 1: Use a regex pattern instead of '*'
+    app.get(/^\/(?!api).*/, (req, res) => {
+      console.log(`Serving React app for path: ${req.path}`);
+      
+      const indexPath = path.join(__dirname, '../../build', 'index.html');
+      
+      // Verify the file exists before serving
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send('Frontend build not found');
+      }
+    });
     
-    // Verify the file exists before serving
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      res.status(404).send('Frontend build not found');
-    }
-  });
+    console.log('✅ Successfully mounted React frontend catch-all route');
+  } catch (catchAllError) {
+    console.error('❌ Error mounting catch-all route:', catchAllError.message);
+    console.error('Fallback: Using individual route handlers instead');
+    
+    // Fallback: Define specific routes that might be needed
+    const commonReactRoutes = ['/', '/login', '/dashboard', '/admin', '/teacher', '/student'];
+    commonReactRoutes.forEach(route => {
+      app.get(route, (req, res) => {
+        const indexPath = path.join(__dirname, '../../build', 'index.html');
+        if (fs.existsSync(indexPath)) {
+          res.sendFile(indexPath);
+        } else {
+          res.status(404).send('Frontend build not found');
+        }
+      });
+    });
+  }
 }
 
 // Global error handler
