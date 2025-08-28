@@ -44,16 +44,8 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static('Uploads'));
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url} | Params: ${JSON.stringify(req.params)} | Query: ${JSON.stringify(req.query)}`);
-  if (req.url.includes('://') || req.url.includes('(')) {
-    console.error('Malformed URL detected:', req.url);
-    return res.status(400).json({ error: 'Invalid URL' });
-  }
-  next();
-});
 
-// Load routes one by one to identify the problematic one
+// Load routes
 console.log('Mounting routes...');
 const routesToLoad = [
   { name: 'auth', path: './routes/auth', mount: '/api/auth' },
@@ -70,18 +62,16 @@ const routesToLoad = [
 
 routesToLoad.forEach(({ name, path: routePath, mount }) => {
   try {
-    console.log(`🔧 Loading ${name} routes from ${routePath} at ${mount}`);
+    console.log(`Loading ${name} routes from ${routePath} at ${mount}`);
     const routeModule = require(routePath);
-    
     if (name === 'questions') {
       app.use(mount, formDataUpload.any(), routeModule);
     } else {
       app.use(mount, routeModule);
     }
-    console.log(`✅ Successfully loaded and mounted ${name} routes`);
+    console.log(`✅ Successfully loaded ${name} routes`);
   } catch (error) {
     console.error(`❌ Error loading ${name} routes:`, error.message);
-    console.error(`Stack trace:`, error.stack);
   }
 });
 
@@ -136,19 +126,23 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Server is running' });
 });
 
-// Fallback catch-all route to handle unmatched API routes
+// Handle API 404s
 app.use('/api/*', (req, res) => {
-  console.log(`Unmatched API route: ${req.method} ${req.path}`);
-  res.status(404).json({ error: 'API route not found' });
+  res.status(404).json({ error: 'API endpoint not found', path: req.path, method: req.method });
 });
 
-// Serve static files from React build in production
+// Serve React frontend in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../build')));
   console.log('Mounting catch-all route for React frontend at /*');
   app.get('/*', (req, res) => {
     console.log(`Serving React frontend for path: ${req.path}`);
-    res.sendFile(path.join(__dirname, '../../build', 'index.html'));
+    const indexPath = path.join(__dirname, '../../build', 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Frontend build not found');
+    }
   });
 }
 
