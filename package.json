@@ -25,6 +25,7 @@
     "chart.js": "^4.5.0",
     "compressorjs": "^1.2.1",
     "crypto-browserify": "^3.12.1",
+    "express": "^5.1.0",
     "https-browserify": "^1.0.0",
     "idb": "^8.0.3",
     "json2csv": "^6.0.0-alpha.2",
