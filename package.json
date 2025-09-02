@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "node render-build.js",
+    "build": "npm run render-build",
     "start": "cd server && npm start",
     "client": "cd src && npm start",
     "server": "cd server && npm run dev",
