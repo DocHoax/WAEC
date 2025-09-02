@@ -2,28 +2,33 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path'); // Fixed import
+const fs = require('fs');
+const multer = require('multer');
 const Signature = require('./models/Signature');
 const { auth } = require('./middleware/auth');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const authRoutes = require('./routes/auth');
+const questionRoutes = require('./routes/questions');
+const testRoutes = require('./routes/tests');
+const analyticsRoutes = require('./routes/analytics');
+const cheatLogRoutes = require('./routes/cheat-logs');
+const classRoutes = require('./routes/classes');
+const resultsRoutes = require('./routes/results');
+const reportsRoutes = require('./routes/reports');
+const subjectsRoutes = require('./routes/subjects');
+const sessionsRoutes = require('./routes/sessions');
 
 const app = express();
 
-// Set timezone to WAT (Africa/Lagos)
 process.env.TZ = 'Africa/Lagos';
 
-// Configure Multer for signature uploads (file-based)
-const ensureUploadDir = () => {
-  const uploadDir = path.join(__dirname, 'uploads');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-    console.log('Created uploads directory:', uploadDir);
-  }
-  return uploadDir;
-};
+const uploadsDir = './Uploads';
+if (!fs.existsSync(uploadsDir)) { // Fixed typo: uploadsDir
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, ensureUploadDir()),
+  destination: (req, file, cb) => cb(null, 'Uploads/'),
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
 });
 const upload = multer({
@@ -38,54 +43,35 @@ const upload = multer({
   },
 });
 
-// Configure Multer for form-data fields (no files, for questions)
 const formDataUpload = multer();
 
-// Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.FRONTEND_URL || 'https://waec-gfv0.onrender.com'
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL || 'https://waec-gfv0.onrender.com' 
     : 'http://localhost:3000',
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// Set up static serving for uploaded images
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Load routes
-console.log('Mounting routes...');
-const routesToLoad = [
-  { name: 'auth', path: './routes/auth', mount: '/api/auth' },
-  { name: 'questions', path: './routes/questions', mount: '/api/questions' },
-  { name: 'tests', path: './routes/tests', mount: '/api/tests' },
-  { name: 'analytics', path: './routes/analytics', mount: '/api/analytics' },
-  { name: 'cheat-logs', path: './routes/cheat-logs', mount: '/api/cheat-logs' },
-  { name: 'classes', path: './routes/classes', mount: '/api/classes' },
-  { name: 'results', path: './routes/results', mount: '/api/results' },
-  { name: 'reports', path: './routes/reports', mount: '/api/reports' },
-  { name: 'subjects', path: './routes/subjects', mount: '/api/subjects' },
-  { name: 'sessions', path: './routes/sessions', mount: '/api/sessions' }
-];
-
-routesToLoad.forEach(({ name, path: routePath, mount }) => {
-  try {
-    console.log(`Loading ${name} routes from ${routePath} at ${mount}`);
-    const routeModule = require(routePath);
-    if (name === 'questions') {
-      app.use(mount, formDataUpload.any(), routeModule);
-    } else {
-      app.use(mount, routeModule);
-    }
-    console.log(`✅ Successfully loaded ${name} routes`);
-  } catch (error) {
-    console.error(`❌ Error loading ${name} routes:`, error.message);
-  }
+app.use('/uploads', express.static('Uploads'));
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  next();
 });
 
-// Manual signature upload route
+console.log('Mounting routes...');
+app.use('/api/auth', authRoutes);
+app.use('/api/questions', formDataUpload.any(), questionRoutes);
+app.use('/api/tests', testRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/cheat-logs', cheatLogRoutes);
+app.use('/api/classes', classRoutes);
+app.use('/api/results', resultsRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/subjects', subjectsRoutes);
+app.use('/api/sessions', sessionsRoutes);
+
 app.post('/api/signatures/upload', auth, upload.fields([
   { name: 'classTeacherSignature', maxCount: 1 },
   { name: 'principalSignature', maxCount: 1 },
@@ -131,35 +117,37 @@ app.post('/api/signatures/upload', auth, upload.fields([
   }
 });
 
-// Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'Server is running' });
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  const buildPath = path.join(__dirname, '../src/build');
+  const buildExists = fs.existsSync(buildPath);
+  const indexExists = fs.existsSync(path.join(buildPath, 'index.html'));
+  res.status(200).json({
+    status: 'OK',
+    message: 'Server is running',
+    database: dbStatus,
+    buildDirectory: buildExists ? 'available' : 'missing',
+    indexFile: indexExists ? 'available' : 'missing'
+  });
 });
 
-// Handle API 404s (must be placed before the frontend catch-all)
 app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found', path: req.path, method: req.method });
 });
 
-// Serve React frontend in production (MUST be the last route)
 if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '..', '..', 'build');
-  console.log(`Checking for build directory at: ${buildPath}`);
-  if (fs.existsSync(buildPath)) {
-    console.log('✅ Build directory found. Serving static files.');
-    app.use(express.static(buildPath));
-    console.log('Mounting catch-all route for React frontend.');
-    app.get('/*', (req, res) => {
-      console.log(`Serving React frontend for path: ${req.path}`);
-      res.sendFile(path.join(buildPath, 'index.html'));
-    });
-  } else {
-    console.error('❌ Frontend build directory not found. Please run `npm run build` in the frontend directory.');
-  }
+  app.use(express.static(path.join(__dirname, '../src/build')));
+  app.get('*', (req, res) => {
+    console.log(`Serving React frontend for path: ${req.path}`);
+    const indexPath = path.join(__dirname, '../src/build', 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Frontend build not found');
+    }
+  });
 }
 
-
-// Global error handler
 app.use((err, req, res, next) => {
   console.error('Global error:', {
     message: err.message,
@@ -169,17 +157,12 @@ app.use((err, req, res, next) => {
     query: req.query,
     stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
   });
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode).json({
-    error: 'Internal server error',
-    message: err.message
-  });
+  res.status(500).json({ error: 'Internal server error' });
 });
 
-// MongoDB connection
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://sodiqolaniyisanni:Controller1@cluster0.gw4ko28.mongodb.net/waec-cbt?retryWrites=true&w=majority');
     console.log('MongoDB connected');
   } catch (err) {
     console.error('MongoDB connection error:', err.message);
@@ -189,6 +172,5 @@ const connectDB = async () => {
 
 connectDB();
 
-// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
