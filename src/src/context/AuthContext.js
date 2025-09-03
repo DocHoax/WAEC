@@ -12,6 +12,15 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Helper function to check permissions
+  const hasPermission = (permission) => {
+    if (!user) return false;
+    // Super admin has all permissions
+    if (user.role === 'super_admin') return true;
+    // Check if user has the specific permission
+    return user.permissions && user.permissions.includes(permission);
+  };
+
   const refreshToken = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
@@ -114,7 +123,8 @@ export const AuthProvider = ({ children }) => {
       loading,
       error,
       setError,
-      refreshToken
+      refreshToken,
+      hasPermission // Add permission checking function
     }}>
       {children}
     </AuthContext.Provider>

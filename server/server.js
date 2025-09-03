@@ -19,6 +19,8 @@ const resultsRoutes = require('./routes/results');
 const reportsRoutes = require('./routes/reports');
 const subjectsRoutes = require('./routes/subjects');
 const sessionsRoutes = require('./routes/sessions');
+const promotionRoutes = require('./routes/promotion');
+const transcriptRoutes = require('./routes/transcripts');
 
 const app = express();
 
@@ -169,6 +171,8 @@ app.use('/api/results', resultsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/subjects', subjectsRoutes);
 app.use('/api/sessions', sessionsRoutes);
+app.use('/api/promotion', promotionRoutes);
+app.use('/api/transcript', transcriptRoutes);
 
 console.log('✅ All routes mounted successfully');
 

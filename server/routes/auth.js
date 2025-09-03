@@ -3,7 +3,10 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const RolePermission = require('../models/RolePermission');
+const Permission = require('../models/Permission');
 const { auth } = require('../middleware/auth');
+const { checkPermission } = require('../middleware/permissions');
 const { Parser } = require('json2csv');
 const multer = require('multer');
 const path = require('path');
@@ -25,6 +28,17 @@ const upload = multer({
   },
 });
 
+// Helper function to get user permissions
+const getUserPermissions = async (role) => {
+  if (role === 'super_admin') {
+    return ['all_permissions']; // Special flag for super admin
+  }
+  
+  const rolePermissions = await RolePermission.find({ role })
+    .populate('permissionId');
+  return rolePermissions.map(rp => rp.permissionId.name);
+};
+
 router.get('/me', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select('username name surname role class subjects enrolledSubjects blocked picture dateOfBirth address phoneNumber sex age');
@@ -32,6 +46,10 @@ router.get('/me', auth, async (req, res) => {
       console.error('GET /api/auth/me - User not found:', req.user.userId);
       return res.status(404).json({ error: 'User not found' });
     }
+
+    // Get user permissions
+    const permissions = await getUserPermissions(user.role);
+
     console.log('GET /api/auth/me - Success:', { userId: user._id, role: user.role });
     res.json({
       _id: user._id,
@@ -49,6 +67,7 @@ router.get('/me', auth, async (req, res) => {
       phoneNumber: user.phoneNumber,
       sex: user.sex,
       age: user.age,
+      permissions // Add permissions to response
     });
   } catch (error) {
     console.error('GET /api/auth/me - Error:', error.message);
@@ -56,11 +75,8 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
-router.post('/register', auth, upload.single('picture'), async (req, res) => {
+router.post('/register', auth, checkPermission('create_users'), upload.single('picture'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { username, password, name, surname, role, class: className, subjects, dateOfBirth, address, phoneNumber, sex, age } = req.body;
     let parsedSubjects = [];
     try {
@@ -114,11 +130,8 @@ router.post('/register', auth, upload.single('picture'), async (req, res) => {
   }
 });
 
-router.post('/register/bulk', auth, async (req, res) => {
+router.post('/register/bulk', auth, checkPermission('create_users'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { users } = req.body;
     let count = 0;
     for (const userData of users) {
@@ -165,6 +178,10 @@ router.post('/login', async (req, res) => {
       console.error('POST /api/auth/login - Password mismatch:', username);
       return res.status(400).json({ error: 'Invalid credentials' });
     }
+
+    // Get user permissions
+    const permissions = await getUserPermissions(user.role);
+
     const token = jwt.sign(
       {
         userId: user._id,
@@ -173,6 +190,7 @@ router.post('/login', async (req, res) => {
         class: user.class,
         subjects: user.subjects,
         enrolledSubjects: user.enrolledSubjects,
+        permissions // Add permissions to token
       },
       process.env.JWT_SECRET || 'your_jwt_secret',
       { expiresIn: '1h' }
@@ -195,6 +213,7 @@ router.post('/login', async (req, res) => {
         phoneNumber: user.phoneNumber,
         sex: user.sex,
         age: user.age,
+        permissions // Add permissions to user object
       },
     });
   } catch (error) {
@@ -214,6 +233,10 @@ router.post('/refresh', auth, async (req, res) => {
       console.error('POST /api/auth/refresh - Account blocked:', req.user.username);
       return res.status(403).json({ error: 'Account blocked' });
     }
+
+    // Get user permissions
+    const permissions = await getUserPermissions(user.role);
+
     const token = jwt.sign(
       {
         userId: user._id,
@@ -222,6 +245,7 @@ router.post('/refresh', auth, async (req, res) => {
         class: user.class,
         subjects: user.subjects,
         enrolledSubjects: user.enrolledSubjects,
+        permissions // Add permissions to token
       },
       process.env.JWT_SECRET || 'your_jwt_secret',
       { expiresIn: '1h' }
@@ -234,11 +258,8 @@ router.post('/refresh', auth, async (req, res) => {
   }
 });
 
-router.get('/users', auth, async (req, res) => {
+router.get('/users', auth, checkPermission('view_users'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const users = await User.find({}, 'username name surname role class subjects enrolledSubjects blocked picture dateOfBirth address phoneNumber sex age');
     res.json(users);
   } catch (error) {
@@ -248,13 +269,9 @@ router.get('/users', auth, async (req, res) => {
 });
 
 // ✅ CORRECTED - Removed regex patterns from route paths
-router.get('/students/:subject/:class', auth, async (req, res) => {
+router.get('/students/:subject/:class', auth, checkPermission('view_users'), async (req, res) => {
   try {
     console.log('GET /api/auth/students/:subject/:class - Request:', { params: req.params, url: req.url });
-    if (req.user.role !== 'admin') {
-      console.log('GET /api/auth/students/:subject/:class - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { subject, class: className } = req.params;
     if (!subject || !className) {
       console.log('GET /api/auth/students/:subject/:class - Missing subject or class:', { subject, class: className });
@@ -278,11 +295,8 @@ router.get('/students/:subject/:class', auth, async (req, res) => {
 });
 
 // ✅ CORRECTED - Removed regex patterns from route paths
-router.put('/users/:id', auth, upload.single('picture'), async (req, res) => {
+router.put('/users/:id', auth, checkPermission('edit_users'), upload.single('picture'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { username, password, name, surname, role, class: className, subjects, dateOfBirth, address, phoneNumber, sex, age } = req.body;
     let parsedSubjects = [];
     try {
@@ -337,11 +351,8 @@ router.put('/users/:id', auth, upload.single('picture'), async (req, res) => {
 });
 
 // ✅ CORRECTED - Removed regex patterns from route paths
-router.put('/users/:id/block', auth, async (req, res) => {
+router.put('/users/:id/block', auth, checkPermission('edit_users'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { blocked } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -355,11 +366,8 @@ router.put('/users/:id/block', auth, async (req, res) => {
 });
 
 // ✅ CORRECTED - Removed regex patterns from route paths
-router.delete('/users/:id', auth, async (req, res) => {
+router.delete('/users/:id', auth, checkPermission('delete_users'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ message: 'User deleted' });
@@ -369,11 +377,8 @@ router.delete('/users/:id', auth, async (req, res) => {
   }
 });
 
-router.get('/export/students', auth, async (req, res) => {
+router.get('/export/students', auth, checkPermission('view_users'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const users = await User.find({ role: 'student' });
     const fields = ['username', 'name', 'surname', 'class', 'enrolledSubjects', 'picture', 'dateOfBirth', 'address', 'phoneNumber', 'sex', 'age'];
     const csv = new Parser({ fields }).parse(users.map(u => ({

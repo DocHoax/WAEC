@@ -4,11 +4,12 @@ const Result = require('../models/Result');
 const User = require('../models/User');
 const Test = require('../models/Test');
 const { auth } = require('../middleware/auth');
+const { checkPermission } = require('../middleware/permissions');
 const PDFDocument = require('pdfkit');
 const { Parser } = require('json2csv');
 const mongoose = require('mongoose');
 
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, checkPermission('view_results'), async (req, res) => {
   try {
     let query = {};
     if (req.user.role === 'teacher') {
@@ -28,8 +29,7 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// ✅ CORRECTED - Removed regex pattern from route path
-router.get('/:testId', auth, async (req, res) => {
+router.get('/:testId', auth, checkPermission('view_results'), async (req, res) => {
   try {
     console.log('GET /api/results/:testId - Request:', { testId: req.params.testId, url: req.url });
     if (!mongoose.isValidObjectId(req.params.testId)) {
@@ -64,8 +64,7 @@ router.get('/:testId', auth, async (req, res) => {
   }
 });
 
-// ✅ CORRECTED - Removed regex pattern from route path
-router.get('/details/:resultId', auth, async (req, res) => {
+router.get('/details/:resultId', auth, checkPermission('view_results'), async (req, res) => {
   try {
     console.log('GET /api/results/details/:resultId - Request:', { resultId: req.params.resultId, url: req.url });
     if (!mongoose.isValidObjectId(req.params.resultId)) {
@@ -100,8 +99,7 @@ router.get('/details/:resultId', auth, async (req, res) => {
   }
 });
 
-// ✅ CORRECTED - Removed regex pattern from route path
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, checkPermission('manage_results'), async (req, res) => {
   try {
     console.log('PUT /api/results/:id - Request:', { id: req.params.id, url: req.url });
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -130,8 +128,7 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// ✅ CORRECTED - Removed regex patterns from route path
-router.get('/export/student/:studentId/session/:sessionId', auth, async (req, res) => {
+router.get('/export/student/:studentId/session/:sessionId', auth, checkPermission('export_results'), async (req, res) => {
   try {
     console.log('GET /api/results/export/student/:studentId/session/:sessionId - Request:', { params: req.params, url: req.url });
     const { studentId, sessionId } = req.params;
@@ -209,8 +206,7 @@ router.get('/export/student/:studentId/session/:sessionId', auth, async (req, re
   }
 });
 
-// ✅ CORRECTED - Removed regex patterns from route path
-router.get('/export/class/:className/subject/:subjectId', auth, async (req, res) => {
+router.get('/export/class/:className/subject/:subjectId', auth, checkPermission('export_results'), async (req, res) => {
   try {
     console.log('GET /api/results/export/class/:className/subject/:subjectId - Request:', {
       params: req.params,
@@ -292,8 +288,7 @@ router.get('/export/class/:className/subject/:subjectId', auth, async (req, res)
   }
 });
 
-// ✅ CORRECTED - Removed regex patterns from route path
-router.get('/export/report/:className/:subjectId', auth, async (req, res) => {
+router.get('/export/report/:className/:subjectId', auth, checkPermission('export_results'), async (req, res) => {
   try {
     console.log('GET /api/results/export/report/:className/:subjectId - Request:', { params: req.params, url: req.url });
     const { className, subjectId } = req.params;
@@ -352,8 +347,7 @@ router.get('/export/report/:className/:subjectId', auth, async (req, res) => {
   }
 });
 
-// ✅ CORRECTED - Removed regex patterns from route path
-router.get('/export/student/:studentId/test/:testId', auth, async (req, res) => {
+router.get('/export/student/:studentId/test/:testId', auth, checkPermission('export_results'), async (req, res) => {
   try {
     console.log('GET /api/results/export/student/:studentId/test/:testId - Request:', { params: req.params, url: req.url });
     const { studentId, testId } = req.params;
@@ -372,7 +366,7 @@ router.get('/export/student/:studentId/test/:testId', auth, async (req, res) => 
       if (!test) {
         console.log('GET /api/results/export/student/:studentId/test/:testId - Test not found:', { testId });
         return res.status(404).json({ error: 'Test not found' });
-    }
+      }
       if (!req.user.subjects.some((sub) => sub.subject === test.subject && sub.class === test.class)) {
         console.log('GET /api/results/export/student/:studentId/test/:testId - Not assigned:', { user: req.user.username, subject: test.subject, class: test.class });
         return res.status(403).json({ error: 'Not assigned to this subject/class' });

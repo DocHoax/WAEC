@@ -2,13 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Class = require('../models/Class');
 const { auth } = require('../middleware/auth');
+const { checkPermission } = require('../middleware/permissions');
 
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, checkPermission('manage_classes'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const classes = await Class.find();
     console.log('Classes route - Fetched classes:', { count: classes.length });
     res.json(classes);
@@ -18,12 +15,8 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, checkPermission('manage_classes'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { name, subjects } = req.body;
     console.log('Classes route - Create class:', { name, subjects });
     const existingClass = await Class.findOne({ name });
@@ -39,12 +32,8 @@ router.post('/', auth, async (req, res) => {
 });
 
 // ✅ CORRECTED - Removed regex pattern from route path
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, checkPermission('manage_classes'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { name, subjects } = req.body;
     console.log('Classes route - Update class:', { id: req.params.id, name, subjects });
     const classData = await Class.findById(req.params.id);
@@ -65,12 +54,8 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // ✅ CORRECTED - Removed regex pattern from route path
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, checkPermission('manage_classes'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     console.log('Classes route - Delete class:', { id: req.params.id });
     const classData = await Class.findByIdAndDelete(req.params.id);
     if (!classData) return res.status(404).json({ error: 'Class not found' });
@@ -82,12 +67,8 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-router.post('/subject', auth, async (req, res) => {
+router.post('/subject', auth, checkPermission('manage_classes'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { className, subject } = req.body;
     console.log('Classes route - Add subject:', { className, subject });
     const classData = await Class.findOne({ name: className });
@@ -104,13 +85,9 @@ router.post('/subject', auth, async (req, res) => {
 });
 
 // ✅ CORRECTED - Removed regex patterns from route path
-router.delete('/subject/:classId/:subject', auth, async (req, res) => {
+router.delete('/subject/:classId/:subject', auth, checkPermission('manage_classes'), async (req, res) => {
   try {
     console.log('Classes route hit: /subject/:classId/:subject', { params: req.params, url: req.url });
-    if (req.user.role !== 'admin') {
-      console.log('Classes route - Access denied:', { userId: req.user.userId });
-      return res.status(403).json({ error: 'Admin access required' });
-    }
     const { classId, subject } = req.params;
     console.log('Classes route - Delete subject:', { classId, subject });
     const classData = await Class.findById(classId);

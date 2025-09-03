@@ -7,6 +7,8 @@ const AdminLayout = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Updated tabs array with Promotion Panel
   const tabs = [
     { path: '/admin', label: 'Home' },
     { path: '/admin/classes', label: 'Manage Classes & Subjects' },
@@ -14,6 +16,7 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/tests', label: 'Tests & Exams' },
     { path: '/admin/results', label: 'Results' },
     { path: '/admin/sessions', label: 'Session Schedules' },
+    { path: '/admin/promotion', label: 'Student Promotion' }, // Added promotion tab
     { path: '/admin/exports', label: 'Data Exports' },
     { path: '/admin/analytics', label: 'View Analytics' },
   ];

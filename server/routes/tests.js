@@ -5,7 +5,8 @@ const Test = require('../models/Test');
 const Question = require('../models/Question');
 const Result = require('../models/Result');
 const User = require('../models/User');
-const { auth, teacherOnly, adminOnly } = require('../middleware/auth');
+const { auth, teacherOnly } = require('../middleware/auth');
+const { checkPermission } = require('../middleware/permissions');
 
 // Middleware to validate MongoDB ObjectId
 const validateObjectId = (paramName) => (req, res, next) => {
@@ -17,7 +18,7 @@ const validateObjectId = (paramName) => (req, res, next) => {
 };
 
 // Teacher creates a test
-router.post('/', auth, teacherOnly, async (req, res) => {
+router.post('/', auth, checkPermission('manage_tests'), async (req, res) => {
   try {
     const { subject, class: className, title, instructions, duration, randomize, session, questions, questionCount, totalMarks, questionMarks } = req.body;
     console.log('Tests route - Creating test:', {
@@ -173,7 +174,7 @@ router.post('/', auth, teacherOnly, async (req, res) => {
 });
 
 // Admin schedules a test
-router.put('/:id/schedule', [auth, adminOnly, validateObjectId('id')], async (req, res) => {
+router.put('/:id/schedule', [auth, checkPermission('manage_tests'), validateObjectId('id')], async (req, res) => {
   try {
     const { batches, status } = req.body;
     console.log('Tests route - Scheduling test:', { id: req.params.id, user: req.user.username, payload: req.body });
@@ -244,7 +245,7 @@ router.put('/:id/schedule', [auth, adminOnly, validateObjectId('id')], async (re
 });
 
 // Fetch all tests
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, checkPermission('view_tests'), async (req, res) => {
   try {
     console.log('Tests route - Fetching tests:', { user: req.user.username, role: req.user.role });
     let query = {};
@@ -277,7 +278,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Fetch all tests for admin
-router.get('/admin', auth, adminOnly, async (req, res) => {
+router.get('/admin', auth, checkPermission('manage_tests'), async (req, res) => {
   try {
     console.log('Tests route - Admin fetch tests:', { user: req.user.username });
     const tests = await Test.find().populate('createdBy', 'username');
@@ -293,7 +294,7 @@ router.get('/admin', auth, adminOnly, async (req, res) => {
 });
 
 // Fetch a specific test
-router.get('/:testId', [auth, validateObjectId('testId')], async (req, res) => {
+router.get('/:testId', [auth, checkPermission('view_tests'), validateObjectId('testId')], async (req, res) => {
   try {
     console.log('Tests route - Fetching test:', { testId: req.params.testId, user: req.user.username, userId: req.user.userId });
     const test = await Test.findById(req.params.testId).populate({
@@ -373,7 +374,7 @@ router.get('/:testId', [auth, validateObjectId('testId')], async (req, res) => {
 });
 
 // Fetch test results
-router.get('/:testId/results', [auth, validateObjectId('testId')], async (req, res) => {
+router.get('/:testId/results', [auth, checkPermission('view_results'), validateObjectId('testId')], async (req, res) => {
   try {
     console.log('Tests route - Fetching results:', { testId: req.params.testId, user: req.user.username, role: req.user.role });
     const test = await Test.findById(req.params.testId);
@@ -409,7 +410,7 @@ router.get('/:testId/results', [auth, validateObjectId('testId')], async (req, r
 });
 
 // Submit test answers
-router.post('/:id/submit', [auth, validateObjectId('id')], async (req, res) => {
+router.post('/:id/submit', [auth, checkPermission('submit_tests'), validateObjectId('id')], async (req, res) => {
   try {
     const { answers, userId } = req.body;
     console.log('Tests route - Submitting test:', { testId: req.params.id, userId });
@@ -496,7 +497,7 @@ router.post('/:id/submit', [auth, validateObjectId('id')], async (req, res) => {
 });
 
 // Teacher updates a test
-router.put('/:id', [auth, teacherOnly, validateObjectId('id')], async (req, res) => {
+router.put('/:id', [auth, checkPermission('manage_tests'), validateObjectId('id')], async (req, res) => {
   try {
     const { title, subject, class: className, session, instructions, duration, randomize, questions, questionCount, totalMarks, questionMarks } = req.body;
     console.log('Tests route - Updating test:', { id: req.params.id, user: req.user.username, payload: req.body });
@@ -624,7 +625,7 @@ router.put('/:id', [auth, teacherOnly, validateObjectId('id')], async (req, res)
 });
 
 // Teacher adds or updates questions for a test
-router.put('/:id/questions', [auth, teacherOnly, validateObjectId('id')], async (req, res) => {
+router.put('/:id/questions', [auth, checkPermission('manage_tests'), validateObjectId('id')], async (req, res) => {
   try {
     const { questions, questionMarks } = req.body;
     console.log('Tests route - Updating questions:', { id: req.params.id, user: req.user.username, questionCount: questions?.length, questions: questions?.map(id => id.toString()), questionMarks });
@@ -708,7 +709,7 @@ router.put('/:id/questions', [auth, teacherOnly, validateObjectId('id')], async 
 });
 
 // Delete a test
-router.delete('/:testId', [auth, validateObjectId('testId')], async (req, res) => {
+router.delete('/:testId', [auth, checkPermission('manage_tests'), validateObjectId('testId')], async (req, res) => {
   try {
     console.log('Tests route - Deleting test:', { 
       testId: req.params.testId, 
@@ -757,7 +758,7 @@ router.delete('/:testId', [auth, validateObjectId('testId')], async (req, res) =
 });
 
 // Update test results
-router.put('/results/:resultId', [auth, adminOnly, validateObjectId('resultId')], async (req, res) => {
+router.put('/results/:resultId', [auth, checkPermission('manage_results'), validateObjectId('resultId')], async (req, res) => {
   try {
     const { score, answers, correctness } = req.body;
     console.log('Tests route - Updating result:', { resultId: req.params.resultId, user: req.user.username });
