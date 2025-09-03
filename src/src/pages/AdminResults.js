@@ -40,10 +40,10 @@ const AdminResults = () => {
       try {
         console.log('AdminResults - Fetching results:', { testId });
         const [testRes, resultsRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/tests/${testId}`, {
+          axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get(`http://localhost:5000/api/tests/${testId}/results`, {
+          axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}/results`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -74,7 +74,7 @@ const AdminResults = () => {
     try {
       console.log('AdminResults - Updating result:', { resultId, score: Number(editScore) });
       const res = await axios.put(
-        `http://localhost:5000/api/tests/results/${resultId}`,
+        `https://waec-gfv0.onrender.com/api/tests/results/${resultId}`,
         { score: Number(editScore), answers: editAnswers },
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -20,7 +20,7 @@ const QuestionForm = ({ onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/questions', formData, {
+      await axios.post('https://waec-gfv0.onrender.com/api/questions', formData, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       onSuccess();

@@ -4,7 +4,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FiAlertTriangle, FiCheckCircle, FiArrowLeft, FiTrash2, FiSearch } from 'react-icons/fi';
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'https://waec-gfv0.onrender.com' : 'http://localhost:5000';
 
 const SetBatch = () => {
   const { testId } = useParams();

@@ -3,7 +3,7 @@ import axios from 'axios';
 import Papa from 'papaparse';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'https://waec-gfv0.onrender.com' : 'http://localhost:5000';
 
 const DataExports = () => {
   const { user } = useAuth();

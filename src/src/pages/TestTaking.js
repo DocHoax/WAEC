@@ -42,7 +42,7 @@ const TestTaking = () => {
     }
     try {
       console.log('TestTaking - Fetching test:', { testId, userId: user._id });
-      const res = await fetch(`http://localhost:5000/api/tests/${testId}`, {
+      const res = await fetch(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -80,7 +80,7 @@ const TestTaking = () => {
     const token = localStorage.getItem('token');
     try {
       console.log('TestTaking - Submitting test:', { testId, userId: user._id, answers });
-      const res = await fetch(`http://localhost:5000/api/tests/${testId}/submit`, {
+      const res = await fetch(`https://waec-gfv0.onrender.com/api/tests/${testId}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

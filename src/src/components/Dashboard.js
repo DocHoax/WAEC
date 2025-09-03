@@ -19,7 +19,7 @@ const Dashboard = () => {
         return;
       }
       try {
-        const res = await axios.get('http://localhost:5000/api/tests', {
+        const res = await axios.get('https://waec-gfv0.onrender.com/api/tests', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTests(res.data);

@@ -27,8 +27,8 @@ const AdminScheduling = () => {
       }
       try {
         const [testsRes, studentsRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/tests/admin', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5000/api/users?role=student', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('https://waec-gfv0.onrender.com/api/tests/admin', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('https://waec-gfv0.onrender.com/api/users?role=student', { headers: { Authorization: `Bearer ${token}` } }),
         ]);
         console.log('AdminScheduling - Fetched tests:', testsRes.data);
         console.log('AdminScheduling - Fetched students:', studentsRes.data);
@@ -141,7 +141,7 @@ const AdminScheduling = () => {
         })),
       };
       console.log('AdminScheduling - Sending payload:', payload);
-      await axios.put(`http://localhost:5000/api/tests/${selectedTestId}/schedule`, payload, {
+      await axios.put(`https://waec-gfv0.onrender.com/api/tests/${selectedTestId}/schedule`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Test scheduled successfully.');

@@ -23,7 +23,7 @@ const ManageClasses = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/classes', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/classes', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClasses(res.data);
@@ -38,7 +38,7 @@ const ManageClasses = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/auth/users', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/auth/users', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);
@@ -55,13 +55,13 @@ const ManageClasses = () => {
     try {
       const token = localStorage.getItem('token');
       if (editClass) {
-        await axios.put(`http://localhost:5000/api/classes/${editClass._id}`, classForm, {
+        await axios.put(`https://waec-gfv0.onrender.com/api/classes/${editClass._id}`, classForm, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccess('Class updated successfully.');
         setEditClass(null);
       } else {
-        await axios.post('http://localhost:5000/api/classes', classForm, {
+        await axios.post('https://waec-gfv0.onrender.com/api/classes', classForm, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccess('Class created successfully.');
@@ -80,7 +80,7 @@ const ManageClasses = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/classes/${classId}`, {
+      await axios.delete(`https://waec-gfv0.onrender.com/api/classes/${classId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Class deleted successfully.');
@@ -98,7 +98,7 @@ const ManageClasses = () => {
     try {
       const token = localStorage.getItem('token');
       if (editSubject) {
-        await axios.put(`http://localhost:5000/api/classes/subject/${editSubject.classId}`, {
+        await axios.put(`https://waec-gfv0.onrender.com/api/classes/subject/${editSubject.classId}`, {
           oldSubject: editSubject.subject,
           newSubject: subjectForm.subject,
         }, {
@@ -107,7 +107,7 @@ const ManageClasses = () => {
         setSuccess('Subject updated successfully.');
         setEditSubject(null);
       } else {
-        await axios.post('http://localhost:5000/api/classes/subject', subjectForm, {
+        await axios.post('https://waec-gfv0.onrender.com/api/classes/subject', subjectForm, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccess('Subject added successfully.');
@@ -126,7 +126,7 @@ const ManageClasses = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/classes/subject/${classId}/${subject}`, {
+      await axios.delete(`https://waec-gfv0.onrender.com/api/classes/subject/${classId}/${subject}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Subject deleted successfully.');

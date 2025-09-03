@@ -9,7 +9,7 @@ const Tests = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/tests', {
+        const res = await axios.get('https://waec-gfv0.onrender.com/api/tests', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         console.log('Fetched tests:', res.data);

@@ -73,7 +73,7 @@ const QuestionCreation = () => {
 
     console.log('QuestionCreation - Submitting:', Object.fromEntries(data));
     try {
-      await axios.post(`http://localhost:5000/api/questions/${testId}`, data, {
+      await axios.post(`https://waec-gfv0.onrender.com/api/questions/${testId}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'

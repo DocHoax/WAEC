@@ -36,7 +36,7 @@ const Register = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/classes', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/classes', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClasses(res.data);
@@ -51,7 +51,7 @@ const Register = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/auth/users', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/auth/users', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);
@@ -91,13 +91,13 @@ const Register = () => {
         subjects: formData.subjects.map(subject => ({ subject, class: formData.class })),
       };
       if (editUserId) {
-        await axios.put(`http://localhost:5000/api/auth/users/${editUserId}`, payload, {
+        await axios.put(`https://waec-gfv0.onrender.com/api/auth/users/${editUserId}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccess('User updated successfully.');
         setEditUserId(null);
       } else {
-        await axios.post('http://localhost:5000/api/auth/register', payload, {
+        await axios.post('https://waec-gfv0.onrender.com/api/auth/register', payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccess('User registered successfully.');
@@ -151,7 +151,7 @@ const Register = () => {
             }
           }
           const token = localStorage.getItem('token');
-          const res = await axios.post('http://localhost:5000/api/auth/register/bulk', { users }, {
+          const res = await axios.post('https://waec-gfv0.onrender.com/api/auth/register/bulk', { users }, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setSuccess(`Registered ${res.data.count} users successfully.`);
@@ -190,7 +190,7 @@ const Register = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/auth/users/${userId}`, {
+      await axios.delete(`https://waec-gfv0.onrender.com/api/auth/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('User deleted successfully.');

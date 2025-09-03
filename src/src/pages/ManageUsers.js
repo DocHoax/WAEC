@@ -36,7 +36,7 @@ const ManageUsers = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/classes', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/classes', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClasses(res.data);
@@ -51,7 +51,7 @@ const ManageUsers = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/auth/users', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/auth/users', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);
@@ -108,13 +108,13 @@ const ManageUsers = () => {
       formDataToSend.append('age', formData.age);
 
       if (editUserId) {
-        await axios.put(`http://localhost:5000/api/auth/users/${editUserId}`, formDataToSend, {
+        await axios.put(`https://waec-gfv0.onrender.com/api/auth/users/${editUserId}`, formDataToSend, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
         });
         setSuccess('User updated successfully.');
         setEditUserId(null);
       } else {
-        await axios.post('http://localhost:5000/api/auth/register', formDataToSend, {
+        await axios.post('https://waec-gfv0.onrender.com/api/auth/register', formDataToSend, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
         });
         setSuccess('User registered successfully.');
@@ -175,7 +175,7 @@ const ManageUsers = () => {
             }
           }
           const token = localStorage.getItem('token');
-          const res = await axios.post('http://localhost:5000/api/auth/register/bulk', { users }, {
+          const res = await axios.post('https://waec-gfv0.onrender.com/api/auth/register/bulk', { users }, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setSuccess(`Registered ${res.data.count} users successfully.`);
@@ -220,7 +220,7 @@ const ManageUsers = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/auth/users/${userId}`, {
+      await axios.delete(`https://waec-gfv0.onrender.com/api/auth/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('User deleted successfully.');
@@ -588,7 +588,7 @@ const ManageUsers = () => {
                         .join(', ') || 'None'}
                     </td>
                     <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>
-                      {user.picture ? <img src={`http://localhost:5000/uploads/${user.picture}`} alt="Profile" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} /> : 'None'}
+                      {user.picture ? <img src={`https://waec-gfv0.onrender.com/uploads/${user.picture}`} alt="Profile" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} /> : 'None'}
                     </td>
                     <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : 'N/A'}</td>
                     <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{user.address || 'N/A'}</td>

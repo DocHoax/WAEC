@@ -89,7 +89,7 @@ const BulkImport = () => {
           const token = localStorage.getItem('token');
           if (!token) throw new Error('No authentication token found.');
           console.log('Submitting bulk import:', { questions: questions.length, images: imageFiles.length });
-          const res = await axios.post('http://localhost:5000/api/questions/bulk', formData, {
+          const res = await axios.post('https://waec-gfv0.onrender.com/api/questions/bulk', formData, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'multipart/form-data',

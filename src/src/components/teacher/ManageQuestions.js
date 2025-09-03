@@ -50,7 +50,7 @@ const ManageQuestions = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      await axios.delete(`http://localhost:5000/api/questions/${id}`, {
+      await axios.delete(`https://waec-gfv0.onrender.com/api/questions/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Question deleted successfully.');

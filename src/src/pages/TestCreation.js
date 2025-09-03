@@ -27,7 +27,7 @@ const TestCreation = () => {
     const fetchActiveSession = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/sessions', {
+        const res = await axios.get('https://waec-gfv0.onrender.com/api/sessions', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const activeSession = res.data.find(session => session.isActive);
@@ -108,17 +108,17 @@ const TestCreation = () => {
       };
       let res;
       if (testId) {
-        const verifyRes = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
+        const verifyRes = await axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!verifyRes.data._id) throw new Error('Test not found.');
-        res = await axios.put(`http://localhost:5000/api/tests/${testId}`, testData, {
+        res = await axios.put(`https://waec-gfv0.onrender.com/api/tests/${testId}`, testData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccess('Test updated and saved to draft.');
         await fetchTests();
       } else {
-        res = await axios.post('http://localhost:5000/api/tests', testData, {
+        res = await axios.post('https://waec-gfv0.onrender.com/api/tests', testData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCreatedTestId(res.data._id);
@@ -169,7 +169,7 @@ const TestCreation = () => {
     setSuccess(null);
     const token = localStorage.getItem('token');
     try {
-      await axios.get(`http://localhost:5000/api/tests/${createdTestId || testId}`, {
+      await axios.get(`https://waec-gfv0.onrender.com/api/tests/${createdTestId || testId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       await fetchTests();

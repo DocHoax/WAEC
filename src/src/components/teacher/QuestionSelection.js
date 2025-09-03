@@ -46,7 +46,7 @@ const QuestionSelection = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
+      const res = await axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTest(res.data);
@@ -69,7 +69,7 @@ const QuestionSelection = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get('http://localhost:5000/api/questions', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/questions', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setQuestions(res.data);
@@ -148,7 +148,7 @@ const QuestionSelection = () => {
         formData.append('image', newQuestion.imageUrl);
       }
       formData.append('saveToBank', newQuestion.saveToBank);
-      const res = await axios.post('http://localhost:5000/api/questions', formData, {
+      const res = await axios.post('https://waec-gfv0.onrender.com/api/questions', formData, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
       });
       setSuccess('Question added successfully.');
@@ -176,7 +176,7 @@ const QuestionSelection = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found.');
-      await axios.put(`http://localhost:5000/api/tests/${testId}`, { questions }, {
+      await axios.put(`https://waec-gfv0.onrender.com/api/tests/${testId}`, { questions }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Questions saved to test successfully.');

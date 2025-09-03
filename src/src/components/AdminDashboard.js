@@ -27,7 +27,7 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/classes', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/classes', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClasses(res.data);
@@ -42,7 +42,7 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/auth/users', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/auth/users', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);
@@ -57,7 +57,7 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/tests/admin', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/tests/admin', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTests(res.data);
@@ -72,7 +72,7 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/exams', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/exams', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setExamSchedules(res.data);
@@ -88,7 +88,7 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `http://localhost:5000/api/tests/${testId}/schedule`,
+        `https://waec-gfv0.onrender.com/api/tests/${testId}/schedule`,
         { status: 'scheduled' },
         { headers: { Authorization: `Bearer ${token}` } }
       );

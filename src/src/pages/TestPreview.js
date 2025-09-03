@@ -24,7 +24,7 @@ const TestPreview = () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found.');
-        const res = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
+        const res = await axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log('TestPreview - Fetched test:', res.data);

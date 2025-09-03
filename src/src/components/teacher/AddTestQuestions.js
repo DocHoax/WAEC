@@ -19,7 +19,7 @@ const AddTestQuestions = () => {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found.');
         console.log('AddTestQuestions - Fetching test:', { testId });
-        const res = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
+        const res = await axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTest(res.data);
@@ -95,7 +95,7 @@ const AddTestQuestions = () => {
       };
       console.log('AddTestQuestions - Sending payload:', payload);
       const res = await axios.put(
-        `http://localhost:5000/api/tests/${testId}/questions`,
+        `https://waec-gfv0.onrender.com/api/tests/${testId}/questions`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

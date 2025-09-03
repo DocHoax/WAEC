@@ -30,7 +30,7 @@ const QuestionBankPage = () => {
       }
 
       try {
-        const res = await axios.get('http://localhost:5000/api/questions', {
+        const res = await axios.get('https://waec-gfv0.onrender.com/api/questions', {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log('QuestionBank - Fetched questions:', res.data);
@@ -88,13 +88,13 @@ const QuestionBankPage = () => {
     try {
       if (editingId) {
         console.log('QuestionBank - Updating question:', { id: editingId });
-        await axios.put(`http://localhost:5000/api/questions/${editingId}`, formData, {
+        await axios.put(`https://waec-gfv0.onrender.com/api/questions/${editingId}`, formData, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
         });
         console.log('QuestionBank - Update success');
       } else {
         console.log('QuestionBank - Creating question');
-        await axios.post('http://localhost:5000/api/questions', formData, {
+        await axios.post('https://waec-gfv0.onrender.com/api/questions', formData, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
         });
         console.log('QuestionBank - Create success');
@@ -102,7 +102,7 @@ const QuestionBankPage = () => {
       setForm({ subject: '', class: '', text: '', options: ['', '', '', ''], correctAnswer: '', image: null });
       setEditingId(null);
       setPreviewImage(null);
-      const res = await axios.get('http://localhost:5000/api/questions', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/questions', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setQuestions(res.data);
@@ -130,7 +130,7 @@ const QuestionBankPage = () => {
     const token = localStorage.getItem('token');
     console.log('QuestionBank - Deleting question:', { id });
     try {
-      await axios.delete(`http://localhost:5000/api/questions/${id}`, {
+      await axios.delete(`https://waec-gfv0.onrender.com/api/questions/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('QuestionBank - Delete success');

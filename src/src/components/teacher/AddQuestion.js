@@ -299,12 +299,12 @@ const AddQuestion = () => {
         Object.entries(questionsData[0]).forEach(([key, value]) => {
           formData.append(key, key === 'options' ? JSON.stringify(value) : value);
         });
-        res = await axios.put(`http://localhost:5000/api/questions/${editQuestionId}`, formData, {
+        res = await axios.put(`https://waec-gfv0.onrender.com/api/questions/${editQuestionId}`, formData, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
         });
         setSuccess('Question updated.');
       } else {
-        res = await axios.post('http://localhost:5000/api/questions/bulk', { questions: questionsData }, {
+        res = await axios.post('https://waec-gfv0.onrender.com/api/questions/bulk', { questions: questionsData }, {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         });
         const { message, count, invalidQuestions } = res.data;

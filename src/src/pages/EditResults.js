@@ -22,7 +22,7 @@ const EditResults = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/tests/admin', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/tests/admin', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTests(res.data);
@@ -37,7 +37,7 @@ const EditResults = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/results', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/results', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setResults(res.data);
@@ -57,7 +57,7 @@ const EditResults = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/results/${resultId}`, { score: Number(editScore) }, {
+      await axios.put(`https://waec-gfv0.onrender.com/api/results/${resultId}`, { score: Number(editScore) }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setResults(results.map(r => r._id === resultId ? { ...r, score: Number(editScore) } : r));
@@ -74,13 +74,13 @@ const EditResults = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const resultsRes = await axios.get(`http://localhost:5000/api/results/${test._id}`, {
+      const resultsRes = await axios.get(`https://waec-gfv0.onrender.com/api/results/${test._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const detailedResults = await Promise.all(
         resultsRes.data.map(async (result) => {
           try {
-            const detailRes = await axios.get(`http://localhost:5000/api/results/details/${result._id}`, {
+            const detailRes = await axios.get(`https://waec-gfv0.onrender.com/api/results/details/${result._id}`, {
               headers: { Authorization: `Bearer ${token}` },
             });
             return { ...result, answers: detailRes.data.answers };
@@ -103,7 +103,7 @@ const EditResults = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/tests/${testId}`, {
+      await axios.delete(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTests(tests.filter(t => t._id !== testId));

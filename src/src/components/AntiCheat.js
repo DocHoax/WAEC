@@ -34,7 +34,7 @@ const AntiCheat = ({ user }) => {
 
       try {
         await axios.post(
-          'http://localhost:5000/api/cheat-logs',
+          'https://waec-gfv0.onrender.com/api/cheat-logs',
           { testId, userId: user.userId, type },
           { headers: { Authorization: `Bearer ${token}` } }
         );

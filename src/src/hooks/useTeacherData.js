@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axiosInstance';
 import { AuthContext } from '../context/AuthContext';
 
 const useTeacherData = () => {
@@ -18,11 +18,7 @@ const useTeacherData = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get('http://localhost:5000/api/tests', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get('/api/tests');
       console.log('Fetched tests:', res.data);
       const validTests = res.data.filter(test => test._id && /^[0-9a-fA-F]{24}$/.test(test._id));
       setTests(validTests);
@@ -32,13 +28,7 @@ const useTeacherData = () => {
       }
     } catch (err) {
       console.error('Fetch tests error:', err.response?.data || err.message);
-      if (err.response?.status === 401) {
-        setError('Session expired. Please log in again.');
-        localStorage.removeItem('token');
-        navigate('/login');
-      } else {
-        setError(err.response?.data?.error || 'Failed to load tests. Please try again.');
-      }
+      setError(err.response?.data?.error || 'Failed to load tests. Please try again.');
     }
     setLoading(false);
   };
@@ -47,11 +37,7 @@ const useTeacherData = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get('http://localhost:5000/api/questions', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get('/api/questions');
       console.log('Fetched questions:', res.data);
       if (!res.data || res.data.length === 0) {
         console.warn('No questions found');
@@ -60,13 +46,7 @@ const useTeacherData = () => {
       setQuestions(res.data || []);
     } catch (err) {
       console.error('Fetch questions error:', err.response?.data || err.message);
-      if (err.response?.status === 401) {
-        setError('Session expired. Please log in again.');
-        localStorage.removeItem('token');
-        navigate('/login');
-      } else {
-        setError(err.response?.data?.error || 'Failed to load questions. Please check your connection or contact support.');
-      }
+      setError(err.response?.data?.error || 'Failed to load questions. Please check your connection or contact support.');
     }
     setLoading(false);
   };
@@ -75,21 +55,11 @@ const useTeacherData = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get('http://localhost:5000/api/results', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get('/api/results');
       setResults(res.data);
     } catch (err) {
       console.error('Fetch results error:', err.response?.data || err.message);
-      if (err.response?.status === 401) {
-        setError('Session expired. Please log in again.');
-        localStorage.removeItem('token');
-        navigate('/login');
-      } else {
-        setError(err.response?.data?.error || 'Failed to load results. Please try again.');
-      }
+      setError(err.response?.data?.error || 'Failed to load results. Please try again.');
     }
     setLoading(false);
   };
@@ -98,22 +68,12 @@ const useTeacherData = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found.');
-      const res = await axios.get('http://localhost:5000/api/analytics', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get('/api/analytics');
       console.log('Fetched analytics:', res.data);
       setAnalytics(Array.isArray(res.data.analytics) ? res.data.analytics : []);
     } catch (err) {
       console.error('Fetch analytics error:', err.response?.data || err.message);
-      if (err.response?.status === 401) {
-        setError('Session expired. Please log in again.');
-        localStorage.removeItem('token');
-        navigate('/login');
-      } else {
-        setError(err.response?.data?.error || 'Failed to load analytics. Please try again.');
-      }
+      setError(err.response?.data?.error || 'Failed to load analytics. Please try again.');
       setAnalytics([]);
     }
     setLoading(false);

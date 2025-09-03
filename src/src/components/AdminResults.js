@@ -18,7 +18,7 @@ const AdminResults = () => {
       try {
         console.log('AdminResults - Fetching results:', { testId });
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:5000/api/tests/${testId}/results`, {
+        const res = await fetch(`https://waec-gfv0.onrender.com/api/tests/${testId}/results`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -38,7 +38,7 @@ const AdminResults = () => {
     try {
       console.log('AdminResults - Updating result:', { resultId, newScore });
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/tests/results/${resultId}`, {
+      const res = await fetch(`https://waec-gfv0.onrender.com/api/tests/results/${resultId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

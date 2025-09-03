@@ -37,7 +37,7 @@ const TestQuestions = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
+      const res = await axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTest(res.data);
@@ -55,7 +55,7 @@ const TestQuestions = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/questions', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/questions', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setQuestions(res.data);
@@ -97,7 +97,7 @@ const TestQuestions = () => {
         formData.append('image', newQuestion.image);
       }
       console.log('Submitting question:', { testId, subject: newQuestion.subject, class: newQuestion.class });
-      const res = await axios.post('http://localhost:5000/api/questions', formData, {
+      const res = await axios.post('https://waec-gfv0.onrender.com/api/questions', formData, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
       });
       setSuccess('Question added successfully.');
@@ -120,7 +120,7 @@ const TestQuestions = () => {
     try {
       const token = localStorage.getItem('token');
       console.log('Saving questions to test:', { testId, questions });
-      await axios.put(`http://localhost:5000/api/tests/${testId}`, { questions }, {
+      await axios.put(`https://waec-gfv0.onrender.com/api/tests/${testId}`, { questions }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Questions saved to test successfully.');

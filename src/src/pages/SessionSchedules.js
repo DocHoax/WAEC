@@ -19,7 +19,7 @@ const SessionSchedules = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/sessions', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/sessions', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSessions(res.data);
@@ -40,13 +40,13 @@ const SessionSchedules = () => {
     try {
       const token = localStorage.getItem('token');
       if (editSession) {
-        await axios.put(`http://localhost:5000/api/sessions/${editSession._id}`, formData, {
+        await axios.put(`https://waec-gfv0.onrender.com/api/sessions/${editSession._id}`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccess('Session updated successfully.');
         setEditSession(null);
       } else {
-        await axios.post('http://localhost:5000/api/sessions', formData, {
+        await axios.post('https://waec-gfv0.onrender.com/api/sessions', formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccess('Session created successfully.');
@@ -65,7 +65,7 @@ const SessionSchedules = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/sessions/${sessionId}`, {
+      await axios.delete(`https://waec-gfv0.onrender.com/api/sessions/${sessionId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Session deleted successfully.');

@@ -40,7 +40,7 @@ import React, { useState } from 'react';
        try {
          const token = localStorage.getItem('token');
          if (!token) throw new Error('No authentication token found.');
-         await axios.delete(`http://localhost:5000/api/tests/${id}`, {
+         await axios.delete(`https://waec-gfv0.onrender.com/api/tests/${id}`, {
            headers: { Authorization: `Bearer ${token}` },
          });
          setSuccess('Test deleted successfully.');

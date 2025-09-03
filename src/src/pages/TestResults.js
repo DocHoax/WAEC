@@ -29,10 +29,10 @@ const TestResults = () => {
       }
       try {
         const [testRes, resultsRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/tests/${testId}`, {
+          axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get(`http://localhost:5000/api/tests/${testId}/results`, {
+          axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}/results`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

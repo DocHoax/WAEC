@@ -24,7 +24,7 @@ const SelectQuestions = () => {
         if (!token) throw new Error('No authentication token found.');
 
         // Fetch test
-        const testRes = await axios.get(`http://localhost:5000/api/tests/${testId}`, {
+        const testRes = await axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const fetchedTest = testRes.data;
@@ -38,7 +38,7 @@ const SelectQuestions = () => {
         setQuestionMarks(fetchedTest.questionMarks || []);
 
         // Fetch questions
-        const questionsRes = await axios.get('http://localhost:5000/api/questions', {
+        const questionsRes = await axios.get('https://waec-gfv0.onrender.com/api/questions', {
           headers: { Authorization: `Bearer ${token}` },
           params: { subject: fetchedTest.subject, class: fetchedTest.class },
         });
@@ -96,7 +96,7 @@ const SelectQuestions = () => {
         questions: selectedQuestions.map(q => q._id),
         questionMarks,
       };
-      await axios.put(`http://localhost:5000/api/tests/${testId}/questions`, payload, {
+      await axios.put(`https://waec-gfv0.onrender.com/api/tests/${testId}/questions`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Test saved as draft successfully, waiting for admin approval, find in your Manage Tests.');

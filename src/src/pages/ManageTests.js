@@ -26,7 +26,7 @@ const ManageTests = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/tests/admin', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/tests/admin', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTests(res.data);
@@ -42,7 +42,7 @@ const ManageTests = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `http://localhost:5000/api/tests/${testId}/schedule`,
+        `https://waec-gfv0.onrender.com/api/tests/${testId}/schedule`,
         { status: 'scheduled' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -59,7 +59,7 @@ const ManageTests = () => {
     if (!window.confirm(`Are you sure you want to delete "${testTitle}"? This will also delete all related results.`)) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/tests/${testId}`, {
+      await axios.delete(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTests(tests.filter(test => test._id !== testId));

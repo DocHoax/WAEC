@@ -27,10 +27,10 @@ const Results = () => {
 
       try {
         const [testRes, resultsRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/tests/${testId}`, {
+          axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get(`http://localhost:5000/api/tests/${testId}/results`, {
+          axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}/results`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -64,7 +64,7 @@ const Results = () => {
     const token = localStorage.getItem('token');
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/tests/results/${resultId}`,
+        `https://waec-gfv0.onrender.com/api/tests/results/${resultId}`,
         { score: Number(editScore) },
         { headers: { Authorization: `Bearer ${token}` } }
       );

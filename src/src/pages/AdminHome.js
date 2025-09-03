@@ -29,7 +29,7 @@ const AdminHome = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/classes', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/classes', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClasses(res.data);
@@ -44,7 +44,7 @@ const AdminHome = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/auth/users', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/auth/users', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);
@@ -59,7 +59,7 @@ const AdminHome = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/tests/admin', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/tests/admin', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTests(res.data);
@@ -74,7 +74,7 @@ const AdminHome = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/results', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/results', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setResults(res.data);
@@ -89,7 +89,7 @@ const AdminHome = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/exams', {
+      const res = await axios.get('https://waec-gfv0.onrender.com/api/exams', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setExamSchedules(res.data);
@@ -105,7 +105,7 @@ const AdminHome = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `http://localhost:5000/api/tests/${testId}/approve`,
+        `https://waec-gfv0.onrender.com/api/tests/${testId}/approve`,
         { status: 'approved' },
         { headers: { Authorization: `Bearer ${token}` } }
       );

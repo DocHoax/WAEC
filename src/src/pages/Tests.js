@@ -26,7 +26,7 @@ const Tests = () => {
         return;
       }
       try {
-        const res = await fetch('http://localhost:5000/api/tests', {
+        const res = await fetch('https://waec-gfv0.onrender.com/api/tests', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -72,7 +72,7 @@ const Tests = () => {
     console.log('Tests - Navigating to test:', { testId, userId: user.userId || user._id });
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/tests/${testId}`, {
+      const res = await fetch(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();

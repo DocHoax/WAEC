@@ -31,7 +31,7 @@ const TestForm = () => {
     e.preventDefault();
     console.log('Submitting:', formData);
     try {
-      await axios.post('http://localhost:5000/api/questions', formData, {
+      await axios.post('https://waec-gfv0.onrender.com/api/questions', formData, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       alert('Question created!');
