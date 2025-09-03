@@ -39,17 +39,35 @@ const ensureUploadDir = () => {
   return uploadsDir;
 };
 
-// Find the correct build path - SIMPLIFIED
+// Find the correct build path - SIMPLIFIED AND FIXED
 const findBuildPath = () => {
-  // For Render.com deployment, the build is in the root directory
+  // For Render.com, build is in ../../build (root directory)
   const buildPath = path.join(__dirname, '../../build');
   
   if (fs.existsSync(buildPath) && fs.existsSync(path.join(buildPath, 'index.html'))) {
     console.log(`✅ Found build directory at: ${buildPath}`);
+    console.log(`📄 index.html exists: ${fs.existsSync(path.join(buildPath, 'index.html'))}`);
     return buildPath;
   }
   
-  console.warn('⚠️  No build directory found at:', buildPath);
+  // Fallback: check other possible locations
+  const fallbackPaths = [
+    path.join(__dirname, '../build'),
+    path.join(__dirname, 'build'),
+    path.join(__dirname, '../src/build'),
+  ];
+  
+  for (const fallbackPath of fallbackPaths) {
+    if (fs.existsSync(fallbackPath) && fs.existsSync(path.join(fallbackPath, 'index.html'))) {
+      console.log(`✅ Found build directory at fallback: ${fallbackPath}`);
+      return fallbackPath;
+    }
+  }
+  
+  console.warn('❌ No build directory found with index.html');
+  console.warn('📁 Checked paths:');
+  console.warn(`   - ${path.join(__dirname, '../../build')}`);
+  fallbackPaths.forEach(p => console.warn(`   - ${p}`));
   return null;
 };
 
@@ -111,7 +129,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS configuration - UPDATED FOR PRODUCTION
+// CORS configuration
 app.use(cors({
   origin: [
     'https://waec-gfv0.onrender.com',
@@ -158,6 +176,53 @@ app.use('/api/subjects', subjectsRoutes);
 app.use('/api/sessions', sessionsRoutes);
 
 console.log('✅ All routes mounted successfully');
+
+// ================================
+// TEST ROUTES
+// ================================
+
+// Simple test route
+app.get('/api/test', (req, res) => {
+  const buildPath = findBuildPath();
+  res.json({
+    message: 'Server is working!',
+    buildExists: !!buildPath,
+    buildPath: buildPath,
+    buildHasIndex: buildPath ? fs.existsSync(path.join(buildPath, 'index.html')) : false,
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  try {
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    const buildPath = findBuildPath();
+    
+    const healthData = {
+      status: 'OK',
+      message: 'Server is running',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      database: dbStatus,
+      buildDirectory: buildPath ? 'available' : 'missing',
+      buildHasIndex: buildPath ? fs.existsSync(path.join(buildPath, 'index.html')) : false,
+      port: process.env.PORT || 5000,
+      frontendUrl: 'https://waec-gfv0.onrender.com'
+    };
+
+    res.status(200).json(healthData);
+    
+  } catch (error) {
+    console.error('Health check error:', error.message);
+    res.status(503).json({
+      status: 'ERROR',
+      message: 'Health check failed',
+      error: error.message
+    });
+  }
+});
 
 // ================================
 // SIGNATURE UPLOAD ENDPOINT
@@ -248,38 +313,6 @@ app.post('/api/signatures/upload',
     }
   }
 );
-
-// ================================
-// HEALTH CHECK ENDPOINT
-// ================================
-
-app.get('/api/health', (req, res) => {
-  try {
-    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-    const buildPath = findBuildPath();
-    
-    const healthData = {
-      status: 'OK',
-      message: 'Server is running',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      database: dbStatus,
-      buildDirectory: buildPath ? 'available' : 'missing',
-      port: process.env.PORT || 5000,
-      frontendUrl: 'https://waec-gfv0.onrender.com'
-    };
-
-    res.status(200).json(healthData);
-    
-  } catch (error) {
-    console.error('Health check error:', error.message);
-    res.status(503).json({
-      status: 'ERROR',
-      message: 'Health check failed',
-      error: error.message
-    });
-  }
-});
 
 // ================================
 // API 404 HANDLER
@@ -463,7 +496,11 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`⏰ Timezone: ${process.env.TZ}`);
   console.log(`🔗 CORS Origin: https://waec-gfv0.onrender.com`);
-  console.log(`📁 Build Path: ${findBuildPath() || 'Not found'}`);
+  
+  const buildPath = findBuildPath();
+  console.log(`📁 Build Path: ${buildPath || 'Not found'}`);
+  console.log(`📄 Index.html: ${buildPath ? fs.existsSync(path.join(buildPath, 'index.html')) : 'No build'}`);
+  
   console.log(`📅 Started: ${new Date().toISOString()}`);
   console.log('🎉 ================================');
   console.log('');
