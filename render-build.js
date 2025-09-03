@@ -37,6 +37,48 @@ try {
   // Step 3: Install server dependencies
   console.log('📦 Installing server dependencies...');
   execSync('cd server && npm install --production', { stdio: 'inherit' });
+
+  // Add this after the server dependencies installation in render-build.js
+console.log('📁 Copying logo to server uploads directory...');
+
+const logoSourcePath = path.join(__dirname, 'public', 'images', 'sanni.png');
+const logoDestPath = path.join(__dirname, 'server', 'Uploads', 'sanni.png');
+
+// Create Uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'server', 'Uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('✅ Created server Uploads directory');
+}
+
+// Copy the logo file
+if (fs.existsSync(logoSourcePath)) {
+  fs.copyFileSync(logoSourcePath, logoDestPath);
+  console.log('✅ Logo copied to server Uploads:', logoDestPath);
+} else {
+  console.log('❌ Logo not found at:', logoSourcePath);
+  
+  // Check if logo exists in other locations
+  const possiblePaths = [
+    path.join(__dirname, 'src', 'public', 'images', 'sanni.png'),
+    path.join(__dirname, 'images', 'sanni.png'),
+    path.join(__dirname, 'sanni.png')
+  ];
+  
+  let found = false;
+  for (const possiblePath of possiblePaths) {
+    if (fs.existsSync(possiblePath)) {
+      fs.copyFileSync(possiblePath, logoDestPath);
+      console.log('✅ Logo found and copied from:', possiblePath);
+      found = true;
+      break;
+    }
+  }
+  
+  if (!found) {
+    console.log('❌ Could not find logo file in any location');
+  }
+}
   
   // Step 4: Verify final structure
   console.log('📁 Final build structure:');
