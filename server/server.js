@@ -145,11 +145,6 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static file serving for uploads
-app.use('/uploads', express.static(uploadDir, {
-  maxAge: process.env.NODE_ENV === 'production' ? '1d' : '1h'
-}));
-
 // Request logging
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
@@ -222,6 +217,16 @@ app.get('/api/health', (req, res) => {
       error: error.message
     });
   }
+});
+
+// Debug route to check uploads
+app.get('/api/debug-uploads', (req, res) => {
+  res.json({
+    uploadDirExists: fs.existsSync(uploadDir),
+    files: fs.existsSync(uploadDir) ? fs.readdirSync(uploadDir) : [],
+    sanniExists: fs.existsSync(path.join(uploadDir, 'sanni.png')),
+    uploadDir: uploadDir
+  });
 });
 
 // ================================
@@ -328,6 +333,41 @@ app.use('/api/*', (req, res) => {
 });
 
 // ================================
+// STATIC FILE SERVING (MUST COME BEFORE REACT HANDLER)
+// ================================
+
+// Serve uploads directory with proper MIME types
+app.use('/uploads', express.static(uploadDir, {
+  maxAge: '1d',
+  setHeaders: (res, filePath) => {
+    // Set correct MIME types for images
+    if (filePath.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (filePath.endsWith('.svg')) {
+      res.setHeader('Content-Type', 'image/svg+xml');
+    }
+  }
+}));
+
+console.log(`✅ Serving uploads from: ${uploadDir}`);
+
+// Serve React public files (for development)
+const reactPublicPath = path.join(__dirname, '../../public');
+if (fs.existsSync(reactPublicPath)) {
+  app.use(express.static(reactPublicPath, {
+    maxAge: '1d',
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.png')) res.setHeader('Content-Type', 'image/png');
+      if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) res.setHeader('Content-Type', 'image/jpeg');
+      if (filePath.endsWith('.svg')) res.setHeader('Content-Type', 'image/svg+xml');
+    }
+  }));
+  console.log(`✅ Serving React public files from: ${reactPublicPath}`);
+}
+
+// ================================
 // PRODUCTION STATIC FILE SERVING
 // ================================
 
@@ -337,18 +377,26 @@ if (process.env.NODE_ENV === 'production') {
   const buildPath = findBuildPath();
   
   if (buildPath) {
+    // Serve build static files (CSS, JS, images from build)
     app.use(express.static(buildPath, {
       maxAge: '1d',
       etag: false,
-      index: false
+      index: false,
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
+        if (filePath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
+        if (filePath.endsWith('.png')) res.setHeader('Content-Type', 'image/png');
+        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) res.setHeader('Content-Type', 'image/jpeg');
+      }
     }));
     
-    console.log(`📁 Serving static files from: ${buildPath}`);
+    console.log(`📁 Serving build files from: ${buildPath}`);
     
-    // React Router catch-all handler
+    // React Router catch-all handler (MUST BE LAST)
     app.get('*', (req, res) => {
-      if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ error: 'API endpoint not found' });
+      // Skip API routes and static files
+      if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path.startsWith('/static/')) {
+        return res.status(404).json({ error: 'Not found' });
       }
       
       console.log(`📄 Serving React app for path: ${req.path}`);
@@ -368,7 +416,7 @@ if (process.env.NODE_ENV === 'production') {
     console.error('❌ No build directory found - React app will not be served');
   }
 } else {
-  console.log('🔧 Development mode - static file serving disabled');
+  console.log('🔧 Development mode - React static file serving disabled');
 }
 
 // ================================
