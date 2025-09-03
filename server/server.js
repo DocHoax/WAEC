@@ -39,24 +39,17 @@ const ensureUploadDir = () => {
   return uploadsDir;
 };
 
-// Find the correct build path
+// Find the correct build path - SIMPLIFIED
 const findBuildPath = () => {
-  const possiblePaths = [
-    path.join(__dirname, '../../build'),           // Standard CRA build location
-    path.join(__dirname, '../build'),              // Alternative location
-    path.join(__dirname, '../src/build'),          // Your current config
-    path.join(__dirname, 'build'),                 // Same directory
-  ];
+  // For Render.com deployment, the build is in the root directory
+  const buildPath = path.join(__dirname, '../../build');
   
-  for (const buildPath of possiblePaths) {
-    if (fs.existsSync(buildPath) && fs.existsSync(path.join(buildPath, 'index.html'))) {
-      console.log(`✅ Found build directory at: ${buildPath}`);
-      return buildPath;
-    }
+  if (fs.existsSync(buildPath) && fs.existsSync(path.join(buildPath, 'index.html'))) {
+    console.log(`✅ Found build directory at: ${buildPath}`);
+    return buildPath;
   }
   
-  console.warn('⚠️  No build directory found, checked paths:');
-  possiblePaths.forEach(p => console.warn(`   - ${p}`));
+  console.warn('⚠️  No build directory found at:', buildPath);
   return null;
 };
 
@@ -71,7 +64,6 @@ const uploadDir = ensureUploadDir();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
-    // Create unique filename with timestamp and random suffix
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '');
     cb(null, `${uniqueSuffix}-${sanitizedName}`);
@@ -81,7 +73,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024,
     files: 2
   },
   fileFilter: (req, file, cb) => {
@@ -100,10 +92,10 @@ const upload = multer({
   },
 });
 
-// Configure multer for form data (no files)
+// Configure multer for form data
 const formDataUpload = multer({
   limits: {
-    fieldSize: 1024 * 1024 // 1MB limit for form fields
+    fieldSize: 1024 * 1024
   }
 });
 
@@ -119,18 +111,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS configuration
+// CORS configuration - UPDATED FOR PRODUCTION
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL || 'https://waec-gfv0.onrender.com' 
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: [
+    'https://waec-gfv0.onrender.com',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000'
+  ],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
 }));
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' })); // Reduced from 50mb for security
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static file serving for uploads
@@ -138,17 +132,10 @@ app.use('/uploads', express.static(uploadDir, {
   maxAge: process.env.NODE_ENV === 'production' ? '1d' : '1h'
 }));
 
-// Enhanced request logging
+// Request logging
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${req.method} ${req.url} | IP: ${req.ip || req.connection.remoteAddress}`);
-  
-  // Basic URL validation
-  if (req.url.includes('://') || req.url.includes('<') || req.url.includes('>')) {
-    console.warn('Suspicious URL detected:', req.url);
-    return res.status(400).json({ error: 'Invalid URL format' });
-  }
-  
   next();
 });
 
@@ -179,7 +166,6 @@ console.log('✅ All routes mounted successfully');
 app.post('/api/signatures/upload', 
   auth, 
   (req, res, next) => {
-    // Handle multer errors gracefully
     upload.fields([
       { name: 'classTeacherSignature', maxCount: 1 },
       { name: 'principalSignature', maxCount: 1 },
@@ -197,7 +183,6 @@ app.post('/api/signatures/upload',
     try {
       const { className } = req.body;
       
-      // Validation
       if (!className && !req.files?.principalSignature) {
         return res.status(400).json({ 
           error: 'Please select a class or upload a principal signature.' 
@@ -212,7 +197,6 @@ app.post('/api/signatures/upload',
 
       const operations = [];
 
-      // Handle principal signature upload
       if (req.files?.principalSignature) {
         const file = req.files.principalSignature[0];
         const signatureData = {
@@ -231,7 +215,6 @@ app.post('/api/signatures/upload',
         );
       }
 
-      // Handle class teacher signature upload
       if (className && req.files?.classTeacherSignature) {
         const file = req.files.classTeacherSignature[0];
         const signatureData = {
@@ -250,7 +233,6 @@ app.post('/api/signatures/upload',
         );
       }
 
-      // Execute all database operations
       await Promise.all(operations);
 
       res.status(201).json({ 
@@ -271,7 +253,7 @@ app.post('/api/signatures/upload',
 // HEALTH CHECK ENDPOINT
 // ================================
 
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   try {
     const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
     const buildPath = findBuildPath();
@@ -283,15 +265,9 @@ app.get('/health', (req, res) => {
       environment: process.env.NODE_ENV || 'development',
       database: dbStatus,
       buildDirectory: buildPath ? 'available' : 'missing',
-      indexFile: buildPath && fs.existsSync(path.join(buildPath, 'index.html')) ? 'available' : 'missing',
-      uploadDirectory: fs.existsSync(uploadDir) ? 'available' : 'missing',
-      timezone: process.env.TZ,
-      port: process.env.PORT || 5000
+      port: process.env.PORT || 5000,
+      frontendUrl: 'https://waec-gfv0.onrender.com'
     };
-
-    if (buildPath) {
-      healthData.buildPath = buildPath;
-    }
 
     res.status(200).json(healthData);
     
@@ -309,7 +285,6 @@ app.get('/health', (req, res) => {
 // API 404 HANDLER
 // ================================
 
-// Handle 404 for API routes
 app.use('/api/*', (req, res) => {
   res.status(404).json({ 
     error: 'API endpoint not found', 
@@ -329,18 +304,16 @@ if (process.env.NODE_ENV === 'production') {
   const buildPath = findBuildPath();
   
   if (buildPath) {
-    // Serve static files with caching
     app.use(express.static(buildPath, {
       maxAge: '1d',
       etag: false,
-      index: false // Prevent automatic serving of index.html
+      index: false
     }));
     
     console.log(`📁 Serving static files from: ${buildPath}`);
     
     // React Router catch-all handler
     app.get('*', (req, res) => {
-      // Skip API routes (already handled above)
       if (req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'API endpoint not found' });
       }
@@ -360,7 +333,6 @@ if (process.env.NODE_ENV === 'production') {
     
   } else {
     console.error('❌ No build directory found - React app will not be served');
-    console.error('Make sure your React app is built and placed in the correct directory');
   }
 } else {
   console.log('🔧 Development mode - static file serving disabled');
@@ -370,7 +342,6 @@ if (process.env.NODE_ENV === 'production') {
 // ERROR HANDLING
 // ================================
 
-// Global error handler
 app.use((err, req, res, next) => {
   const errorId = Date.now().toString(36) + Math.random().toString(36).substr(2);
   
@@ -378,13 +349,9 @@ app.use((err, req, res, next) => {
     message: err.message,
     url: req.url,
     method: req.method,
-    ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    timestamp: new Date().toISOString(),
-    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
+    timestamp: new Date().toISOString()
   });
 
-  // Handle specific error types
   if (err.name === 'ValidationError') {
     return res.status(400).json({
       error: 'Validation failed',
@@ -407,7 +374,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Generic error response
   res.status(500).json({
     error: process.env.NODE_ENV === 'production' 
       ? 'An unexpected error occurred. Please try again later.' 
@@ -438,7 +404,6 @@ const connectDB = async (retryCount = 0) => {
     
     console.log('✅ MongoDB connected successfully');
     
-    // Handle connection events
     mongoose.connection.on('error', (err) => {
       console.error('🔥 MongoDB connection error:', err.message);
     });
@@ -479,7 +444,6 @@ const gracefulShutdown = async (signal) => {
   }
 };
 
-// Handle shutdown signals
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
@@ -487,10 +451,8 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 // SERVER STARTUP
 // ================================
 
-// Connect to database
 connectDB();
 
-// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log('');
@@ -500,7 +462,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Port: ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`⏰ Timezone: ${process.env.TZ}`);
-  console.log(`🔗 CORS Origin: ${process.env.NODE_ENV === 'production' ? (process.env.FRONTEND_URL || 'https://waec-gfv0.onrender.com') : 'http://localhost:3000'}`);
+  console.log(`🔗 CORS Origin: https://waec-gfv0.onrender.com`);
   console.log(`📁 Build Path: ${findBuildPath() || 'Not found'}`);
   console.log(`📅 Started: ${new Date().toISOString()}`);
   console.log('🎉 ================================');

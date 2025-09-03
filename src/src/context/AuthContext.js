@@ -4,6 +4,9 @@ import { jwtDecode } from 'jwt-decode';
 
 export const AuthContext = createContext();
 
+// Use environment variable or fallback to Render.com URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://waec-gfv0.onrender.com';
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +20,7 @@ export const AuthProvider = ({ children }) => {
       const currentTime = Date.now() / 1000;
       if (decoded.exp < currentTime + 300) {
         console.log('AuthContext - Refreshing token');
-        const res = await axios.post('http://localhost:5000/api/auth/refresh', {}, {
+        const res = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {}, {
           headers: { Authorization: `Bearer ${token}` },
         });
         localStorage.setItem('token', res.data.token);
@@ -35,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   const verifyToken = useCallback(async (token) => {
     console.log('AuthContext - Verifying token:', token);
     try {
-      const res = await axios.get('http://localhost:5000/api/auth/me', {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('AuthContext - User verified:', res.data);
@@ -80,7 +83,7 @@ export const AuthProvider = ({ children }) => {
     console.log('AuthContext - Login attempt for:', username);
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { username, password });
+      const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { username, password });
       console.log('AuthContext - Login successful:', res.data.user);
       localStorage.setItem('token', res.data.token);
       setUser(res.data.user);
