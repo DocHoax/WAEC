@@ -106,7 +106,7 @@ const Results = () => {
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <img 
-              src="/images/sanni.png" 
+              src="/uploads/sanni.png" 
               alt="Sanniville Academy" 
               style={{ height: '48px', border: '2px solid #D4A017', padding: '4px', backgroundColor: '#FFFFFF', borderRadius: '4px' }}
             />

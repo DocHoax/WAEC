@@ -25,7 +25,7 @@ const Header = ({ user, onLogout }) => {
         alignItems: 'center',
         gap: '15px'
       }}>
-        <img src="/images/sanni.png" alt="Sanniville Academy" style={{
+        <img src="/uploads/sanni.png" alt="Sanniville Academy" style={{
           height: '40px'
         }} onError={(e) => e.target.style.display = 'none'} />
         <h1 style={{

@@ -94,7 +94,7 @@ const AnalyticsPage = () => {
               <div className="flex-shrink-0">
                 <img
                   className="h-12 w-12 rounded-md border-2 border-secondary-500 p-1 bg-white"
-                  src="/images/sanni.png"
+                  src="/uploads/sanni.png"
                   alt="Sanniville Academy"
                 />
               </div>

@@ -33,7 +33,7 @@ const AdminLayout = ({ children }) => {
         <div style={styles.headerContent}>
           <div style={styles.headerLeft}>
             <img
-              src="/images/sanni.png"
+              src="/uploads/sanni.png"
               alt="Sanniville Academy"
               style={styles.logo}
             />

@@ -65,7 +65,7 @@ const TeacherHome = () => {
       )}
       <header style={styles.header}>
         <div style={styles.headerContent}>
-          <img src="/images/sanni.png" alt="Sanniville Academy" style={styles.logo} />
+          <img src="/uploads/sanni.png" alt="Sanniville Academy" style={styles.logo} />
           <h1 style={styles.headerTitle}>Teacher Dashboard</h1>
         </div>
         <div style={styles.userSection}>

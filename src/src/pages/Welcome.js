@@ -63,7 +63,7 @@ const Welcome = () => {
           marginBottom: '20px'
         }}>
           <img 
-            src="/images/sanni.png" 
+            src="/uploads/sanni.png" 
             alt="Sanniville Academy" 
             style={{
               width: '120px',

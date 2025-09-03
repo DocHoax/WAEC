@@ -186,7 +186,7 @@ const SetBatch = () => {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <img
-              src="/images/sanni.png"
+              src="/uploads/sanni.png"
               alt="Sanniville Academy"
               style={{
                 height: '48px',
