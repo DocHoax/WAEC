@@ -88,16 +88,16 @@ const StudentHome = ({ children }) => {
 
   return (
     <div style={{
-      fontFamily: "'Roboto', sans-serif",
+      fontFamily: '"Fredoka", sans-serif',
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
-      backgroundColor: '#F8F9FA'
+      backgroundColor: '#b8c2cc'
     }}>
       <header style={{
-        backgroundColor: '#4B5320',
+        backgroundColor: '#2c3e50',
         color: '#FFFFFF',
-        padding: '15px 30px',
+        padding: '12px 30px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -107,9 +107,9 @@ const StudentHome = ({ children }) => {
         right: 0,
         height: '60px',
         zIndex: 1000,
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
       }}>
-        <h1 style={{ fontSize: '24px', fontWeight: '700' }}>WAEC CBT</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: '600', margin: 0 }}>WAEC CBT</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <span style={{ fontSize: '16px', fontWeight: '500' }}>{user.username}</span>
           <button
@@ -122,11 +122,11 @@ const StudentHome = ({ children }) => {
               display: 'flex',
               alignItems: 'center',
               gap: '5px',
-              fontSize: '16px',
+              fontSize: '14px',
               fontWeight: '500',
-              transition: 'color 0.2s'
+              transition: 'all 0.3s ease'
             }}
-            onMouseOver={(e) => (e.target.style.color = '#D4A017')}
+            onMouseOver={(e) => (e.target.style.color = '#3498db')}
             onMouseOut={(e) => (e.target.style.color = '#FFFFFF')}
             aria-label="Logout"
           >
@@ -139,13 +139,13 @@ const StudentHome = ({ children }) => {
         <nav style={{
           width: '250px',
           backgroundColor: '#FFFFFF',
-          borderRight: '1px solid #E0E0E0',
+          borderRight: '1px solid #ecf0f1',
           padding: '20px 0',
           position: 'fixed',
           top: '60px',
           bottom: 0,
           overflowY: 'auto',
-          boxShadow: '2px 0 4px rgba(0,0,0,0.05)'
+          boxShadow: '2px 0 4px rgba(0,0,0,0.08)'
         }}>
           {navItems.map(item => (
             <button
@@ -156,19 +156,19 @@ const StudentHome = ({ children }) => {
                 alignItems: 'center',
                 gap: '10px',
                 width: '100%',
-                padding: '15px 30px',
-                backgroundColor: location.pathname.includes(item.path) ? '#D4A017' : 'transparent',
+                padding: '12px 20px',
+                backgroundColor: location.pathname.includes(item.path) ? '#3498db' : 'transparent',
                 border: 'none',
-                color: location.pathname.includes(item.path) ? '#FFFFFF' : '#4B5320',
-                fontSize: '16px',
+                color: location.pathname.includes(item.path) ? '#FFFFFF' : '#555',
+                fontSize: '14px',
                 fontWeight: location.pathname.includes(item.path) ? '600' : '500',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'background-color 0.2s, color 0.2s'
+                transition: 'all 0.2s ease'
               }}
               onMouseOver={(e) => {
                 if (!location.pathname.includes(item.path)) {
-                  e.target.style.backgroundColor = '#F8F9FA';
+                  e.target.style.backgroundColor = '#f8f9fa';
                 }
               }}
               onMouseOut={(e) => {
@@ -187,27 +187,27 @@ const StudentHome = ({ children }) => {
           flex: 1,
           marginLeft: '250px',
           padding: '30px',
-          backgroundColor: '#F8F9FA',
+          backgroundColor: '#b8c2cc',
           overflowY: 'auto',
           minHeight: 'calc(100vh - 60px)'
         }}>
           {error && (
             <div style={{
-              backgroundColor: '#FFF3F3',
-              color: '#B22222',
-              borderLeft: '4px solid #B22222',
-              padding: '15px',
+              backgroundColor: '#fee',
+              color: '#c33',
+              borderLeft: '4px solid #c33',
+              padding: '12px 15px',
               marginBottom: '20px',
-              borderRadius: '6px',
+              borderRadius: '4px',
               fontSize: '14px',
               maxWidth: '800px',
               marginLeft: 'auto',
               marginRight: 'auto'
             }}>
-              <p>Error: {error}</p>
+              <p style={{ margin: 0 }}>Error: {error}</p>
             </div>
           )}
-          {children || <div style={{ color: '#4B5320', fontSize: '18px' }}>Welcome to your Student Dashboard</div>}
+          {children || <div style={{ color: '#555', fontSize: '18px' }}>Welcome to your Student Dashboard</div>}
         </main>
       </div>
     </div>

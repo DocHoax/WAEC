@@ -16,11 +16,19 @@ const Button = ({
     return null;
   }
 
+  const [isHovered, setIsHovered] = React.useState(false);
+
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      style={{ ...styles.button, ...style }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ 
+        ...styles.button,
+        backgroundColor: disabled ? styles.disabledButton.backgroundColor : isHovered ? '#2980b9' : '#3498db',
+        ...style 
+      }}
       {...props}
     >
       {children}
@@ -30,22 +38,20 @@ const Button = ({
 
 const styles = {
   button: {
-    padding: '10px 20px',
-    backgroundColor: '#007bff',
+    padding: '10px 18px',
+    backgroundColor: '#3498db',
     color: 'white',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
     fontSize: '14px',
-    fontWeight: '500',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#0056b3'
-    },
-    ':disabled': {
-      backgroundColor: '#6c757d',
-      cursor: 'not-allowed'
-    }
+    fontWeight: '600',
+    transition: 'all 0.3s ease',
+    fontFamily: '"Fredoka", sans-serif',
+  },
+  disabledButton: {
+    backgroundColor: '#95a5a6',
+    cursor: 'not-allowed',
   }
 };
 

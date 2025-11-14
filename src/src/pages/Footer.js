@@ -3,11 +3,12 @@ import React from 'react';
 const Footer = () => {
   return (
     <footer style={{
-      backgroundColor: '#333333',
-      color: '#A8B5A2',
+      backgroundColor: '#2c3e50',
+      color: '#bdc3c7',
       padding: '2rem',
       textAlign: 'center',
       marginTop: '3rem',
+      fontFamily: '"Fredoka", sans-serif',
     }}>
       <div style={{
         display: 'flex',
@@ -20,13 +21,13 @@ const Footer = () => {
         <a
           href="https://devsannisystems.com"
           style={{
-            color: '#A8B5A2',
+            color: '#3498db',
             textDecoration: 'none',
             fontWeight: '600',
-            transition: 'color 0.2s',
+            transition: 'color 0.3s ease',
           }}
-          onMouseEnter={(e) => e.target.style.color = '#4B7043'}
-          onMouseLeave={(e) => e.target.style.color = '#A8B5A2'}
+          onMouseEnter={(e) => e.target.style.color = '#2980b9'}
+          onMouseLeave={(e) => e.target.style.color = '#3498db'}
         >
           Devsanni Systems
         </a>
