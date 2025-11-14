@@ -46,7 +46,7 @@ const StudentHome = ({ children }) => {
         textAlign: 'center',
         fontSize: '16px',
         minHeight: '100vh',
-        fontFamily: "'Roboto', sans-serif"
+        fontFamily: '"Fredoka", sans-serif'
       }}>
         <p>Access Restricted: Students Only</p>
       </div>
@@ -62,7 +62,7 @@ const StudentHome = ({ children }) => {
         textAlign: 'center',
         fontSize: '16px',
         minHeight: '100vh',
-        fontFamily: "'Roboto', sans-serif"
+        fontFamily: '"Fredoka", sans-serif'
       }}>
         <p>Loading Dashboard...</p>
       </div>
