@@ -9,12 +9,14 @@ const Filters = ({ filterSubject, setFilterSubject, filterClass, setFilterClass,
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
       marginBottom: '2rem',
       border: '1px solid #A8B5A2',
+      fontFamily: '"Fredoka", sans-serif',
     }}>
       <h3 style={{
         color: '#4B7043',
         fontSize: '1.2rem',
         fontWeight: '600',
         marginBottom: '1rem',
+        fontFamily: '"Fredoka", sans-serif',
       }}>
         Filter Tests
       </h3>
@@ -30,6 +32,7 @@ const Filters = ({ filterSubject, setFilterSubject, filterClass, setFilterClass,
             fontSize: '0.9rem',
             fontWeight: '500',
             marginBottom: '0.5rem',
+            fontFamily: '"Fredoka", sans-serif',
           }}>
             Subject
           </label>
@@ -45,6 +48,7 @@ const Filters = ({ filterSubject, setFilterSubject, filterClass, setFilterClass,
               backgroundColor: 'white',
               color: '#333333',
               transition: 'border-color 0.2s, box-shadow 0.2s',
+              fontFamily: '"Fredoka", sans-serif',
             }}
             onFocus={(e) => {
               e.target.style.borderColor = '#4B7043';
@@ -68,6 +72,7 @@ const Filters = ({ filterSubject, setFilterSubject, filterClass, setFilterClass,
             fontSize: '0.9rem',
             fontWeight: '500',
             marginBottom: '0.5rem',
+            fontFamily: '"Fredoka", sans-serif',
           }}>
             Class
           </label>
@@ -83,6 +88,7 @@ const Filters = ({ filterSubject, setFilterSubject, filterClass, setFilterClass,
               backgroundColor: 'white',
               color: '#333333',
               transition: 'border-color 0.2s, box-shadow 0.2s',
+              fontFamily: '"Fredoka", sans-serif',
             }}
             onFocus={(e) => {
               e.target.style.borderColor = '#4B7043';
