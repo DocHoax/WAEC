@@ -119,8 +119,10 @@ const AdminHome = () => {
 
   if (!user || user.role !== 'admin') {
     return (
-      <div style={styles.accessDenied}>
-        <p>Access Restricted: Admins Only</p>
+      <div style={styles.pageWrapper}>
+        <div style={styles.accessDenied}>
+          <p>Access Restricted: Admins Only</p>
+        </div>
       </div>
     );
   }
@@ -134,89 +136,91 @@ const AdminHome = () => {
   }
 
   return (
-    <div style={styles.container}>
-      {error && (
-        <div style={styles.alertError}>
-          <FiAlertTriangle style={styles.alertIcon} />
-          <span>Error: {error}</span>
-        </div>
-      )}
-
-      <div style={styles.header}>
-        <h2 style={styles.headerTitle}>Admin Dashboard</h2>
-        <p style={styles.headerSubtitle}>
-          Manage classes, tests, users, and exams at Sanniville Academy
-        </p>
-      </div>
-
-      <div style={styles.statsGrid}>
-        <div style={styles.statCard}>
-          <h3 style={styles.statTitle}>Total Classes</h3>
-          <p style={styles.statValue}>{classes.length}</p>
-        </div>
-        <div style={styles.statCard}>
-          <h3 style={styles.statTitle}>Total Students</h3>
-          <p style={styles.statValue}>{users.filter(u => u.role === 'student').length}</p>
-        </div>
-        <div style={styles.statCard}>
-          <h3 style={styles.statTitle}>Total Tests</h3>
-          <p style={styles.statValue}>{tests.length}</p>
-        </div>
-        <div style={styles.statCard}>
-          <h3 style={styles.statTitle}>Upcoming Exams</h3>
-          <p style={styles.statValue}>{examSchedules.length}</p>
-        </div>
-      </div>
-
-      <div style={styles.actionsGrid}>
-        {[
-          { title: 'User Management', desc: 'Manage teacher and student accounts', action: '/admin/users', icon: '👥' },
-          { title: 'Test Management', desc: 'Review and approve teacher-created tests', action: '/admin/tests', icon: '📝' },
-          { title: 'View Results', desc: 'Review student exam results', action: '/admin/results', icon: '📊' },
-          { title: 'Exam Scheduling', desc: 'Plan and manage exams', action: '/admin/exams', icon: '📅' },
-        ].map((item, index) => (
-          <div key={index} style={styles.actionCard}>
-            <span style={styles.actionIcon}>{item.icon}</span>
-            <div>
-              <h3 style={styles.actionTitle}>{item.title}</h3>
-              <p style={styles.actionDesc}>{item.desc}</p>
-              <button
-                onClick={() => navigate(item.action)}
-                style={styles.actionButton}
-              >
-                Go to {item.title}
-              </button>
-            </div>
+    <div style={styles.pageWrapper}>
+      <div style={styles.container}>
+        {error && (
+          <div style={styles.alertError}>
+            <FiAlertTriangle style={styles.alertIcon} />
+            <span>Error: {error}</span>
           </div>
-        ))}
-      </div>
+        )}
 
-      <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>Teacher-Created Tests</h3>
-        <div style={styles.testList}>
-          {tests.map((test) => (
-            <div key={test._id} style={styles.testItem}>
-              <span style={styles.testInfo}>
-                {test.title} ({test.subject}, {test.class}) - {test.status}
-              </span>
-              <div style={styles.testActions}>
+        <div style={styles.header}>
+          <h2 style={styles.headerTitle}>Admin Dashboard</h2>
+          <p style={styles.headerSubtitle}>
+            Manage classes, tests, users, and exams at Sanniville Academy
+          </p>
+        </div>
+
+        <div style={styles.statsGrid}>
+          <div style={styles.statCard}>
+            <h3 style={styles.statTitle}>Total Classes</h3>
+            <p style={styles.statValue}>{classes.length}</p>
+          </div>
+          <div style={styles.statCard}>
+            <h3 style={styles.statTitle}>Total Students</h3>
+            <p style={styles.statValue}>{users.filter(u => u.role === 'student').length}</p>
+          </div>
+          <div style={styles.statCard}>
+            <h3 style={styles.statTitle}>Total Tests</h3>
+            <p style={styles.statValue}>{tests.length}</p>
+          </div>
+          <div style={styles.statCard}>
+            <h3 style={styles.statTitle}>Upcoming Exams</h3>
+            <p style={styles.statValue}>{examSchedules.length}</p>
+          </div>
+        </div>
+
+        <div style={styles.actionsGrid}>
+          {[
+            { title: 'User Management', desc: 'Manage teacher and student accounts', action: '/admin/users', icon: '👥' },
+            { title: 'Test Management', desc: 'Review and approve teacher-created tests', action: '/admin/tests', icon: '📝' },
+            { title: 'View Results', desc: 'Review student exam results', action: '/admin/results', icon: '📊' },
+            { title: 'Exam Scheduling', desc: 'Plan and manage exams', action: '/admin/exams', icon: '📅' },
+          ].map((item, index) => (
+            <div key={index} style={styles.actionCard}>
+              <span style={styles.actionIcon}>{item.icon}</span>
+              <div>
+                <h3 style={styles.actionTitle}>{item.title}</h3>
+                <p style={styles.actionDesc}>{item.desc}</p>
                 <button
-                  onClick={() => navigate(`/admin/tests/${test._id}`)}
-                  style={styles.viewButton}
+                  onClick={() => navigate(item.action)}
+                  style={styles.actionButton}
                 >
-                  View
+                  Go to {item.title}
                 </button>
-                {test.status === 'draft' && (
-                  <button
-                    onClick={() => handleApproveTest(test._id)}
-                    style={styles.approveButton}
-                  >
-                    Approve
-                  </button>
-                )}
               </div>
             </div>
           ))}
+        </div>
+
+        <div style={styles.section}>
+          <h3 style={styles.sectionTitle}>Teacher-Created Tests</h3>
+          <div style={styles.testList}>
+            {tests.map((test) => (
+              <div key={test._id} style={styles.testItem}>
+                <span style={styles.testInfo}>
+                  {test.title} ({test.subject}, {test.class}) - {test.status}
+                </span>
+                <div style={styles.testActions}>
+                  <button
+                    onClick={() => navigate(`/admin/tests/${test._id}`)}
+                    style={styles.viewButton}
+                  >
+                    View
+                  </button>
+                  {test.status === 'draft' && (
+                    <button
+                      onClick={() => handleApproveTest(test._id)}
+                      style={styles.approveButton}
+                    >
+                      Approve
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -224,7 +228,19 @@ const AdminHome = () => {
 };
 
 const styles = {
-  container: { padding: '20px', backgroundColor: '#b8c2cc', maxWidth: '1000px', margin: '0 auto', fontFamily: '"Fredoka", sans-serif' },
+  pageWrapper: {
+    backgroundColor: '#b8c2cc',
+    minHeight: '100vh',
+    fontFamily: '"Fredoka", sans-serif',
+    width: '100%',
+    padding: '20px 0', // Add vertical padding for better look
+  },
+  container: {
+    padding: '20px',
+    maxWidth: '1000px',
+    margin: '0 auto',
+    fontFamily: '"Fredoka", sans-serif'
+  },
   header: { backgroundColor: '#2c3e50', color: '#FFFFFF', padding: '20px', borderRadius: '8px', marginBottom: '25px', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
   headerTitle: { fontSize: '24px', fontWeight: '600', margin: '0 0 10px 0' },
   headerSubtitle: { fontSize: '14px', margin: '0', color: '#bdc3c7' },
@@ -249,7 +265,7 @@ const styles = {
   viewButton: { padding: '5px 10px', backgroundColor: '#95a5a6', color: '#FFFFFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.3s ease' },
   approveButton: { padding: '5px 10px', backgroundColor: '#27ae60', color: '#FFFFFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.3s ease' },
   accessDenied: { textAlign: 'center', padding: '4rem', backgroundColor: '#FFFFFF', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '600px', margin: '2rem auto' },
-  loading: { padding: '20px', color: '#FFFFFF', backgroundColor: '#4B5320', textAlign: 'center', fontSize: '16px' },
+  loading: { padding: '20px', color: '#FFFFFF', backgroundColor: '#2c3e50', textAlign: 'center', fontSize: '16px', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 };
 
 export default AdminHome;
