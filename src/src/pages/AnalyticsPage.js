@@ -20,6 +20,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import AccessDenied from '../components/AccessDenied';
 
 const AnalyticsPage = () => {
+  // ... (All logic remains the same) ...
   const { user } = useContext(AuthContext);
   const { analytics, tests, results, error: hookError, loading: hookLoading } = useTeacherData();
   const navigate = useNavigate();
@@ -68,7 +69,6 @@ const AnalyticsPage = () => {
     }
   }, [user]);
 
-  // Combine errors from hook and component
   const combinedError = hookError || error;
   const combinedLoading = hookLoading || loading;
 
@@ -85,7 +85,7 @@ const AnalyticsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: '#b8c2cc', fontFamily: '"Fredoka", sans-serif' }}>
       {/* Header */}
       <header className="bg-primary-800 text-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
