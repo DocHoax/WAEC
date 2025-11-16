@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Dashboard = () => {
+  // ... (All logic remains the same) ...
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [tests, setTests] = useState([]);
@@ -52,7 +53,9 @@ const Dashboard = () => {
   return (
     <div style={{
       padding: '20px',
-      fontFamily: 'sans-serif'
+      fontFamily: '"Fredoka", sans-serif',
+      backgroundColor: '#b8c2cc',
+      minHeight: '100vh'
     }}>
       {error && (
         <div style={{
@@ -70,12 +73,12 @@ const Dashboard = () => {
       <h2 style={{
         fontSize: '24px',
         fontWeight: 'bold',
-        color: '#4B5320',
+        color: '#2c3e50',
         marginBottom: '10px'
       }}>Welcome, {user.name}!</h2>
       <p style={{
         fontSize: '16px',
-        color: '#4B5320',
+        color: '#2c3e50',
         marginBottom: '20px'
       }}>Your WAEC prep journey continues at Sanniville Academy</p>
       {notifications.length > 0 && (
@@ -85,7 +88,7 @@ const Dashboard = () => {
           <h3 style={{
             fontSize: '24px',
             fontWeight: 'bold',
-            color: '#4B5320',
+            color: '#2c3e50',
             marginBottom: '10px'
           }}>Notifications</h3>
           {notifications.map((n, i) => (
@@ -93,7 +96,7 @@ const Dashboard = () => {
               backgroundColor: '#FFFFFF',
               padding: '15px',
               border: '1px solid #E0E0E0',
-              borderLeft: '4px solid #D4A017',
+              borderLeft: '4px solid #3498db',
               borderRadius: '4px',
               display: 'flex',
               justifyContent: 'space-between',
@@ -106,8 +109,8 @@ const Dashboard = () => {
               <button
                 onClick={() => handleDismissNotification(i)}
                 style={{
-                  backgroundColor: '#D4A017',
-                  color: '#000000',
+                  backgroundColor: '#3498db',
+                  color: '#2c3e50',
                   border: 'none',
                   borderRadius: '4px',
                   padding: '5px 10px',
@@ -115,8 +118,8 @@ const Dashboard = () => {
                   fontSize: '16px',
                   transition: 'background-color 0.2s'
                 }}
-                onMouseOver={e => (e.currentTarget.style.backgroundColor = '#B22222')}
-                onMouseOut={e => (e.currentTarget.style.backgroundColor = '#D4A017')}
+                onMouseOver={e => (e.currentTarget.style.backgroundColor = '#2c3e50')}
+                onMouseOut={e => (e.currentTarget.style.backgroundColor = '#3498db')}
               >
                 ×
               </button>
@@ -130,7 +133,7 @@ const Dashboard = () => {
         <h3 style={{
           fontSize: '24px',
           fontWeight: 'bold',
-          color: '#4B5320',
+          color: '#2c3e50',
           marginBottom: '10px'
         }}>Test Summary</h3>
         <div style={{
@@ -142,7 +145,7 @@ const Dashboard = () => {
         }}>
           <p style={{
             fontSize: '16px',
-            color: '#4B5320',
+            color: '#2c3e50',
             fontWeight: '600',
             margin: 0
           }}>{tests.length} Tests Available</p>
