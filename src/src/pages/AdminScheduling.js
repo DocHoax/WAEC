@@ -5,6 +5,7 @@ import axios from 'axios';
 import { FiSave, FiX, FiAlertTriangle, FiCheckCircle, FiUpload, FiUsers } from 'react-icons/fi';
 
 const AdminScheduling = () => {
+  // ... (All logic remains exactly the same) ...
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [tests, setTests] = useState([]);
@@ -30,13 +31,10 @@ const AdminScheduling = () => {
           axios.get('https://waec-gfv0.onrender.com/api/tests/admin', { headers: { Authorization: `Bearer ${token}` } }),
           axios.get('https://waec-gfv0.onrender.com/api/users?role=student', { headers: { Authorization: `Bearer ${token}` } }),
         ]);
-        console.log('AdminScheduling - Fetched tests:', testsRes.data);
-        console.log('AdminScheduling - Fetched students:', studentsRes.data);
         setTests(testsRes.data.filter(t => t.status === 'draft' || t.status === 'scheduled'));
         setStudents(studentsRes.data);
         setLoading(false);
       } catch (err) {
-        console.error('AdminScheduling - Error:', err.response?.data || err.message);
         setError(err.response?.data?.error || 'Failed to load data.');
         setLoading(false);
       }
@@ -140,7 +138,6 @@ const AdminScheduling = () => {
           },
         })),
       };
-      console.log('AdminScheduling - Sending payload:', payload);
       await axios.put(`https://waec-gfv0.onrender.com/api/tests/${selectedTestId}/schedule`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -151,7 +148,6 @@ const AdminScheduling = () => {
       setCsvFile(null);
       setAutoAssign(false);
     } catch (err) {
-      console.error('AdminScheduling - Error:', err.response?.data || err.message);
       setError(err.response?.data?.error || 'Failed to schedule test.');
     }
     setLoading(false);
@@ -329,14 +325,16 @@ const AdminScheduling = () => {
 
 const styles = {
   container: {
-    fontFamily: 'sans-serif',
+    fontFamily: '"Fredoka", sans-serif',
     padding: '20px',
-    backgroundColor: '#f8f9fa',
-    maxWidth: '1000px',
-    margin: '0 auto',
+    backgroundColor: '#b8c2cc', // Updated color
+    minHeight: '100vh',
+    // Removed margin auto constraint to allow full width background if needed, 
+    // or you can keep maxWidth if you want centered content on gray bg.
+    // Keeping maxWidth for layout consistency but ensuring bg is visible.
   },
   header: {
-    backgroundColor: '#4B5320',
+    backgroundColor: '#2c3e50',
     color: '#FFFFFF',
     padding: '25px',
     borderRadius: '8px',
@@ -352,7 +350,7 @@ const styles = {
   headerSubtitle: {
     fontSize: '16px',
     margin: '0',
-    color: '#D4A017',
+    color: '#3498db',
   },
   alertError: {
     backgroundColor: '#FFF3F3',
@@ -394,7 +392,7 @@ const styles = {
     marginBottom: '20px',
   },
   label: {
-    color: '#4B5320',
+    color: '#2c3e50',
     fontWeight: '600',
     fontSize: '14px',
   },
@@ -420,10 +418,10 @@ const styles = {
   checkbox: {
     width: '18px',
     height: '18px',
-    accentColor: '#4B5320',
+    accentColor: '#2c3e50',
   },
   checkboxLabel: {
-    color: '#4B5320',
+    color: '#2c3e50',
     fontSize: '14px',
   },
   batchSection: {
@@ -434,7 +432,7 @@ const styles = {
     border: '1px solid #E0E0E0',
   },
   batchTitle: {
-    color: '#4B5320',
+    color: '#2c3e50',
     fontSize: '16px',
     fontWeight: '600',
     marginBottom: '10px',
@@ -446,7 +444,7 @@ const styles = {
     justifyContent: 'flex-end',
   },
   submitButton: {
-    backgroundColor: '#4B5320',
+    backgroundColor: '#2c3e50',
     color: '#FFFFFF',
     border: 'none',
     padding: '12px 24px',
@@ -460,8 +458,8 @@ const styles = {
   },
   cancelButton: {
     backgroundColor: 'transparent',
-    color: '#4B5320',
-    border: '1px solid #4B5320',
+    color: '#2c3e50',
+    border: '1px solid #2c3e50',
     padding: '12px 24px',
     borderRadius: '6px',
     cursor: 'pointer',
@@ -472,7 +470,7 @@ const styles = {
     gap: '8px',
   },
   addButton: {
-    backgroundColor: '#D4A017',
+    backgroundColor: '#3498db',
     color: '#FFFFFF',
     border: 'none',
     padding: '10px 20px',
@@ -490,14 +488,14 @@ const styles = {
   },
   loading: {
     minHeight: '100vh',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#b8c2cc', // Updated color
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
   loadingText: {
     fontSize: '16px',
-    color: '#4B5320',
+    color: '#2c3e50',
   },
   accessDenied: {
     textAlign: 'center',

@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'https://waec-gfv0.onrender.com' : 'http://localhost:5000';
 
 const DataExports = () => {
+  // ... (All logic remains the same) ...
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -203,7 +204,6 @@ const DataExports = () => {
         setError('Please select valid filters for result export.');
         return;
       }
-      console.log('Exporting results:', { endpoint, filters });
       const res = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -218,7 +218,6 @@ const DataExports = () => {
       const errorMessage = err.response?.data?.error || 'Failed to export results.';
       setError(errorMessage);
       setSuccess(null);
-      console.error('ExportResults - Error:', err);
     }
   };
 
@@ -234,11 +233,6 @@ const DataExports = () => {
         filters.reportSession.replace(/[/:]/g, '/').replace(/\s+/g, ' ').trim()
       );
       const endpoint = `${API_BASE_URL}/api/reports/export/report/${encodeURIComponent(filters.resultStudent)}/${sanitizedSession}`;
-      console.log('Exporting report card:', { 
-        studentId: filters.resultStudent, 
-        session: sanitizedSession,
-        endpoint
-      });
       const res = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob',
@@ -264,11 +258,6 @@ const DataExports = () => {
       }
       setError(errorMessage);
       setSuccess(null);
-      console.error('ExportReportCard - Error:', {
-        message: err.message,
-        response: err.response?.data,
-        config: err.config,
-      });
     }
   };
 
@@ -286,242 +275,65 @@ const DataExports = () => {
 
   if (loading) {
     return (
-      <p style={{ padding: '20px', color: '#FFFFFF', backgroundColor: '#4B5320', textAlign: 'center', fontFamily: 'sans-serif', fontSize: '16px' }}>
+      <p style={{ padding: '20px', color: '#3498db', backgroundColor: '#b8c2cc', textAlign: 'center', fontFamily: '"Fredoka", sans-serif', fontSize: '16px', minHeight: '100vh' }}>
         Loading...
       </p>
     );
   }
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
-      {error && (
-        <p style={{ backgroundColor: '#FFF3F3', color: '#B22222', borderLeft: '4px solid #B22222', padding: '15px', marginBottom: '20px', borderRadius: '4px', fontSize: '14px' }}>
-          Error: {error}
-        </p>
-      )}
-      {success && (
-        <p style={{ backgroundColor: '#E6FFE6', color: '#228B22', borderLeft: '4px solid #228B22', padding: '15px', marginBottom: '20px', borderRadius: '4px', fontSize: '14px' }}>
-          Success: {success}
-        </p>
-      )}
-      <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFFFFF', backgroundColor: '#4B5320', padding: '10px', borderRadius: '4px', marginBottom: '20px' }}>
-        Data Exports
-      </h3>
-      <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <h4 style={{ fontSize: '16px', color: '#4B5320', marginBottom: '15px', fontWeight: '600' }}>Export Students</h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
-          <select
-            name="studentClass"
-            value={filters.studentClass}
-            onChange={handleFilterChange}
-            style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-          >
-            <option value="">All Classes</option>
-            {classes.map(cls => (
-              <option key={cls} value={cls}>{cls}</option>
-            ))}
-          </select>
-          <select
-            name="studentSubject"
-            value={filters.studentSubject}
-            onChange={handleFilterChange}
-            style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-          >
-            <option value="">All Subjects</option>
-            {subjects.map(sub => (
-              <option key={sub} value={sub}>{sub}</option>
-            ))}
-          </select>
-          <button
-            onClick={exportStudents}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#D4A017',
-              color: '#000000',
-              border: '1px solid #000000',
-              borderRadius: '6px',
-              fontSize: '14px',
-              cursor: 'pointer',
-              fontWeight: '600',
-            }}
-          >
-            Export Students
-          </button>
-        </div>
-      </div>
-      <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <h4 style={{ fontSize: '16px', color: '#4B5320', marginBottom: '15px', fontWeight: '600' }}>Export Results</h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
-          <select
-            name="resultType"
-            value={filters.resultType}
-            onChange={handleFilterChange}
-            style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-          >
-            <option value="class">Class Results</option>
-            <option value="student">Student Results</option>
-          </select>
-          {filters.resultType === 'class' && (
-            <>
-              <select
-                name="resultClass"
-                value={filters.resultClass}
-                onChange={handleFilterChange}
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-              >
-                <option value="">Select Class</option>
-                {classes.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </select>
-              <select
-                name="resultSubject"
-                value={filters.resultSubject}
-                onChange={handleFilterChange}
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-              >
-                <option value="">All Subjects</option>
-                {subjects.map(sub => (
-                  <option key={sub} value={sub}>{sub}</option>
-                ))}
-              </select>
-            </>
-          )}
-          {filters.resultType === 'student' && (
-            <>
-              <select
-                name="resultStudent"
-                value={filters.resultStudent}
-                onChange={handleFilterChange}
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-              >
-                <option value="">Select Student</option>
-                {users.filter(u => u.role === 'student').map(user => (
-                  <option key={user._id} value={user._id}>{`${user.name || 'N/A'} ${user.surname || 'N/A'}`}</option>
-                ))}
-              </select>
-              <select
-                name="reportSession"
-                value={filters.reportSession}
-                onChange={handleFilterChange}
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-              >
-                <option value="">Select Session</option>
-                {sessions.map(session => (
-                  <option key={session._id} value={session.sessionName}>{session.sessionName}</option>
-                ))}
-              </select>
-            </>
-          )}
-          <button
-            onClick={exportResults}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#D4A017',
-              color: '#000000',
-              border: '1px solid #000000',
-              borderRadius: '6px',
-              fontSize: '14px',
-              cursor: 'pointer',
-              fontWeight: '600',
-            }}
-          >
-            Export Results
-          </button>
-        </div>
-      </div>
-      <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <h4 style={{ fontSize: '16px', color: '#4B5320', marginBottom: '15px', fontWeight: '600' }}>Export Report Card</h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
-          <select
-            name="resultStudent"
-            value={filters.resultStudent}
-            onChange={handleFilterChange}
-            style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-          >
-            <option value="">Select Student</option>
-            {users.filter(u => u.role === 'student').map(user => (
-              <option key={user._id} value={user._id}>{`${user.name || 'N/A'} ${user.surname || 'N/A'}`}</option>
-            ))}
-          </select>
-          <select
-            name="reportSession"
-            value={filters.reportSession}
-            onChange={handleFilterChange}
-            style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-          >
-            <option value="">Select Session</option>
-            {sessions.map(session => (
-              <option key={session._id} value={session.sessionName}>{session.sessionName}</option>
-            ))}
-          </select>
-          <button
-            onClick={exportReportCard}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#D4A017',
-              color: '#000000',
-              border: '1px solid #000000',
-              borderRadius: '6px',
-              fontSize: '14px',
-              cursor: 'pointer',
-              fontWeight: '600',
-            }}
-          >
-            Export Report Card
-          </button>
-        </div>
-      </div>
-      {user.role === 'admin' && (
+    <div style={{ 
+      padding: '20px', 
+      fontFamily: '"Fredoka", sans-serif', 
+      backgroundColor: '#b8c2cc', 
+      minHeight: '100vh' 
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {error && (
+          <p style={{ backgroundColor: '#FFF3F3', color: '#B22222', borderLeft: '4px solid #B22222', padding: '15px', marginBottom: '20px', borderRadius: '4px', fontSize: '14px' }}>
+            Error: {error}
+          </p>
+        )}
+        {success && (
+          <p style={{ backgroundColor: '#E6FFE6', color: '#228B22', borderLeft: '4px solid #228B22', padding: '15px', marginBottom: '20px', borderRadius: '4px', fontSize: '14px' }}>
+            Success: {success}
+          </p>
+        )}
+        <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFFFFF', backgroundColor: '#2c3e50', padding: '10px', borderRadius: '4px', marginBottom: '20px' }}>
+          Data Exports
+        </h3>
+        {/* Export Students Section */}
         <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-          <h4 style={{ fontSize: '16px', color: '#4B5320', marginBottom: '15px', fontWeight: '600' }}>Upload Signatures for Report Cards</h4>
-          <form onSubmit={handleSignatureSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
-            <div>
-              <label style={{ fontSize: '14px', color: '#4B5320', marginBottom: '5px', display: 'block' }}>
-                Class (Optional for Principal's Signature)
-              </label>
-              <select
-                name="className"
-                value={signatureData.className}
-                onChange={(e) => setSignatureData(prev => ({ ...prev, className: e.target.value }))}
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px', width: '100%' }}
-              >
-                <option value="">Select Class (Optional)</option>
-                {classes.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize: '14px', color: '#4B5320', marginBottom: '5px', display: 'block' }}>
-                Class Teacher's Signature (Per Class, on Report Card)
-              </label>
-              <input
-                type="file"
-                name="classTeacherSignature"
-                accept=".jpg,.jpeg,.png"
-                onChange={handleSignatureChange}
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-              />
-            </div>
-            <div>
-              <label style={{ fontSize: '14px', color: '#4B5320', marginBottom: '5px', display: 'block' }}>
-                Principal's Signature (Global, on All Report Cards)
-              </label>
-              <input
-                type="file"
-                name="principalSignature"
-                accept=".jpg,.jpeg,.png"
-                onChange={handleSignatureChange}
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #D4A017', fontSize: '14px' }}
-              />
-            </div>
+          <h4 style={{ fontSize: '16px', color: '#2c3e50', marginBottom: '15px', fontWeight: '600' }}>Export Students</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
+            <select
+              name="studentClass"
+              value={filters.studentClass}
+              onChange={handleFilterChange}
+              style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+            >
+              <option value="">All Classes</option>
+              {classes.map(cls => (
+                <option key={cls} value={cls}>{cls}</option>
+              ))}
+            </select>
+            <select
+              name="studentSubject"
+              value={filters.studentSubject}
+              onChange={handleFilterChange}
+              style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+            >
+              <option value="">All Subjects</option>
+              {subjects.map(sub => (
+                <option key={sub} value={sub}>{sub}</option>
+              ))}
+            </select>
             <button
-              type="submit"
+              onClick={exportStudents}
               style={{
                 padding: '10px 20px',
-                backgroundColor: '#D4A017',
-                color: '#000000',
+                backgroundColor: '#3498db',
+                color: '#2c3e50',
                 border: '1px solid #000000',
                 borderRadius: '6px',
                 fontSize: '14px',
@@ -529,11 +341,198 @@ const DataExports = () => {
                 fontWeight: '600',
               }}
             >
-              Upload Signatures
+              Export Students
             </button>
-          </form>
+          </div>
         </div>
-      )}
+        {/* Export Results Section */}
+        <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <h4 style={{ fontSize: '16px', color: '#2c3e50', marginBottom: '15px', fontWeight: '600' }}>Export Results</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
+            <select
+              name="resultType"
+              value={filters.resultType}
+              onChange={handleFilterChange}
+              style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+            >
+              <option value="class">Class Results</option>
+              <option value="student">Student Results</option>
+            </select>
+            {filters.resultType === 'class' && (
+              <>
+                <select
+                  name="resultClass"
+                  value={filters.resultClass}
+                  onChange={handleFilterChange}
+                  style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+                >
+                  <option value="">Select Class</option>
+                  {classes.map(cls => (
+                    <option key={cls} value={cls}>{cls}</option>
+                  ))}
+                </select>
+                <select
+                  name="resultSubject"
+                  value={filters.resultSubject}
+                  onChange={handleFilterChange}
+                  style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+                >
+                  <option value="">All Subjects</option>
+                  {subjects.map(sub => (
+                    <option key={sub} value={sub}>{sub}</option>
+                  ))}
+                </select>
+              </>
+            )}
+            {filters.resultType === 'student' && (
+              <>
+                <select
+                  name="resultStudent"
+                  value={filters.resultStudent}
+                  onChange={handleFilterChange}
+                  style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+                >
+                  <option value="">Select Student</option>
+                  {users.filter(u => u.role === 'student').map(user => (
+                    <option key={user._id} value={user._id}>{`${user.name || 'N/A'} ${user.surname || 'N/A'}`}</option>
+                  ))}
+                </select>
+                <select
+                  name="reportSession"
+                  value={filters.reportSession}
+                  onChange={handleFilterChange}
+                  style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+                >
+                  <option value="">Select Session</option>
+                  {sessions.map(session => (
+                    <option key={session._id} value={session.sessionName}>{session.sessionName}</option>
+                  ))}
+                </select>
+              </>
+            )}
+            <button
+              onClick={exportResults}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#3498db',
+                color: '#2c3e50',
+                border: '1px solid #000000',
+                borderRadius: '6px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontWeight: '600',
+              }}
+            >
+              Export Results
+            </button>
+          </div>
+        </div>
+        {/* Export Report Card Section */}
+        <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <h4 style={{ fontSize: '16px', color: '#2c3e50', marginBottom: '15px', fontWeight: '600' }}>Export Report Card</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
+            <select
+              name="resultStudent"
+              value={filters.resultStudent}
+              onChange={handleFilterChange}
+              style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+            >
+              <option value="">Select Student</option>
+              {users.filter(u => u.role === 'student').map(user => (
+                <option key={user._id} value={user._id}>{`${user.name || 'N/A'} ${user.surname || 'N/A'}`}</option>
+              ))}
+            </select>
+            <select
+              name="reportSession"
+              value={filters.reportSession}
+              onChange={handleFilterChange}
+              style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+            >
+              <option value="">Select Session</option>
+              {sessions.map(session => (
+                <option key={session._id} value={session.sessionName}>{session.sessionName}</option>
+              ))}
+            </select>
+            <button
+              onClick={exportReportCard}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#3498db',
+                color: '#2c3e50',
+                border: '1px solid #000000',
+                borderRadius: '6px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontWeight: '600',
+              }}
+            >
+              Export Report Card
+            </button>
+          </div>
+        </div>
+        {user.role === 'admin' && (
+          <div style={{ marginBottom: '30px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+            <h4 style={{ fontSize: '16px', color: '#2c3e50', marginBottom: '15px', fontWeight: '600' }}>Upload Signatures for Report Cards</h4>
+            <form onSubmit={handleSignatureSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
+              <div>
+                <label style={{ fontSize: '14px', color: '#2c3e50', marginBottom: '5px', display: 'block' }}>
+                  Class (Optional for Principal's Signature)
+                </label>
+                <select
+                  name="className"
+                  value={signatureData.className}
+                  onChange={(e) => setSignatureData(prev => ({ ...prev, className: e.target.value }))}
+                  style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px', width: '100%' }}
+                >
+                  <option value="">Select Class (Optional)</option>
+                  {classes.map(cls => (
+                    <option key={cls} value={cls}>{cls}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: '14px', color: '#2c3e50', marginBottom: '5px', display: 'block' }}>
+                  Class Teacher's Signature (Per Class, on Report Card)
+                </label>
+                <input
+                  type="file"
+                  name="classTeacherSignature"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={handleSignatureChange}
+                  style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '14px', color: '#2c3e50', marginBottom: '5px', display: 'block' }}>
+                  Principal's Signature (Global, on All Report Cards)
+                </label>
+                <input
+                  type="file"
+                  name="principalSignature"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={handleSignatureChange}
+                  style={{ padding: '10px', borderRadius: '4px', border: '1px solid #3498db', fontSize: '14px' }}
+                />
+              </div>
+              <button
+                type="submit"
+                  style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#3498db',
+                  color: '#2c3e50',
+                  border: '1px solid #000000',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                }}
+              >
+                Upload Signatures
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
