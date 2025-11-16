@@ -1,3 +1,9 @@
+body {
+  margin: 0;
+  background-color: #b8c2cc;
+  font-family: "Fredoka", sans-serif;
+}
+
 .App {
   text-align: center;
 }
