@@ -4,7 +4,7 @@ import { FiUser, FiLogOut } from 'react-icons/fi';
 const Header = ({ user, onLogout }) => {
   return (
     <header style={{
-      backgroundColor: '#4B5320',
+      backgroundColor: '#2c3e50',
       color: '#FFFFFF',
       padding: '15px 30px',
       display: 'flex',
@@ -18,7 +18,7 @@ const Header = ({ user, onLogout }) => {
       right: 0,
       zIndex: 1000,
       height: '60px',
-      fontFamily: 'sans-serif'
+      fontFamily: '"Fredoka", sans-serif'
     }}>
       <div style={{
         display: 'flex',
@@ -31,7 +31,8 @@ const Header = ({ user, onLogout }) => {
         <h1 style={{
           margin: 0,
           fontSize: '20px',
-          fontWeight: 'bold'
+          fontWeight: 'bold',
+          fontFamily: '"Fredoka", sans-serif'
         }}>Student Dashboard</h1>
       </div>
       <div style={{
@@ -42,7 +43,8 @@ const Header = ({ user, onLogout }) => {
         <span style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '5px'
+          gap: '5px',
+          fontFamily: '"Fredoka", sans-serif'
         }}>
           <FiUser style={{
             fontSize: '18px'
@@ -51,8 +53,8 @@ const Header = ({ user, onLogout }) => {
         <button
           onClick={onLogout}
           style={{
-            backgroundColor: '#D4A017',
-            color: '#000000',
+            backgroundColor: '#3498db',
+            color: '#2c3e50',
             border: '1px solid #000000',
             padding: '8px 16px',
             borderRadius: '6px',
@@ -61,7 +63,8 @@ const Header = ({ user, onLogout }) => {
             display: 'flex',
             alignItems: 'center',
             gap: '5px',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            fontFamily: '"Fredoka", sans-serif'
           }}
           onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.05)')}
           onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
