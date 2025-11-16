@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 
 const AdminResults = () => {
+  // ... (All logic remains the same) ...
   const { testId } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -38,7 +39,6 @@ const AdminResults = () => {
       }
 
       try {
-        console.log('AdminResults - Fetching results:', { testId });
         const [testRes, resultsRes] = await Promise.all([
           axios.get(`https://waec-gfv0.onrender.com/api/tests/${testId}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -47,8 +47,6 @@ const AdminResults = () => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-        console.log('AdminResults - Fetched test:', testRes.data);
-        console.log('AdminResults - Fetched results:', resultsRes.data);
         setTest(testRes.data);
         setResults(resultsRes.data);
         setError(null);
@@ -72,13 +70,11 @@ const AdminResults = () => {
   const handleSave = async (resultId) => {
     const token = localStorage.getItem('token');
     try {
-      console.log('AdminResults - Updating result:', { resultId, score: Number(editScore) });
       const res = await axios.put(
         `https://waec-gfv0.onrender.com/api/tests/results/${resultId}`,
         { score: Number(editScore), answers: editAnswers },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log('AdminResults - Result updated:', res.data);
       setResults(results.map(r => (r._id === resultId ? res.data : r)));
       setEditingResult(null);
       setError(null);
@@ -93,12 +89,14 @@ const AdminResults = () => {
       <div style={{
         padding: '20px',
         color: '#B22222',
-        fontFamily: 'sans-serif',
-        backgroundColor: '#FFF3F3',
+        fontFamily: '"Fredoka", sans-serif',
+        backgroundColor: '#b8c2cc',
         minHeight: '100vh',
         textAlign: 'center'
       }}>
-        Access restricted to admins.
+        <div style={{ backgroundColor: '#FFF3F3', padding: '20px', borderRadius: '8px' }}>
+          Access restricted to admins.
+        </div>
       </div>
     );
   }
@@ -107,9 +105,9 @@ const AdminResults = () => {
     return (
       <div style={{
         padding: '20px',
-        color: '#4B5320',
-        fontFamily: 'sans-serif',
-        backgroundColor: '#F8F9FA',
+        color: '#2c3e50',
+        fontFamily: '"Fredoka", sans-serif',
+        backgroundColor: '#b8c2cc',
         minHeight: '100vh',
         textAlign: 'center'
       }}>
@@ -123,26 +121,29 @@ const AdminResults = () => {
       <div style={{
         padding: '20px',
         color: '#B22222',
-        fontFamily: 'sans-serif',
-        backgroundColor: '#FFF3F3',
+        fontFamily: '"Fredoka", sans-serif',
+        backgroundColor: '#b8c2cc',
         minHeight: '100vh',
         textAlign: 'center'
       }}>
-        Error: {error}
-        <button
-          onClick={() => navigate('/admin/tests')}
-          style={{
-            padding: '10px',
-            backgroundColor: '#D4A017',
-            color: '#FFFFFF',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginTop: '10px'
-          }}
-        >
-          Back to Tests
-        </button>
+        <div style={{ backgroundColor: '#FFF3F3', padding: '20px', borderRadius: '8px' }}>
+          Error: {error}
+          <button
+            onClick={() => navigate('/admin/tests')}
+            style={{
+              padding: '10px',
+              backgroundColor: '#3498db',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginTop: '10px',
+              marginLeft: '10px'
+            }}
+          >
+            Back to Tests
+          </button>
+        </div>
       </div>
     );
   }
@@ -150,11 +151,11 @@ const AdminResults = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F8F9FA',
+      backgroundColor: '#b8c2cc',
       padding: '20px',
-      fontFamily: 'sans-serif'
+      fontFamily: '"Fredoka", sans-serif'
     }}>
-      <h2 style={{ color: '#4B5320', fontSize: '24px', marginBottom: '20px' }}>
+      <h2 style={{ color: '#2c3e50', fontSize: '24px', marginBottom: '20px', fontWeight: 'bold' }}>
         Results for {test?.title || 'Test'} - {test?.subject || 'Subject'} ({test?.class || 'Class'})
       </h2>
       {results.length === 0 ? (
@@ -176,13 +177,13 @@ const AdminResults = () => {
             border: '1px solid #E0E0E0',
             marginBottom: '20px'
           }}>
-            <h3 style={{ color: '#4B5320', fontSize: '18px', marginBottom: '10px' }}>
+            <h3 style={{ color: '#2c3e50', fontSize: '18px', marginBottom: '10px' }}>
               Student: {result.userId?.username || 'Unknown'}
             </h3>
             {editingResult === result._id ? (
               <div>
                 <div style={{ marginBottom: '10px' }}>
-                  <label style={{ color: '#4B5320', marginRight: '10px' }}>
+                  <label style={{ color: '#2c3e50', marginRight: '10px' }}>
                     Score:
                     <input
                       type="number"
@@ -198,12 +199,12 @@ const AdminResults = () => {
                   </label>
                 </div>
                 <div style={{ marginBottom: '10px' }}>
-                  <h4 style={{ color: '#4B5320', fontSize: '16px' }}>Answers:</h4>
+                  <h4 style={{ color: '#2c3e50', fontSize: '16px' }}>Answers:</h4>
                   {Object.entries(editAnswers).map(([questionId, selectedAnswer], index) => {
                     const question = test?.questions?.find(q => q._id.toString() === questionId);
                     return (
                       <div key={index} style={{ marginTop: '5px' }}>
-                        <p style={{ color: '#4B5320' }}>Question: {question?.text || 'Unknown'}</p>
+                        <p style={{ color: '#2c3e50' }}>Question: {question?.text || 'Unknown'}</p>
                         <select
                           value={selectedAnswer || ''}
                           onChange={(e) => setEditAnswers({ ...editAnswers, [questionId]: e.target.value })}
@@ -226,7 +227,7 @@ const AdminResults = () => {
                   onClick={() => handleSave(result._id)}
                   style={{
                     padding: '10px',
-                    backgroundColor: '#D4A017',
+                    backgroundColor: '#3498db',
                     color: '#FFFFFF',
                     border: 'none',
                     borderRadius: '4px',
@@ -252,20 +253,20 @@ const AdminResults = () => {
               </div>
             ) : (
               <div>
-                <p style={{ color: '#4B5320' }}>
+                <p style={{ color: '#2c3e50' }}>
                   Score: {result.score} / {result.totalQuestions}
                 </p>
-                <p style={{ color: '#4B5320' }}>
+                <p style={{ color: '#2c3e50' }}>
                   Submitted: {new Date(result.submittedAt).toLocaleString()}
                 </p>
                 <div style={{ marginTop: '10px' }}>
-                  <h4 style={{ color: '#4B5320', fontSize: '16px' }}>Answers:</h4>
+                  <h4 style={{ color: '#2c3e50', fontSize: '16px' }}>Answers:</h4>
                   {Object.entries(result.answers).map(([questionId, selectedAnswer], index) => {
                     const question = test?.questions?.find(q => q._id.toString() === questionId);
                     return (
                       <div key={index} style={{
                         padding: '10px',
-                        backgroundColor: selectedAnswer === question?.correctAnswer ? '#D4A017' : '#FFF3F3',
+                        backgroundColor: selectedAnswer === question?.correctAnswer ? '#3498db' : '#FFF3F3',
                         color: selectedAnswer === question?.correctAnswer ? '#FFFFFF' : '#B22222',
                         borderRadius: '4px',
                         marginTop: '5px'
@@ -281,7 +282,7 @@ const AdminResults = () => {
                   onClick={() => handleEdit(result)}
                   style={{
                     padding: '10px',
-                    backgroundColor: '#D4A017',
+                    backgroundColor: '#3498db',
                     color: '#FFFFFF',
                     border: 'none',
                     borderRadius: '4px',
