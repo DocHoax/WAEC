@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const EditResults = () => {
+  // ... (All logic remains the same) ...
   const [results, setResults] = useState([]);
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,20 +121,20 @@ const EditResults = () => {
     setSelectedTest(null);
   };
 
-  if (loading) return <p style={{ padding: '20px', color: '#FFFFFF', backgroundColor: '#4B5320', textAlign: 'center', fontFamily: 'sans-serif', fontSize: '16px' }}>Loading...</p>;
+  if (loading) return <p style={{ padding: '20px', color: '#3498db', backgroundColor: '#b8c2cc', textAlign: 'center', fontFamily: '"Fredoka", sans-serif', fontSize: '16px', minHeight: '100vh' }}>Loading...</p>;
 
   return (
-    <div>
-      {error && <p style={{ backgroundColor: '#FFF3F3', color: '#B22222', borderLeft: '4px solid #B22222', padding: '15px', marginBottom: '20px', fontFamily: 'sans-serif', borderRadius: '4px', fontSize: '14px' }}>Error: {error}</p>}
-      {success && <p style={{ backgroundColor: '#E6FFE6', color: '#228B22', borderLeft: '4px solid #228B22', padding: '15px', marginBottom: '20px', fontFamily: 'sans-serif', borderRadius: '4px', fontSize: '14px' }}>Success: {success}</p>}
+    <div style={{ fontFamily: '"Fredoka", sans-serif', backgroundColor: '#b8c2cc', minHeight: '100vh', padding: '20px' }}>
+      {error && <p style={{ backgroundColor: '#FFF3F3', color: '#B22222', borderLeft: '4px solid #B22222', padding: '15px', marginBottom: '20px', borderRadius: '4px', fontSize: '14px' }}>Error: {error}</p>}
+      {success && <p style={{ backgroundColor: '#E6FFE6', color: '#228B22', borderLeft: '4px solid #228B22', padding: '15px', marginBottom: '20px', borderRadius: '4px', fontSize: '14px' }}>Success: {success}</p>}
 
-      <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFFFFF', fontFamily: 'sans-serif', backgroundColor: '#4B5320', padding: '10px', borderRadius: '4px', marginBottom: '20px' }}>
+      <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFFFFF', backgroundColor: '#2c3e50', padding: '10px', borderRadius: '4px', marginBottom: '20px' }}>
         Manage Tests & Results
       </h3>
-      <div style={{ overflowX: 'auto', marginBottom: '20px' }}>
+      <div style={{ overflowX: 'auto', marginBottom: '20px', backgroundColor: '#FFFFFF', borderRadius: '4px' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #E0E0E0' }}>
           <thead>
-            <tr style={{ backgroundColor: '#4B5320', color: '#FFFFFF', fontFamily: 'sans-serif', fontSize: '12px' }}>
+            <tr style={{ backgroundColor: '#2c3e50', color: '#FFFFFF', fontSize: '12px' }}>
               <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Test ID</th>
               <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Title</th>
               <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Subject</th>
@@ -145,7 +146,7 @@ const EditResults = () => {
           </thead>
           <tbody>
             {tests.map((test) => (
-              <tr key={test._id} style={{ color: '#000000', fontFamily: 'sans-serif', fontSize: '12px' }}>
+              <tr key={test._id} style={{ color: '#000000', fontSize: '12px' }}>
                 <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{test._id}</td>
                 <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{test.title}</td>
                 <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{test.subject}</td>
@@ -155,13 +156,13 @@ const EditResults = () => {
                 <td style={{ border: '1px solid #E0E0E0', padding: '8px', display: 'flex', gap: '5px' }}>
                   <button
                     onClick={() => handleViewTestAnswers(test)}
-                    style={{ color: '#000000', backgroundColor: '#D4A017', fontFamily: 'sans-serif', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
+                    style={{ color: '#2c3e50', backgroundColor: '#3498db', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
                   >
                     View Results
                   </button>
                   <button
                     onClick={() => handleDeleteTest(test._id)}
-                    style={{ color: '#FFFFFF', backgroundColor: '#B22222', fontFamily: 'sans-serif', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
+                    style={{ color: '#FFFFFF', backgroundColor: '#B22222', fontFamily: '"Fredoka", sans-serif', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
                   >
                     Delete Test
                   </button>
@@ -172,13 +173,13 @@ const EditResults = () => {
         </table>
       </div>
 
-      <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFFFFF', fontFamily: 'sans-serif', backgroundColor: '#4B5320', padding: '10px', borderRadius: '4px', marginBottom: '20px' }}>
+      <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#FFFFFF', fontFamily: '"Fredoka", sans-serif', backgroundColor: '#2c3e50', padding: '10px', borderRadius: '4px', marginBottom: '20px' }}>
         View Results
       </h3>
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ overflowX: 'auto', backgroundColor: '#FFFFFF', borderRadius: '4px' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #E0E0E0' }}>
           <thead>
-            <tr style={{ backgroundColor: '#4B5320', color: '#FFFFFF', fontFamily: 'sans-serif', fontSize: '12px' }}>
+            <tr style={{ backgroundColor: '#2c3e50', color: '#FFFFFF', fontFamily: '"Fredoka", sans-serif', fontSize: '12px' }}>
               <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Student</th>
               <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Test</th>
               <th style={{ border: '1px solid #E0E0E0', padding: '8px' }}>Subject</th>
@@ -190,7 +191,7 @@ const EditResults = () => {
           </thead>
           <tbody>
             {results.map((result) => (
-              <tr key={result._id} style={{ color: '#000000', fontFamily: 'sans-serif', fontSize: '12px' }}>
+              <tr key={result._id} style={{ color: '#000000', fontFamily: '"Fredoka", sans-serif', fontSize: '12px' }}>
                 <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{result.userId ? `${result.userId.name} ${result.userId.surname}` : 'Unknown'}</td>
                 <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{result.testId?.title || 'Unknown'}</td>
                 <td style={{ border: '1px solid #E0E0E0', padding: '8px' }}>{result.subject || result.testId?.subject || 'Unknown'}</td>
@@ -203,7 +204,7 @@ const EditResults = () => {
                       value={editScore}
                       onChange={(e) => setEditScore(Number(e.target.value))}
                       min="0"
-                      style={{ padding: '5px', border: '1px solid #000000', borderRadius: '4px', width: '60px', fontFamily: 'sans-serif' }}
+                      style={{ padding: '5px', border: '1px solid #000000', borderRadius: '4px', width: '60px', fontFamily: '"Fredoka", sans-serif' }}
                     />
                   ) : (
                     `${result.score}%`
@@ -214,13 +215,13 @@ const EditResults = () => {
                     <>
                       <button
                         onClick={() => handleSave(result._id)}
-                        style={{ color: '#000000', backgroundColor: '#D4A017', fontFamily: 'sans-serif', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
+                        style={{ color: '#2c3e50', backgroundColor: '#3498db', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
                       >
                         Save
                       </button>
                       <button
                         onClick={() => setEditingResultId(null)}
-                        style={{ color: '#000000', backgroundColor: '#FFFFFF', fontFamily: 'sans-serif', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
+                        style={{ color: '#000000', backgroundColor: '#FFFFFF', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
                       >
                         Cancel
                       </button>
@@ -229,13 +230,13 @@ const EditResults = () => {
                     <>
                       <button
                         onClick={() => handleEdit(result)}
-                        style={{ color: '#000000', backgroundColor: '#D4A017', fontFamily: 'sans-serif', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
+                        style={{ color: '#2c3e50', backgroundColor: '#3498db', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleViewTestAnswers({ _id: result.testId._id, title: result.testId.title })}
-                        style={{ color: '#FFFFFF', backgroundColor: '#4B5320', fontFamily: 'sans-serif', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
+                        style={{ color: '#FFFFFF', backgroundColor: '#2c3e50', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
                       >
                         Review Answers
                       </button>
@@ -251,43 +252,43 @@ const EditResults = () => {
       {selectedTest && (
         <div style={{ position: 'fixed', top: '0', left: '0', right: '0', bottom: '0', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', maxWidth: '800px', width: '90%', maxHeight: '80vh', overflowY: 'auto', border: '1px solid #E0E0E0' }}>
-            <h3 style={{ fontSize: '20px', color: '#4B5320', fontFamily: 'sans-serif', marginBottom: '15px' }}>
+            <h3 style={{ fontSize: '20px', color: '#2c3e50', fontFamily: '"Fredoka", sans-serif', marginBottom: '15px' }}>
               Results for {selectedTest.test.title}
             </h3>
             {selectedTest.results.length === 0 ? (
-              <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333' }}>No students have taken this test yet.</p>
+              <p style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '14px', color: '#333' }}>No students have taken this test yet.</p>
             ) : (
               selectedTest.results.map((result) => (
                 <div key={result._id} style={{ marginBottom: '15px', padding: '10px', border: '1px solid #E0E0E0', borderRadius: '4px' }}>
-                  <h4 style={{ fontFamily: 'sans-serif', fontSize: '16px', color: '#4B5320', marginBottom: '10px' }}>
+                  <h4 style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '16px', color: '#2c3e50', marginBottom: '10px' }}>
                     {result.userId ? `${result.userId.name} ${result.userId.surname}` : 'Unknown'} (Score: {result.score}%)
                   </h4>
                   {Array.isArray(result.answers) && result.answers.length > 0 ? (
                     result.answers.map((answer, index) => (
                       <div key={index} style={{ marginBottom: '10px', padding: '10px', border: '1px solid #D3D3D3', borderRadius: '4px', backgroundColor: answer.isCorrect ? '#E6FFE6' : '#FFE6E6' }}>
-                        <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
+                        <p style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
                           <strong>Question {index + 1}:</strong> {answer.question || 'N/A'}
                         </p>
-                        <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
+                        <p style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
                           <strong>Selected Answer:</strong> {answer.selectedOption || 'N/A'}
                         </p>
-                        <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
+                        <p style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
                           <strong>Correct Answer:</strong> {answer.correctOption || 'N/A'}
                         </p>
-                        <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: answer.isCorrect ? '#228B22' : '#B22222' }}>
+                        <p style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '14px', color: answer.isCorrect ? '#228B22' : '#B22222' }}>
                           <strong>Status:</strong> {answer.isCorrect ? 'Correct' : 'Incorrect'}
                         </p>
                       </div>
                     ))
                   ) : (
-                    <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333' }}>No answers available for this result.</p>
+                    <p style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '14px', color: '#333' }}>No answers available for this result.</p>
                   )}
                 </div>
               ))
             )}
             <button
               onClick={closeTestAnswers}
-              style={{ color: '#000000', backgroundColor: '#D4A017', fontFamily: 'sans-serif', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
+              style={{ color: '#000000', backgroundColor: '#3498db', fontFamily: '"Fredoka", sans-serif', fontSize: '12px', padding: '5px 10px', border: '1px solid #000000', borderRadius: '4px', cursor: 'pointer' }}
             >
               Close
             </button>
