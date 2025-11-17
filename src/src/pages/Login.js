@@ -1,31 +1,52 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const { login } = useContext(AuthContext);
+  const { login, user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      redirectBasedOnRole(user.role);
+    }
+  }, [user, navigate]);
+
+  const redirectBasedOnRole = (role) => {
+    switch (role) {
+      case 'student':
+        navigate('/student/dashboard');
+        break;
+      case 'teacher':
+        navigate('/teacher');
+        break;
+      case 'admin':
+      case 'super_admin':
+        navigate('/admin');
+        break;
+      default:
+        break;
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(null); // Clear error when user starts typing
+    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await login(formData.username, formData.password);
-      const { role } = response.user;
-      if (role === 'admin') navigate('/admin');
-      else if (role === 'teacher') navigate('/teacher');
-      else if (role === 'student') navigate('/student');
+      await login(formData.username, formData.password);
+      // The redirect will be handled by the useEffect above
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Invalid credentials. Please try again.');
+      setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -37,84 +58,88 @@ const Login = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+      backgroundColor: '#ffffff',
       padding: '20px',
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '450px',
+        maxWidth: '400px',
         backgroundColor: 'white',
-        borderRadius: '12px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-        padding: '40px',
-        position: 'relative',
-        overflow: 'hidden'
+        borderRadius: '16px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+        padding: '48px 40px',
+        border: '1px solid #f0f0f0'
       }}>
-        {/* Decorative elements */}
-        <div style={{
-          position: 'absolute',
-          top: '0',
-          left: '0',
-          width: '100%',
-          height: '6px',
-          background: 'linear-gradient(90deg, #4B5320 0%, #FFD700 100%)'
-        }}></div>
         
+        {/* Header */}
         <div style={{
           textAlign: 'center',
-          marginBottom: '30px'
+          marginBottom: '40px'
         }}>
-          <img 
-            src="/uploads/sanni.png" 
-            alt="Sanniville Academy" 
-            style={{
-              width: '100px',
-              height: 'auto',
-              marginBottom: '20px'
-            }} 
-          />
-          <h2 style={{
-            color: '#4B5320',
-            margin: '0 0 10px 0',
-            fontSize: '1.8rem'
+          <div style={{
+            width: '64px',
+            height: '64px',
+            backgroundColor: '#4B5320',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+            color: 'white',
+            fontSize: '24px',
+            fontWeight: '600'
           }}>
-            Welcome Back
-          </h2>
+            SA
+          </div>
+          <h1 style={{
+            color: '#1a1a1a',
+            margin: '0 0 8px 0',
+            fontSize: '28px',
+            fontWeight: '600',
+            letterSpacing: '-0.02em'
+          }}>
+            Welcome back
+          </h1>
           <p style={{
-            color: '#6c757d',
+            color: '#666',
             margin: '0',
-            fontSize: '1rem'
+            fontSize: '15px',
+            lineHeight: '1.5'
           }}>
-            Sign in to continue your learning journey
+            Sign in to your account to continue
           </p>
         </div>
 
+        {/* Error Message */}
         {error && (
           <div style={{
-            backgroundColor: '#f8d7da',
-            color: '#721c24',
-            padding: '12px',
-            borderRadius: '6px',
-            marginBottom: '20px',
-            borderLeft: '4px solid #dc3545',
+            backgroundColor: '#fef2f2',
+            color: '#dc2626',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            marginBottom: '24px',
+            border: '1px solid #fecaca',
+            fontSize: '14px',
             display: 'flex',
             alignItems: 'center'
           }}>
-            <span style={{ marginRight: '8px' }}>⚠️</span>
+            <span style={{ marginRight: '8px', fontSize: '16px' }}>⚠️</span>
             <span>{error}</span>
           </div>
         )}
 
+        {/* Login Form */}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '20px' }}>
             <label style={{
               display: 'block',
               marginBottom: '8px',
-              color: '#4B5320',
-              fontWeight: '500'
+              color: '#374151',
+              fontWeight: '500',
+              fontSize: '14px'
             }}>
-              Username or Email
+              Username
             </label>
             <input
               type="text"
@@ -122,61 +147,93 @@ const Login = () => {
               value={formData.username}
               onChange={handleChange}
               required
+              disabled={isLoading}
               style={{
                 width: '100%',
-                padding: '12px 15px',
-                border: '1px solid #ced4da',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                transition: 'border-color 0.3s',
-                boxSizing: 'border-box'
+                padding: '12px 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '15px',
+                transition: 'all 0.2s',
+                boxSizing: 'border-box',
+                backgroundColor: isLoading ? '#f9fafb' : '#fafafa',
+                cursor: isLoading ? 'not-allowed' : 'text'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#4B5320'}
-              onBlur={(e) => e.target.style.borderColor = '#ced4da'}
-              placeholder="Enter your username or email"
+              onFocus={(e) => {
+                if (!isLoading) {
+                  e.target.style.borderColor = '#4B5320';
+                  e.target.style.backgroundColor = '#ffffff';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(75, 83, 32, 0.1)';
+                }
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#d1d5db';
+                e.target.style.backgroundColor = isLoading ? '#f9fafb' : '#fafafa';
+                e.target.style.boxShadow = 'none';
+              }}
+              placeholder="Enter your username"
             />
           </div>
 
-          <div style={{ marginBottom: '25px' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '8px',
-              color: '#4B5320',
-              fontWeight: '500'
+          <div style={{ marginBottom: '24px' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px'
             }}>
-              Password
-            </label>
+              <label style={{
+                color: '#374151',
+                fontWeight: '500',
+                fontSize: '14px'
+              }}>
+                Password
+              </label>
+              <a 
+                href="/forgot-password" 
+                style={{
+                  color: isLoading ? '#9ca3af' : '#4B5320',
+                  fontSize: '13px',
+                  textDecoration: 'none',
+                  fontWeight: '500',
+                  pointerEvents: isLoading ? 'none' : 'auto'
+                }}
+              >
+                Forgot password?
+              </a>
+            </div>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               required
+              disabled={isLoading}
               style={{
                 width: '100%',
-                padding: '12px 15px',
-                border: '1px solid #ced4da',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                transition: 'border-color 0.3s',
-                boxSizing: 'border-box'
+                padding: '12px 16px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '15px',
+                transition: 'all 0.2s',
+                boxSizing: 'border-box',
+                backgroundColor: isLoading ? '#f9fafb' : '#fafafa',
+                cursor: isLoading ? 'not-allowed' : 'text'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#4B5320'}
-              onBlur={(e) => e.target.style.borderColor = '#ced4da'}
+              onFocus={(e) => {
+                if (!isLoading) {
+                  e.target.style.borderColor = '#4B5320';
+                  e.target.style.backgroundColor = '#ffffff';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(75, 83, 32, 0.1)';
+                }
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#d1d5db';
+                e.target.style.backgroundColor = isLoading ? '#f9fafb' : '#fafafa';
+                e.target.style.boxShadow = 'none';
+              }}
               placeholder="Enter your password"
             />
-            <div style={{
-              textAlign: 'right',
-              marginTop: '8px'
-            }}>
-              <a href="/forgot-password" style={{
-                color: '#6c757d',
-                fontSize: '0.85rem',
-                textDecoration: 'none'
-              }}>
-                Forgot password?
-              </a>
-            </div>
           </div>
 
           <button 
@@ -188,64 +245,79 @@ const Login = () => {
               backgroundColor: '#4B5320',
               color: 'white',
               border: 'none',
-              borderRadius: '6px',
-              fontSize: '1rem',
+              borderRadius: '8px',
+              fontSize: '15px',
               fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-              marginBottom: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              marginBottom: '24px',
               opacity: isLoading ? '0.7' : '1'
             }}
             onMouseOver={(e) => !isLoading && (e.target.style.backgroundColor = '#3a4418')}
             onMouseOut={(e) => !isLoading && (e.target.style.backgroundColor = '#4B5320')}
           >
             {isLoading ? (
-              <>
-                <span style={{ marginRight: '8px' }}>⏳</span>
-                Authenticating...
-              </>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid transparent',
+                  borderTop: '2px solid white',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                  marginRight: '8px'
+                }}></div>
+                Signing in...
+              </div>
             ) : (
-              <>
-                <span style={{ marginRight: '8px' }}>🔑</span>
-                Sign In
-              </>
+              'Sign in'
             )}
           </button>
         </form>
 
+        {/* Footer */}
         <div style={{
           textAlign: 'center',
-          color: '#6c757d',
-          fontSize: '0.9rem',
-          borderTop: '1px solid #e9ecef',
-          paddingTop: '20px'
+          paddingTop: '24px',
+          borderTop: '1px solid #f0f0f0'
         }}>
-          <p style={{ margin: '0' }}>
-            New to Sanniville?{' '}
-            <a href="/register" style={{
-              color: '#4B5320',
-              fontWeight: '500',
-              textDecoration: 'none'
-            }}>
-              Create an account
+          <p style={{ 
+            margin: '0 0 16px 0',
+            color: '#6b7280',
+            fontSize: '14px'
+          }}>
+            Don't have an account?{' '}
+            <a 
+              href="/register" 
+              style={{
+                color: isLoading ? '#9ca3af' : '#4B5320',
+                fontWeight: '500',
+                textDecoration: 'none',
+                pointerEvents: isLoading ? 'none' : 'auto'
+              }}
+            >
+              Contact administrator
             </a>
           </p>
-        </div>
-
-        <div style={{
-          marginTop: '30px',
-          textAlign: 'center',
-          fontSize: '0.8rem',
-          color: '#adb5bd'
-        }}>
-          <p style={{ margin: '0' }}>
-            © {new Date().getFullYear()} Sanniville Academy. All rights reserved.
+          <p style={{
+            margin: '0',
+            color: '#9ca3af',
+            fontSize: '12px'
+          }}>
+            © {new Date().getFullYear()} Sanniville Academy
           </p>
         </div>
       </div>
+
+      {/* Add spinning animation */}
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
     </div>
   );
 };

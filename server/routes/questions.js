@@ -3,19 +3,22 @@ const router = express.Router();
 const Question = require('../models/Question');
 const Test = require('../models/Test');
 const { auth, teacherOnly } = require('../middleware/auth');
+const { checkPermission } = require('../middleware/permissions'); // NEW: Import permissions
 const mongoose = require('mongoose');
 
-// Get all questions
-router.get('/', auth, teacherOnly, async (req, res) => {
+// Get all questions - UPDATED WITH PERMISSION CHECK
+router.get('/', auth, checkPermission('view_questions'), async (req, res) => {
   try {
     const { subject, class: className, tags } = req.query;
-    const query = {
+    const teacherAssignmentFilter = {
       $or: req.user.subjects.map(sub => ({ subject: sub.subject, class: sub.class })),
     };
-    if (subject) query.subject = subject;
-    if (className) query.class = className;
-    if (tags) query.tags = { $in: tags.split(',').map(tag => tag.trim()) };
-    const questions = await Question.find(query).select('-correctAnswer');
+    const optionalFilters = {};
+    if (subject) optionalFilters.subject = subject;
+    if (className) optionalFilters.class = className;
+    if (tags) optionalFilters.tags = { $in: tags.split(',').map(tag => tag.trim()) };
+    const finalQuery = { ...teacherAssignmentFilter, ...optionalFilters };
+    const questions = await Question.find(finalQuery).select('-correctAnswer');
     console.log('Questions route - Success:', { count: questions.length, user: req.user.username });
     res.json(questions);
   } catch (error) {
@@ -29,9 +32,8 @@ router.get('/', auth, teacherOnly, async (req, res) => {
   }
 });
 
-// Get single question
-// ✅ CORRECTED - Removed regex pattern from route path
-router.get('/:id', auth, teacherOnly, async (req, res) => {
+// Get single question - UPDATED WITH PERMISSION CHECK
+router.get('/:id', auth, checkPermission('view_questions'), async (req, res) => {
   try {
     console.log('GET /api/questions/:id - Request:', { id: req.params.id, url: req.url });
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -60,19 +62,21 @@ router.get('/:id', auth, teacherOnly, async (req, res) => {
   }
 });
 
-// Search questions
-router.get('/search', auth, teacherOnly, async (req, res) => {
+// Search questions - UPDATED WITH PERMISSION CHECK
+router.get('/search', auth, checkPermission('view_questions'), async (req, res) => {
   try {
     const { subject, class: className, tags, text } = req.query;
-    const query = {
+    const teacherAssignmentFilter = {
       $or: req.user.subjects.map(sub => ({ subject: sub.subject, class: sub.class })),
     };
-    if (subject) query.subject = subject;
-    if (className) query.class = className;
-    if (tags) query.tags = { $in: tags.split(',').map(tag => tag.trim()) };
-    if (text) query.text = { $regex: text, $options: 'i' };
-    const questions = await Question.find(query).select('-correctAnswer');
-    console.log('Questions route - Search success:', { count: questions.length, query });
+    const optionalFilters = {};
+    if (subject) optionalFilters.subject = subject;
+    if (className) optionalFilters.class = className;
+    if (tags) optionalFilters.tags = { $in: tags.split(',').map(tag => tag.trim()) };
+    if (text) optionalFilters.text = { $regex: text, $options: 'i' };
+    const finalQuery = { ...teacherAssignmentFilter, ...optionalFilters };
+    const questions = await Question.find(finalQuery).select('-correctAnswer');
+    console.log('Questions route - Search success:', { count: questions.length, query: finalQuery });
     res.json(questions);
   } catch (error) {
     console.error('GET /api/questions/search - Error:', {
@@ -85,8 +89,8 @@ router.get('/search', auth, teacherOnly, async (req, res) => {
   }
 });
 
-// Create question
-router.post('/', auth, teacherOnly, async (req, res) => {
+// Create question - UPDATED WITH PERMISSION CHECK
+router.post('/', auth, checkPermission('manage_questions'), async (req, res) => {
   try {
     console.log('POST /api/questions - Request:', { body: req.body, url: req.url });
     const { subject, class: className, text, options, correctAnswer, marks, tags, testId, saveToBank, formula } = req.body;
@@ -99,8 +103,8 @@ router.post('/', auth, teacherOnly, async (req, res) => {
     } catch (e) {
       return res.status(400).json({ error: 'Invalid options format' });
     }
-    if (!Array.isArray(parsedOptions) || parsedOptions.length !== 4 || !parsedOptions.includes(correctAnswer)) {
-      return res.status(400).json({ error: 'Four options required, and correctAnswer must match one option' });
+    if (!Array.isArray(parsedOptions) || parsedOptions.length !== 4 || !parsedOptions.includes(correctAnswer) || !parsedOptions.every(opt => typeof opt === 'string' && opt.trim())) {
+      return res.status(400).json({ error: 'Four non-empty string options required, and correctAnswer must match one option' });
     }
     if (parseInt(marks) <= 0) {
       return res.status(400).json({ error: 'Marks must be greater than 0' });
@@ -160,8 +164,8 @@ router.post('/', auth, teacherOnly, async (req, res) => {
   }
 });
 
-// Bulk import questions
-router.post('/bulk', auth, teacherOnly, async (req, res) => {
+// Bulk import questions - UPDATED WITH PERMISSION CHECK
+router.post('/bulk', auth, checkPermission('manage_questions'), async (req, res) => {
   try {
     console.log('POST /api/questions/bulk - Request:', { body: req.body, url: req.url });
     const { questions, testId } = req.body;
@@ -183,15 +187,15 @@ router.post('/bulk', auth, teacherOnly, async (req, res) => {
         invalidQuestions.push({ index: index + 1, error: 'Invalid options format' });
         return null;
       }
-      if (!Array.isArray(parsedOptions) || parsedOptions.length !== 4 || !parsedOptions.every(opt => opt.trim()) || !parsedOptions.includes(correctAnswer)) {
-        invalidQuestions.push({ index: index + 1, error: 'Four non-empty options required, and correctAnswer must match one option' });
+      if (!Array.isArray(parsedOptions) || parsedOptions.length !== 4 || !parsedOptions.every(opt => typeof opt === 'string' && opt.trim()) || !parsedOptions.includes(correctAnswer)) {
+        invalidQuestions.push({ index: index + 1, error: 'Four non-empty string options required, and correctAnswer must match one option' });
         return null;
       }
       if (parseInt(marks) <= 0) {
         invalidQuestions.push({ index: index + 1, error: 'Marks must be greater than 0' });
         return null;
       }
-    if (!req.user.subjects.some(sub => sub.subject === subject && sub.class === className)) {
+      if (!req.user.subjects.some(sub => sub.subject === subject && sub.class === className)) {
         invalidQuestions.push({ index: index + 1, error: 'Not assigned to this subject/class' });
         return null;
       }
@@ -252,9 +256,8 @@ router.post('/bulk', auth, teacherOnly, async (req, res) => {
   }
 });
 
-// Update question
-// ✅ CORRECTED - Removed regex pattern from route path
-router.put('/:id', auth, teacherOnly, async (req, res) => {
+// Update question - UPDATED WITH PERMISSION CHECK
+router.put('/:id', auth, checkPermission('manage_questions'), async (req, res) => {
   try {
     console.log('PUT /api/questions/:id - Request:', { body: req.body, id: req.params.id, url: req.url });
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -271,8 +274,8 @@ router.put('/:id', auth, teacherOnly, async (req, res) => {
     } catch (e) {
       return res.status(400).json({ error: 'Invalid options format' });
     }
-    if (!Array.isArray(parsedOptions) || parsedOptions.length !== 4 || !parsedOptions.includes(correctAnswer)) {
-      return res.status(400).json({ error: 'Four options required, and correctAnswer must match one option' });
+    if (!Array.isArray(parsedOptions) || parsedOptions.length !== 4 || !parsedOptions.includes(correctAnswer) || !parsedOptions.every(opt => typeof opt === 'string' && opt.trim())) {
+      return res.status(400).json({ error: 'Four non-empty string options required, and correctAnswer must match one option' });
     }
     if (parseInt(marks) <= 0) {
       return res.status(400).json({ error: 'Marks must be greater than 0' });
@@ -331,9 +334,8 @@ router.put('/:id', auth, teacherOnly, async (req, res) => {
   }
 });
 
-// Delete question
-// ✅ CORRECTED - Removed regex pattern from route path
-router.delete('/:id', auth, teacherOnly, async (req, res) => {
+// Delete question - UPDATED WITH PERMISSION CHECK
+router.delete('/:id', auth, checkPermission('manage_questions'), async (req, res) => {
   try {
     console.log('DELETE /api/questions/:id - Request:', { id: req.params.id, url: req.url });
     if (!mongoose.isValidObjectId(req.params.id)) {

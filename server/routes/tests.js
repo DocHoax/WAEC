@@ -173,7 +173,68 @@ router.post('/', auth, checkPermission('manage_tests'), async (req, res) => {
   }
 });
 
-// Admin schedules a test
+// NEW: Approve test endpoint - REQUIRES APPROVE_TESTS PERMISSION
+router.put('/:id/approve', [auth, checkPermission('approve_tests'), validateObjectId('id')], async (req, res) => {
+  try {
+    console.log('Tests route - Approving test:', { id: req.params.id, user: req.user.username });
+
+    const test = await Test.findById(req.params.id);
+    if (!test) {
+      console.log('Tests route - Test not found:', { id: req.params.id });
+      return res.status(404).json({ error: 'Test not found.' });
+    }
+
+    // Check if test is ready for approval
+    if (test.status !== 'draft') {
+      console.log('Tests route - Test not in draft status:', { status: test.status });
+      return res.status(400).json({ error: 'Only draft tests can be approved.' });
+    }
+
+    if (test.questions.length !== test.questionCount) {
+      console.log('Tests route - Question count mismatch:', { 
+        questions: test.questions.length, 
+        expected: test.questionCount 
+      });
+      return res.status(400).json({ error: 'Test questions count does not match specified question count.' });
+    }
+
+    // Update test status to approved
+    test.status = 'approved';
+    test.approvedBy = req.user.id;
+    test.approvedAt = new Date();
+
+    await test.save();
+
+    console.log('Tests route - Test approved:', { 
+      testId: test._id, 
+      approvedBy: req.user.username,
+      approvedAt: test.approvedAt 
+    });
+
+    res.json({
+      message: 'Test approved successfully',
+      test: {
+        id: test._id,
+        title: test.title,
+        subject: test.subject,
+        class: test.class,
+        status: test.status,
+        approvedBy: req.user.username,
+        approvedAt: test.approvedAt
+      }
+    });
+  } catch (error) {
+    console.error('Tests route - Approval Error:', {
+      error: error.message,
+      testId: req.params.id,
+      user: req.user.username,
+      stack: error.stack
+    });
+    res.status(500).json({ error: 'Server error approving test' });
+  }
+});
+
+// Admin schedules a test - UPDATED WITH APPROVAL CHECK
 router.put('/:id/schedule', [auth, checkPermission('manage_tests'), validateObjectId('id')], async (req, res) => {
   try {
     const { batches, status } = req.body;
@@ -185,9 +246,21 @@ router.put('/:id/schedule', [auth, checkPermission('manage_tests'), validateObje
       return res.status(404).json({ error: 'Test not found.' });
     }
 
-    if (status && !['draft', 'scheduled', 'active', 'completed'].includes(status)) {
-      console.log('Tests route - Invalid status:', status);
-      return res.status(400).json({ error: 'Invalid status. Use "draft", "scheduled", "active", or "completed".' });
+    // NEW: Check if test is approved before scheduling (for admins)
+    if (req.user.role === 'admin' && test.status !== 'approved' && status === 'scheduled') {
+      console.log('Tests route - Test not approved for scheduling:', { status: test.status });
+      return res.status(400).json({ error: 'Only approved tests can be scheduled.' });
+    }
+
+    if (status) {
+      if (!['draft', 'scheduled', 'active', 'completed'].includes(status)) {
+        console.log('Tests route - Invalid status:', status);
+        return res.status(400).json({ error: 'Invalid status. Use "draft", "scheduled", "active", or "completed".' });
+      }
+      if (req.user.role !== 'admin' && (status === 'scheduled' || status === 'active')) {
+        console.log('Tests route - Only Admin can schedule/activate:', { user: req.user.username, status });
+        return res.status(403).json({ error: 'Only an administrator can schedule or activate a test.' });
+      }
     }
 
     if (batches) {
@@ -250,9 +323,13 @@ router.get('/', auth, checkPermission('view_tests'), async (req, res) => {
     console.log('Tests route - Fetching tests:', { user: req.user.username, role: req.user.role });
     let query = {};
     if (req.user.role === 'teacher') {
-      query = { 
-        subject: { $in: req.user.subjects?.map(sub => sub.subject) || [] },
-        class: { $in: req.user.subjects?.map(sub => sub.class) || [] }
+      const subjectClassPairs = req.user.subjects?.map(sub => ({
+        subject: sub.subject,
+        class: sub.class
+      })) || [];
+
+      query = {
+        $or: subjectClassPairs.length > 0 ? subjectClassPairs : [{ _id: null }]
       };
     } else if (req.user.role === 'student') {
       query = {
@@ -506,9 +583,15 @@ router.put('/:id', [auth, checkPermission('manage_tests'), validateObjectId('id'
       console.log('Tests route - Test not found:', { id: req.params.id });
       return res.status(404).json({ error: 'Test not found.' });
     }
-    if (!req.user.subjects.some(sub => sub.subject === test.subject && sub.class === test.class)) {
-      console.log('Tests route - Not assigned:', { user: req.user.username, subject: test.subject, class: test.class });
-      return res.status(403).json({ error: 'You are not assigned to this test\'s subject/class.' });
+    if (req.user.role !== 'admin') {
+      if (!req.user.subjects.some(sub => sub.subject === test.subject && sub.class === test.class)) {
+        console.log('Tests route - Not assigned:', { user: req.user.username, subject: test.subject, class: test.class });
+        return res.status(403).json({ error: 'You are not assigned to this test\'s subject/class.' });
+      }
+      if (test.status !== 'draft') {
+        console.log('Tests route - Teacher cannot edit non-draft test:', { testId: test._id, status: test.status });
+        return res.status(403).json({ error: 'Only draft tests can be edited by a teacher.' });
+      }
     }
     const invalidFields = [];
     if (title !== undefined && (typeof title !== 'string' || title.trim() === '')) invalidFields.push('title');
@@ -539,7 +622,7 @@ router.put('/:id', [auth, checkPermission('manage_tests'), validateObjectId('id'
     const parsedQuestionCount = questionCount !== undefined ? Number(questionCount) : test.questionCount;
     const parsedDuration = duration !== undefined ? Number(duration) : test.duration;
     const parsedTotalMarks = totalMarks !== undefined ? Number(totalMarks) : test.totalMarks;
-    if (subject && className && !req.user.subjects.some(sub => sub.subject === subject && sub.class === className)) {
+    if (subject && className && req.user.role !== 'admin' && !req.user.subjects.some(sub => sub.subject === subject && sub.class === className)) {
       console.log('Tests route - Not assigned:', { user: req.user.username, subject, class: className });
       return res.status(403).json({ error: 'You are not assigned to this subject/class.' });
     }
