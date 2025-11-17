@@ -9,6 +9,7 @@ const Footer = () => {
       textAlign: 'center',
       marginTop: '3rem',
       fontFamily: '"Fredoka", sans-serif',
+      animation: 'fadeIn 0.8s ease-in'
     }}>
       <div style={{
         display: 'flex',
@@ -24,10 +25,8 @@ const Footer = () => {
             color: '#3498db',
             textDecoration: 'none',
             fontWeight: '600',
-            transition: 'color 0.3s ease',
+            transition: 'all 0.3s ease',
           }}
-          onMouseEnter={(e) => e.target.style.color = '#2980b9'}
-          onMouseLeave={(e) => e.target.style.color = '#3498db'}
         >
           Devsanni Systems
         </a>
@@ -36,5 +35,34 @@ const Footer = () => {
     </footer>
   );
 };
+
+// Add CSS animations
+const styleSheet = document.styleSheets[0];
+const keyframes = `
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+`;
+
+// Inject keyframes
+if (styleSheet) {
+  styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
+}
+
+// Add hover effects
+const hoverStyles = `
+  a:hover {
+    color: #2980b9;
+    transform: translateY(-1px);
+  }
+`;
+
+// Inject hover styles
+if (styleSheet) {
+  const hoverStyleElement = document.createElement('style');
+  hoverStyleElement.textContent = hoverStyles;
+  document.head.appendChild(hoverStyleElement);
+}
 
 export default Footer;
