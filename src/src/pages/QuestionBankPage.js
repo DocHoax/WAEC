@@ -141,128 +141,261 @@ const QuestionBankPage = () => {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (!user || user.role !== 'teacher') return <p>Access restricted to teachers.</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return (
+    <div style={{
+      backgroundColor: '#b8c2cc',
+      fontFamily: '"Fredoka", sans-serif',
+      minHeight: '100vh',
+      padding: '20px',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    }}>
+      <p style={{ fontSize: '1.2rem' }}>Loading...</p>
+    </div>
+  );
+  if (!user || user.role !== 'teacher') return (
+    <div style={{
+      backgroundColor: '#b8c2cc',
+      fontFamily: '"Fredoka", sans-serif',
+      minHeight: '100vh',
+      padding: '20px'
+    }}>
+      <p>Access restricted to teachers.</p>
+    </div>
+  );
+  if (error) return (
+    <div style={{
+      backgroundColor: '#b8c2cc',
+      fontFamily: '"Fredoka", sans-serif',
+      minHeight: '100vh',
+      padding: '20px'
+    }}>
+      <p>{error}</p>
+    </div>
+  );
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Question Bank</h2>
-      <h3>{editingId ? 'Edit Question' : 'Add New Question'}</h3>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Subject:</label>
-          <input
-            type="text"
-            name="subject"
-            value={form.subject}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Class:</label>
-          <input
-            type="text"
-            name="class"
-            value={form.class}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Question Text:</label>
-          <textarea
-            name="text"
-            value={form.text}
-            onChange={handleInputChange}
-            required
-          />
-          <p>{form.text || ''}</p>
-        </div>
-        <div>
-          <label>Options:</label>
-          {form.options.map((option, index) => (
-            <input
-              key={index}
-              type="text"
-              value={option}
-              onChange={(e) => handleOptionChange(index, e.target.value)}
-              placeholder={`Option ${index + 1}`}
+    <div style={{
+      padding: '20px',
+      backgroundColor: '#b8c2cc',
+      fontFamily: '"Fredoka", sans-serif',
+      minHeight: '100vh',
+      animation: 'slideIn 0.5s ease-out'
+    }}>
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: '2rem',
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        marginBottom: '2rem',
+        transition: 'transform 0.3s ease'
+      }}>
+        <h2 style={{ color: '#4B5320', marginBottom: '1rem' }}>Question Bank</h2>
+        <h3 style={{ color: '#4B5320', marginBottom: '1rem' }}>{editingId ? 'Edit Question' : 'Add New Question'}</h3>
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div>
+              <label>Subject:</label>
+              <input
+                type="text"
+                name="subject"
+                value={form.subject}
+                onChange={handleInputChange}
+                required
+                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+              />
+            </div>
+            <div>
+              <label>Class:</label>
+              <input
+                type="text"
+                name="class"
+                value={form.class}
+                onChange={handleInputChange}
+                required
+                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label>Question Text:</label>
+            <textarea
+              name="text"
+              value={form.text}
+              onChange={handleInputChange}
               required
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', minHeight: '80px' }}
             />
-          ))}
-        </div>
-        <div>
-          <label>Correct Answer:</label>
-          <select
-            name="correctAnswer"
-            value={form.correctAnswer}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="">Select correct answer</option>
-            {form.options.map((option, index) => (
-              <option key={index} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Image (optional):</label>
-          <input type="file" accept="image/*" onChange={handleImageChange} />
-          {previewImage && <img src={previewImage} alt="Preview" style={{ maxWidth: '200px' }} />}
-        </div>
-        <button type="submit">{editingId ? 'Update Question' : 'Add Question'}</button>
-        {editingId && (
-          <button
-            type="button"
-            onClick={() => {
-              setForm({ subject: '', class: '', text: '', options: ['', '', '', ''], correctAnswer: '', image: null });
-              setEditingId(null);
-              setPreviewImage(null);
-            }}
-          >
-            Cancel Edit
-          </button>
-        )}
-      </form>
+          </div>
+          
+          <div>
+            <label>Options:</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              {form.options.map((option, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  value={option}
+                  onChange={(e) => handleOptionChange(index, e.target.value)}
+                  placeholder={`Option ${index + 1}`}
+                  required
+                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <label>Correct Answer:</label>
+            <select
+              name="correctAnswer"
+              value={form.correctAnswer}
+              onChange={handleInputChange}
+              required
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            >
+              <option value="">Select correct answer</option>
+              {form.options.map((option, index) => (
+                <option key={index} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div>
+            <label>Image (optional):</label>
+            <input type="file" accept="image/*" onChange={handleImageChange} />
+            {previewImage && <img src={previewImage} alt="Preview" style={{ maxWidth: '200px', marginTop: '0.5rem', borderRadius: '4px' }} />}
+          </div>
+          
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button type="submit" style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#4B7043',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s ease'
+            }}>
+              {editingId ? 'Update Question' : 'Add Question'}
+            </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({ subject: '', class: '', text: '', options: ['', '', '', ''], correctAnswer: '', image: null });
+                  setEditingId(null);
+                  setPreviewImage(null);
+                }}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.3s ease'
+                }}
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
 
-      <h3>Existing Questions</h3>
-      {questions.length === 0 ? (
-        <p>No questions available.</p>
-      ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Subject</th>
-              <th>Class</th>
-              <th>Question</th>
-              <th>Options</th>
-              <th>Correct Answer</th>
-              <th>Image</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {questions.map((q) => (
-              <tr key={q._id}>
-                <td>{q.subject}</td>
-                <td>{q.class}</td>
-                <td>{q.text || ''}</td>
-                <td>{q.options.join(', ')}</td>
-                <td>{q.correctAnswer}</td>
-                <td>{q.imageUrl ? <img src={q.imageUrl} alt="Question" style={{ maxWidth: '100px' }} /> : 'None'}</td>
-                <td>
-                  <button onClick={() => handleEdit(q)}>Edit</button>
-                  <button onClick={() => handleDelete(q._id)}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: '2rem',
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+      }}>
+        <h3 style={{ color: '#4B5320', marginBottom: '1rem' }}>Existing Questions</h3>
+        {questions.length === 0 ? (
+          <p>No questions available.</p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8f9fa' }}>
+                  <th style={{ padding: '0.75rem', border: '1px solid #dee2e6', textAlign: 'left' }}>Subject</th>
+                  <th style={{ padding: '0.75rem', border: '1px solid #dee2e6', textAlign: 'left' }}>Class</th>
+                  <th style={{ padding: '0.75rem', border: '1px solid #dee2e6', textAlign: 'left' }}>Question</th>
+                  <th style={{ padding: '0.75rem', border: '1px solid #dee2e6', textAlign: 'left' }}>Options</th>
+                  <th style={{ padding: '0.75rem', border: '1px solid #dee2e6', textAlign: 'left' }}>Correct Answer</th>
+                  <th style={{ padding: '0.75rem', border: '1px solid #dee2e6', textAlign: 'left' }}>Image</th>
+                  <th style={{ padding: '0.75rem', border: '1px solid #dee2e6', textAlign: 'left' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {questions.map((q, index) => (
+                  <tr key={q._id} style={{
+                    animation: `fadeIn 0.5s ease-out ${index * 0.1}s both`,
+                    transition: 'background-color 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#f8f9fa';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '';
+                  }}>
+                    <td style={{ padding: '0.75rem', border: '1px solid #dee2e6' }}>{q.subject}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #dee2e6' }}>{q.class}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #dee2e6', maxWidth: '200px', wordWrap: 'break-word' }}>{q.text || ''}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #dee2e6', maxWidth: '200px', wordWrap: 'break-word' }}>{q.options.join(', ')}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #dee2e6' }}>{q.correctAnswer}</td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #dee2e6' }}>
+                      {q.imageUrl ? <img src={q.imageUrl} alt="Question" style={{ maxWidth: '100px', borderRadius: '4px' }} /> : 'None'}
+                    </td>
+                    <td style={{ padding: '0.75rem', border: '1px solid #dee2e6' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => handleEdit(q)} style={{
+                          padding: '0.25rem 0.5rem',
+                          backgroundColor: '#17a2b8',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.3s ease'
+                        }}>
+                          Edit
+                        </button>
+                        <button onClick={() => handleDelete(q._id)} style={{
+                          padding: '0.25rem 0.5rem',
+                          backgroundColor: '#dc3545',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.3s ease'
+                        }}>
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <style>
+        {`
+          @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        `}
+      </style>
     </div>
   );
 };
