@@ -58,33 +58,18 @@ const Login = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-<<<<<<< HEAD
-      backgroundColor: '#b8c2cc',
-      padding: '20px',
-      fontFamily: '"Fredoka", sans-serif'
-=======
       backgroundColor: '#ffffff',
       padding: '20px',
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
->>>>>>> d99923fa028164108d1f648bb31333e96ab4c91d
     }}>
       <div style={{
         width: '100%',
         maxWidth: '400px',
         backgroundColor: 'white',
-<<<<<<< HEAD
-        borderRadius: '12px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-        padding: '40px',
-        position: 'relative',
-        overflow: 'hidden',
-        animation: 'slideIn 0.5s ease-out'
-=======
         borderRadius: '16px',
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
         padding: '48px 40px',
         border: '1px solid #f0f0f0'
->>>>>>> d99923fa028164108d1f648bb31333e96ab4c91d
       }}>
         
         {/* Header */}
@@ -137,8 +122,7 @@ const Login = () => {
             border: '1px solid #fecaca',
             fontSize: '14px',
             display: 'flex',
-            alignItems: 'center',
-            animation: 'shake 0.5s ease-in-out'
+            alignItems: 'center'
           }}>
             <span style={{ marginRight: '8px', fontSize: '16px' }}>⚠️</span>
             <span>{error}</span>
@@ -166,15 +150,6 @@ const Login = () => {
               disabled={isLoading}
               style={{
                 width: '100%',
-<<<<<<< HEAD
-                padding: '12px 15px',
-                border: '1px solid #ced4da',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                transition: 'all 0.3s',
-                boxSizing: 'border-box',
-                fontFamily: '"Fredoka", sans-serif'
-=======
                 padding: '12px 16px',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
@@ -183,7 +158,6 @@ const Login = () => {
                 boxSizing: 'border-box',
                 backgroundColor: isLoading ? '#f9fafb' : '#fafafa',
                 cursor: isLoading ? 'not-allowed' : 'text'
->>>>>>> d99923fa028164108d1f648bb31333e96ab4c91d
               }}
               onFocus={(e) => {
                 if (!isLoading) {
@@ -237,15 +211,6 @@ const Login = () => {
               disabled={isLoading}
               style={{
                 width: '100%',
-<<<<<<< HEAD
-                padding: '12px 15px',
-                border: '1px solid #ced4da',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                transition: 'all 0.3s',
-                boxSizing: 'border-box',
-                fontFamily: '"Fredoka", sans-serif'
-=======
                 padding: '12px 16px',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
@@ -266,7 +231,6 @@ const Login = () => {
                 e.target.style.borderColor = '#d1d5db';
                 e.target.style.backgroundColor = isLoading ? '#f9fafb' : '#fafafa';
                 e.target.style.boxShadow = 'none';
->>>>>>> d99923fa028164108d1f648bb31333e96ab4c91d
               }}
               placeholder="Enter your password"
             />
@@ -284,21 +248,10 @@ const Login = () => {
               borderRadius: '8px',
               fontSize: '15px',
               fontWeight: '600',
-<<<<<<< HEAD
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-              marginBottom: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: isLoading ? '0.7' : '1',
-              fontFamily: '"Fredoka", sans-serif'
-=======
               cursor: isLoading ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',
               marginBottom: '24px',
               opacity: isLoading ? '0.7' : '1'
->>>>>>> d99923fa028164108d1f648bb31333e96ab4c91d
             }}
             onMouseOver={(e) => !isLoading && (e.target.style.backgroundColor = '#3a4418')}
             onMouseOut={(e) => !isLoading && (e.target.style.backgroundColor = '#4B5320')}
@@ -355,24 +308,6 @@ const Login = () => {
           </p>
         </div>
       </div>
-<<<<<<< HEAD
-      <style>
-        {`
-          @keyframes slideIn {
-            from {
-              opacity: 0;
-              transform: translateY(-20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-=======
 
       {/* Add spinning animation */}
       <style>
@@ -380,7 +315,6 @@ const Login = () => {
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
->>>>>>> d99923fa028164108d1f648bb31333e96ab4c91d
           }
         `}
       </style>
