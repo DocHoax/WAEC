@@ -37,9 +37,9 @@ const Login = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+      backgroundColor: '#b8c2cc',
       padding: '20px',
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+      fontFamily: '"Fredoka", sans-serif'
     }}>
       <div style={{
         width: '100%',
@@ -49,7 +49,8 @@ const Login = () => {
         boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
         padding: '40px',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        animation: 'slideIn 0.5s ease-out'
       }}>
         {/* Decorative elements */}
         <div style={{
@@ -99,7 +100,8 @@ const Login = () => {
             marginBottom: '20px',
             borderLeft: '4px solid #dc3545',
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            animation: 'shake 0.5s ease-in-out'
           }}>
             <span style={{ marginRight: '8px' }}>⚠️</span>
             <span>{error}</span>
@@ -128,8 +130,9 @@ const Login = () => {
                 border: '1px solid #ced4da',
                 borderRadius: '6px',
                 fontSize: '1rem',
-                transition: 'border-color 0.3s',
-                boxSizing: 'border-box'
+                transition: 'all 0.3s',
+                boxSizing: 'border-box',
+                fontFamily: '"Fredoka", sans-serif'
               }}
               onFocus={(e) => e.target.style.borderColor = '#4B5320'}
               onBlur={(e) => e.target.style.borderColor = '#ced4da'}
@@ -158,8 +161,9 @@ const Login = () => {
                 border: '1px solid #ced4da',
                 borderRadius: '6px',
                 fontSize: '1rem',
-                transition: 'border-color 0.3s',
-                boxSizing: 'border-box'
+                transition: 'all 0.3s',
+                boxSizing: 'border-box',
+                fontFamily: '"Fredoka", sans-serif'
               }}
               onFocus={(e) => e.target.style.borderColor = '#4B5320'}
               onBlur={(e) => e.target.style.borderColor = '#ced4da'}
@@ -197,7 +201,8 @@ const Login = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              opacity: isLoading ? '0.7' : '1'
+              opacity: isLoading ? '0.7' : '1',
+              fontFamily: '"Fredoka", sans-serif'
             }}
             onMouseOver={(e) => !isLoading && (e.target.style.backgroundColor = '#3a4418')}
             onMouseOut={(e) => !isLoading && (e.target.style.backgroundColor = '#4B5320')}
@@ -246,6 +251,25 @@ const Login = () => {
           </p>
         </div>
       </div>
+      <style>
+        {`
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateY(-20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+          }
+        `}
+      </style>
     </div>
   );
 };
