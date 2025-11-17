@@ -16,16 +16,17 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/tests', label: 'Tests & Exams' },
     { path: '/admin/results', label: 'Results' },
     { path: '/admin/sessions', label: 'Session Schedules' },
-    { path: '/admin/promotion', label: 'Student Promotion' }, // Added promotion tab
+    { path: '/admin/promotion', label: 'Student Promotion' },
     { path: '/admin/exports', label: 'Data Exports' },
     { path: '/admin/analytics', label: 'View Analytics' },
   ];
 
-  if (!user || user.role !== 'admin') {
+  // FIXED: Allow both admin and super_admin roles
+  if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
     return (
       <div style={styles.accessDenied}>
         <h2 style={styles.accessDeniedTitle}>Access Restricted</h2>
-        <p style={styles.accessDeniedText}>This page is only available to admins.</p>
+        <p style={styles.accessDeniedText}>This page is only available to administrators.</p>
       </div>
     );
   }
@@ -39,20 +40,31 @@ const AdminLayout = ({ children }) => {
               src="/uploads/sanni.png"
               alt="Sanniville Academy"
               style={styles.logo}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
             />
             <div>
               <h1 style={styles.headerTitle}>
                 Sanniville Academy
                 <span style={styles.headerSubtitle}>
                   Empowering Education Through Seamless Administration
+                  {user.role === 'super_admin' && ' (Super Admin)'}
                 </span>
               </h1>
             </div>
           </div>
           <div style={styles.headerRight}>
-            <span style={styles.userName}>Welcome, {user.name}</span>
+            <span style={styles.userName}>
+              Welcome, {user.name} 
+              {user.role === 'super_admin' && ' (Super Admin)'}
+            </span>
             <button
-              onClick={logout}
+              onClick={() => {
+                logout();
+                // Force redirect to login page
+                window.location.href = '/login';
+              }}
               style={styles.logoutButton}
               onMouseOver={e => (e.target.style.backgroundColor = '#FFFFFF')}
               onMouseOut={e => (e.target.style.backgroundColor = '#D4A017')}
@@ -97,6 +109,7 @@ const AdminLayout = ({ children }) => {
   );
 };
 
+// Your styles remain the same...
 const styles = {
   container: {
     minHeight: '100vh',
@@ -153,8 +166,8 @@ const styles = {
   },
   logoutButton: {
     padding: '8px 16px',
-    backgroundColor: '#3498db',
-    color: '#FFFFFF',
+    backgroundColor: '#D4A017',
+    color: '#000000',
     border: 'none',
     borderRadius: '6px',
     fontSize: '13px',
@@ -163,6 +176,7 @@ const styles = {
     alignItems: 'center',
     gap: '5px',
     transition: 'all 0.3s ease',
+    fontWeight: '500',
   },
   buttonIcon: {
     fontSize: '16px',
@@ -186,6 +200,7 @@ const styles = {
     fontSize: '13px',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
+    fontWeight: '500',
   },
   main: {
     maxWidth: '1400px',

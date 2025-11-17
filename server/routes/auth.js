@@ -31,11 +31,9 @@ const upload = multer({
 // Helper function to get user permissions
 const getUserPermissions = async (role) => {
   if (role === 'super_admin') {
-    return ['all_permissions']; // Special flag for super admin
+    return ['all_permissions'];
   }
-  
-  const rolePermissions = await RolePermission.find({ role })
-    .populate('permissionId');
+  const rolePermissions = await RolePermission.find({ role }).populate('permissionId');
   return rolePermissions.map(rp => rp.permissionId.name);
 };
 
@@ -46,10 +44,7 @@ router.get('/me', auth, async (req, res) => {
       console.error('GET /api/auth/me - User not found:', req.user.userId);
       return res.status(404).json({ error: 'User not found' });
     }
-
-    // Get user permissions
     const permissions = await getUserPermissions(user.role);
-
     console.log('GET /api/auth/me - Success:', { userId: user._id, role: user.role });
     res.json({
       _id: user._id,
@@ -67,7 +62,7 @@ router.get('/me', auth, async (req, res) => {
       phoneNumber: user.phoneNumber,
       sex: user.sex,
       age: user.age,
-      permissions // Add permissions to response
+      permissions
     });
   } catch (error) {
     console.error('GET /api/auth/me - Error:', error.message);
@@ -133,28 +128,37 @@ router.post('/register', auth, checkPermission('create_users'), upload.single('p
 router.post('/register/bulk', auth, checkPermission('create_users'), async (req, res) => {
   try {
     const { users } = req.body;
-    let count = 0;
+    if (!Array.isArray(users) || users.length === 0) {
+      return res.status(400).json({ error: 'Users must be a non-empty array' });
+    }
+    const usersToInsert = [];
+    const existingUsernames = await User.find({ username: { $in: users.map(u => u.username) } }).select('username');
+    const existingMap = new Set(existingUsernames.map(u => u.username));
     for (const userData of users) {
       const { username, password, name, surname, role, class: className, subjects, picture } = userData;
-      const existingUser = await User.findOne({ username });
-      if (existingUser) continue;
+      if (existingMap.has(username)) continue;
+      if (!username || !password || !name || !surname || !role) {
+        continue; // Skip invalid entries
+      }
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = new User({
+      usersToInsert.push({
         username,
         password: hashedPassword,
         name,
         surname,
         role,
-        class: className,
-        subjects: role === 'teacher' ? subjects : [],
-        enrolledSubjects: role === 'student' ? subjects : [],
+        class: className || '',
+        subjects: role === 'teacher' ? subjects || [] : [],
+        enrolledSubjects: role === 'student' ? subjects || [] : [],
         blocked: false,
         picture: picture || '',
       });
-      await user.save();
-      count++;
     }
-    res.status(201).json({ message: 'Bulk registration complete', count });
+    if (usersToInsert.length === 0) {
+      return res.status(400).json({ error: 'No valid users to insert after filtering duplicates or invalid data' });
+    }
+    const result = await User.insertMany(usersToInsert, { ordered: false });
+    res.status(201).json({ message: 'Bulk registration complete', count: result.length });
   } catch (error) {
     console.error('POST /api/auth/register/bulk - Error:', error.message);
     res.status(400).json({ error: error.message });
@@ -178,21 +182,13 @@ router.post('/login', async (req, res) => {
       console.error('POST /api/auth/login - Password mismatch:', username);
       return res.status(400).json({ error: 'Invalid credentials' });
     }
-
-    // Get user permissions
     const permissions = await getUserPermissions(user.role);
-
     const token = jwt.sign(
       {
         userId: user._id,
-        username: user.username,
         role: user.role,
-        class: user.class,
-        subjects: user.subjects,
-        enrolledSubjects: user.enrolledSubjects,
-        permissions // Add permissions to token
       },
-      process.env.JWT_SECRET || 'your_jwt_secret',
+      process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
     console.log('POST /api/auth/login - Success:', { username, userId: user._id, role: user.role });
@@ -213,7 +209,7 @@ router.post('/login', async (req, res) => {
         phoneNumber: user.phoneNumber,
         sex: user.sex,
         age: user.age,
-        permissions // Add permissions to user object
+        permissions
       },
     });
   } catch (error) {
@@ -233,21 +229,13 @@ router.post('/refresh', auth, async (req, res) => {
       console.error('POST /api/auth/refresh - Account blocked:', req.user.username);
       return res.status(403).json({ error: 'Account blocked' });
     }
-
-    // Get user permissions
     const permissions = await getUserPermissions(user.role);
-
     const token = jwt.sign(
       {
         userId: user._id,
-        username: user.username,
         role: user.role,
-        class: user.class,
-        subjects: user.subjects,
-        enrolledSubjects: user.enrolledSubjects,
-        permissions // Add permissions to token
       },
-      process.env.JWT_SECRET || 'your_jwt_secret',
+      process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
     console.log('POST /api/auth/refresh - Success:', { username: user.username, userId: user._id });
@@ -268,7 +256,6 @@ router.get('/users', auth, checkPermission('view_users'), async (req, res) => {
   }
 });
 
-// ✅ CORRECTED - Removed regex patterns from route paths
 router.get('/students/:subject/:class', auth, checkPermission('view_users'), async (req, res) => {
   try {
     console.log('GET /api/auth/students/:subject/:class - Request:', { params: req.params, url: req.url });
@@ -294,7 +281,6 @@ router.get('/students/:subject/:class', auth, checkPermission('view_users'), asy
   }
 });
 
-// ✅ CORRECTED - Removed regex patterns from route paths
 router.put('/users/:id', auth, checkPermission('edit_users'), upload.single('picture'), async (req, res) => {
   try {
     const { username, password, name, surname, role, class: className, subjects, dateOfBirth, address, phoneNumber, sex, age } = req.body;
@@ -350,7 +336,6 @@ router.put('/users/:id', auth, checkPermission('edit_users'), upload.single('pic
   }
 });
 
-// ✅ CORRECTED - Removed regex patterns from route paths
 router.put('/users/:id/block', auth, checkPermission('edit_users'), async (req, res) => {
   try {
     const { blocked } = req.body;
@@ -365,7 +350,6 @@ router.put('/users/:id/block', auth, checkPermission('edit_users'), async (req, 
   }
 });
 
-// ✅ CORRECTED - Removed regex patterns from route paths
 router.delete('/users/:id', auth, checkPermission('delete_users'), async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
