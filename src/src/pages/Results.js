@@ -93,16 +93,108 @@ const Results = () => {
   };
 
   if (!user || !['admin', 'teacher'].includes(user.role)) {
-    return <p style={{ padding: '20px', color: '#D4A017', backgroundColor: '#4B5320', textAlign: 'center', fontFamily: 'sans-serif' }}>Access restricted to admins or teachers.</p>;
+    return (
+      <div style={{
+        padding: '20px',
+        color: '#D4A017',
+        backgroundColor: '#b8c2cc',
+        textAlign: 'center',
+        fontFamily: '"Fredoka", sans-serif',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          animation: 'fadeIn 0.6s ease-out'
+        }}>
+          Access restricted to admins or teachers.
+        </div>
+      </div>
+    );
   }
 
-  if (loading) return <p style={{ padding: '20px', color: '#D4A017', backgroundColor: '#4B5320', textAlign: 'center', fontFamily: 'sans-serif' }}>Loading...</p>;
-  if (error) return <p style={{ backgroundColor: '#FFE6E6', color: '#B22222', borderLeft: '4px solid #B22222', padding: '10px', margin: '20px', fontFamily: 'sans-serif' }}>Error: {error}</p>;
-  if (!test) return <p style={{ padding: '20px', color: '#4B5320', fontFamily: 'sans-serif', textAlign: 'center' }}>Test not found.</p>;
+  if (loading) return (
+    <div style={{
+      padding: '20px',
+      color: '#D4A017',
+      backgroundColor: '#b8c2cc',
+      textAlign: 'center',
+      fontFamily: '"Fredoka", sans-serif',
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: '2rem',
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        animation: 'fadeIn 0.6s ease-out'
+      }}>
+        Loading...
+      </div>
+    </div>
+  );
+  if (error) return (
+    <div style={{
+      backgroundColor: 'rgba(255, 230, 230, 0.9)',
+      color: '#B22222',
+      borderLeft: '4px solid #B22222',
+      padding: '15px',
+      margin: '20px',
+      fontFamily: '"Fredoka", sans-serif',
+      borderRadius: '8px',
+      animation: 'shake 0.5s ease-in-out'
+    }}>
+      Error: {error}
+    </div>
+  );
+  if (!test) return (
+    <div style={{
+      padding: '20px',
+      color: '#4B5320',
+      fontFamily: '"Fredoka", sans-serif',
+      textAlign: 'center',
+      backgroundColor: '#b8c2cc',
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: '2rem',
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        animation: 'fadeIn 0.6s ease-out'
+      }}>
+        Test not found.
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F5F5F5', padding: '20px' }}>
-      <header style={{ backgroundColor: '#4B5320', color: '#D4A017', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#b8c2cc',
+      padding: '20px',
+      fontFamily: '"Fredoka", sans-serif',
+      animation: 'slideIn 0.5s ease-out'
+    }}>
+      <header style={{
+        backgroundColor: '#4B5320',
+        color: '#D4A017',
+        padding: '15px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        marginBottom: '2rem',
+        borderRadius: '8px'
+      }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <img 
@@ -111,13 +203,31 @@ const Results = () => {
               style={{ height: '48px', border: '2px solid #D4A017', padding: '4px', backgroundColor: '#FFFFFF', borderRadius: '4px' }}
             />
             <div>
-              <h1 style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: 'sans-serif' }}>Sanniville Academy</h1>
-              <span style={{ fontSize: '14px', fontFamily: 'sans-serif', color: '#F0E68C' }}>Test Results</span>
+              <h1 style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: '"Fredoka", sans-serif' }}>Sanniville Academy</h1>
+              <span style={{ fontSize: '14px', fontFamily: '"Fredoka", sans-serif', color: '#F0E68C' }}>Test Results</span>
             </div>
           </div>
           <button 
             onClick={() => navigate(user.role === 'admin' ? '/admin' : '/teacher')} 
-            style={{ padding: '8px 16px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '14px', cursor: 'pointer' }}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#D4A017',
+              color: '#4B5320',
+              border: 'none',
+              borderRadius: '4px',
+              fontFamily: '"Fredoka", sans-serif',
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'scale(1.05)';
+              e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'scale(1)';
+              e.target.style.boxShadow = 'none';
+            }}
           >
             Back to Dashboard
           </button>
@@ -126,35 +236,92 @@ const Results = () => {
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
         {success && (
-          <p style={{ backgroundColor: '#E6FFE6', color: '#228B22', borderLeft: '4px solid #228B22', padding: '10px', marginBottom: '20px', fontFamily: 'sans-serif' }}>
+          <div style={{
+            backgroundColor: 'rgba(230, 255, 230, 0.9)',
+            color: '#228B22',
+            borderLeft: '4px solid #228B22',
+            padding: '15px',
+            marginBottom: '20px',
+            fontFamily: '"Fredoka", sans-serif',
+            borderRadius: '8px',
+            animation: 'fadeIn 0.5s ease-out'
+          }}>
             Success: {success}
-          </p>
+          </div>
         )}
-        <h2 style={{ fontSize: '24px', color: '#4B5320', fontFamily: 'sans-serif', marginBottom: '10px' }}>
-          Results for {test.title} ({test.subject}/{test.class})
-        </h2>
-        <p style={{ color: '#333', fontFamily: 'sans-serif', marginBottom: '20px' }}>
-          Total Questions: {test.questions?.length || 'N/A'}
-        </p>
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          marginBottom: '2rem',
+          animation: 'slideUp 0.5s ease-out'
+        }}>
+          <h2 style={{
+            fontSize: '24px',
+            color: '#4B5320',
+            fontFamily: '"Fredoka", sans-serif',
+            marginBottom: '10px'
+          }}>
+            Results for {test.title} ({test.subject}/{test.class})
+          </h2>
+          <p style={{ color: '#333', fontFamily: '"Fredoka", sans-serif', marginBottom: '20px' }}>
+            Total Questions: {test.questions?.length || 'N/A'}
+          </p>
+        </div>
         {results.length === 0 ? (
-          <p style={{ color: '#4B5320', fontFamily: 'sans-serif' }}>No students have taken this test yet.</p>
+          <div style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            padding: '2rem',
+            borderRadius: '12px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            textAlign: 'center',
+            animation: 'fadeIn 0.6s ease-out'
+          }}>
+            <p style={{ color: '#4B5320', fontFamily: '"Fredoka", sans-serif' }}>No students have taken this test yet.</p>
+          </div>
         ) : (
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #D3D3D3' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #D3D3D3' }}>
+          <div style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            padding: '2rem',
+            borderRadius: '12px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            border: '1px solid #D3D3D3',
+            animation: 'slideUp 0.5s ease-out'
+          }}>
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              border: '1px solid #D3D3D3',
+              borderRadius: '8px',
+              overflow: 'hidden'
+            }}>
               <thead>
-                <tr style={{ backgroundColor: '#4B5320', color: '#D4A017', fontFamily: 'sans-serif', fontSize: '14px' }}>
-                  <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Student</th>
-                  <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Score</th>
-                  <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Total</th>
-                  <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Details</th>
-                  {user.role === 'admin' && <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Actions</th>}
+                <tr style={{ backgroundColor: '#4B5320', color: '#D4A017', fontFamily: '"Fredoka", sans-serif', fontSize: '14px' }}>
+                  <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Student</th>
+                  <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Score</th>
+                  <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Total</th>
+                  <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Details</th>
+                  {user.role === 'admin' && <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Actions</th>}
                 </tr>
               </thead>
               <tbody>
-                {results.map((result) => (
-                  <tr key={result._id} style={{ color: '#333', fontFamily: 'sans-serif', fontSize: '14px' }}>
-                    <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>{result.userId?.name ? `${result.userId.name} ${result.userId.surname}` : 'Unknown'}</td>
-                    <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>
+                {results.map((result, index) => (
+                  <tr key={result._id} style={{
+                    color: '#333',
+                    fontFamily: '"Fredoka", sans-serif',
+                    fontSize: '14px',
+                    animation: `fadeIn 0.5s ease-out ${index * 0.1}s both`,
+                    transition: 'background-color 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f8f9fa';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '';
+                  }}>
+                    <td style={{ border: '1px solid #D3D3D3', padding: '12px' }}>{result.userId?.name ? `${result.userId.name} ${result.userId.surname}` : 'Unknown'}</td>
+                    <td style={{ border: '1px solid #D3D3D3', padding: '12px' }}>
                       {editingResultId === result._id && user.role === 'admin' ? (
                         <input
                           type="number"
@@ -162,34 +329,94 @@ const Results = () => {
                           onChange={(e) => setEditScore(Number(e.target.value))}
                           min="0"
                           max={test.questions?.length || 100}
-                          style={{ padding: '5px', border: '1px solid #D3D3D3', borderRadius: '4px', width: '60px', fontFamily: 'sans-serif' }}
+                          style={{
+                            padding: '8px',
+                            border: '1px solid #D3D3D3',
+                            borderRadius: '4px',
+                            width: '80px',
+                            fontFamily: '"Fredoka", sans-serif'
+                          }}
                         />
                       ) : (
                         `${result.score}%`
                       )}
                     </td>
-                    <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>{test.questions?.length || 'N/A'}</td>
-                    <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>
+                    <td style={{ border: '1px solid #D3D3D3', padding: '12px' }}>{test.questions?.length || 'N/A'}</td>
+                    <td style={{ border: '1px solid #D3D3D3', padding: '12px' }}>
                       <button
                         onClick={() => handleViewAnswers(result)}
-                        style={{ padding: '5px 10px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '12px', cursor: 'pointer' }}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#D4A017',
+                          color: '#4B5320',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontFamily: '"Fredoka", sans-serif',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'scale(1.05)';
+                          e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                          e.target.style.boxShadow = 'none';
+                        }}
                       >
                         View Answers
                       </button>
                     </td>
                     {user.role === 'admin' && (
-                      <td style={{ border: '1px solid #D3D3D3', padding: '8px', display: 'flex', gap: '5px' }}>
+                      <td style={{ border: '1px solid #D3D3D3', padding: '12px', display: 'flex', gap: '8px' }}>
                         {editingResultId === result._id ? (
                           <>
                             <button
                               onClick={() => handleSave(result._id)}
-                              style={{ padding: '5px 10px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '12px', cursor: 'pointer' }}
+                              style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#D4A017',
+                                color: '#4B5320',
+                                border: 'none',
+                                borderRadius: '4px',
+                                fontFamily: '"Fredoka", sans-serif',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.transform = 'scale(1.05)';
+                                e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.transform = 'scale(1)';
+                                e.target.style.boxShadow = 'none';
+                              }}
                             >
                               Save
                             </button>
                             <button
                               onClick={() => setEditingResultId(null)}
-                              style={{ padding: '5px 10px', backgroundColor: '#D3D3D3', color: '#333', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '12px', cursor: 'pointer' }}
+                              style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#D3D3D3',
+                                color: '#333',
+                                border: 'none',
+                                borderRadius: '4px',
+                                fontFamily: '"Fredoka", sans-serif',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.transform = 'scale(1.05)';
+                                e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.transform = 'scale(1)';
+                                e.target.style.boxShadow = 'none';
+                              }}
                             >
                               Cancel
                             </button>
@@ -197,7 +424,25 @@ const Results = () => {
                         ) : (
                           <button
                             onClick={() => handleEdit(result)}
-                            style={{ padding: '5px 10px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '12px', cursor: 'pointer' }}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#D4A017',
+                              color: '#4B5320',
+                              border: 'none',
+                              borderRadius: '4px',
+                              fontFamily: '"Fredoka", sans-serif',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.transform = 'scale(1.05)';
+                              e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.transform = 'scale(1)';
+                              e.target.style.boxShadow = 'none';
+                            }}
                           >
                             Edit
                           </button>
@@ -212,25 +457,66 @@ const Results = () => {
         )}
 
         {selectedResult && (
-          <div style={{ position: 'fixed', top: '0', left: '0', right: '0', bottom: '0', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-            <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '80vh', overflowY: 'auto', border: '1px solid #D3D3D3' }}>
-              <h3 style={{ fontSize: '20px', color: '#4B5320', fontFamily: 'sans-serif', marginBottom: '15px' }}>
+          <div style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            right: '0',
+            bottom: '0',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+            animation: 'fadeIn 0.3s ease-out'
+          }}>
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              padding: '2rem',
+              borderRadius: '12px',
+              maxWidth: '600px',
+              width: '90%',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              border: '1px solid #D3D3D3',
+              animation: 'slideUp 0.3s ease-out'
+            }}>
+              <h3 style={{
+                fontSize: '20px',
+                color: '#4B5320',
+                fontFamily: '"Fredoka", sans-serif',
+                marginBottom: '15px'
+              }}>
                 Answers for {selectedResult.userId?.name ? `${selectedResult.userId.name} ${selectedResult.userId.surname}` : 'Unknown'}
               </h3>
               {Object.entries(selectedResult.answers).map(([questionId, selectedAnswer], index) => {
                 const question = selectedResult.test?.questions.find(q => q._id.toString() === questionId);
                 return (
-                  <div key={index} style={{ marginBottom: '15px', padding: '10px', border: '1px solid #D3D3D3', borderRadius: '4px', backgroundColor: selectedAnswer === question?.correctAnswer ? '#E6FFE6' : '#FFE6E6' }}>
-                    <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
+                  <div key={index} style={{
+                    marginBottom: '15px',
+                    padding: '15px',
+                    border: '1px solid #D3D3D3',
+                    borderRadius: '8px',
+                    backgroundColor: selectedAnswer === question?.correctAnswer ? 'rgba(230, 255, 230, 0.9)' : 'rgba(255, 230, 230, 0.9)',
+                    animation: 'fadeIn 0.5s ease-out',
+                    transition: 'transform 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}>
+                    <p style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
                       <strong>Question {index + 1}:</strong> {question?.text || 'N/A'}
                     </p>
-                    <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
+                    <p style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
                       <strong>Selected Answer:</strong> {selectedAnswer || 'N/A'}
                     </p>
-                    <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
+                    <p style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '14px', color: '#333', marginBottom: '5px' }}>
                       <strong>Correct Answer:</strong> {question?.correctAnswer || 'N/A'}
                     </p>
-                    <p style={{ fontFamily: 'sans-serif', fontSize: '14px', color: selectedAnswer === question?.correctAnswer ? '#228B22' : '#B22222' }}>
+                    <p style={{ fontFamily: '"Fredoka", sans-serif', fontSize: '14px', color: selectedAnswer === question?.correctAnswer ? '#228B22' : '#B22222' }}>
                       <strong>Status:</strong> {selectedAnswer === question?.correctAnswer ? 'Correct' : 'Incorrect'}
                     </p>
                   </div>
@@ -238,7 +524,26 @@ const Results = () => {
               })}
               <button
                 onClick={closeAnswers}
-                style={{ padding: '8px 16px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '14px', cursor: 'pointer', marginTop: '10px' }}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#D4A017',
+                  color: '#4B5320',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontFamily: '"Fredoka", sans-serif',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  marginTop: '15px',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'scale(1)';
+                  e.target.style.boxShadow = 'none';
+                }}
               >
                 Close
               </button>
@@ -246,6 +551,27 @@ const Results = () => {
           </div>
         )}
       </div>
+      <style>
+        {`
+          @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+          }
+        `}
+      </style>
     </div>
   );
 };

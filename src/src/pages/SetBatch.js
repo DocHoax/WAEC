@@ -119,23 +119,24 @@ const SetBatch = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#b8c2cc',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: 'sans-serif'
+        fontFamily: '"Fredoka", sans-serif'
       }}>
         <div style={{
-          backgroundColor: '#FFF3F3',
+          backgroundColor: 'rgba(255, 243, 243, 0.9)',
           color: '#B22222',
-          padding: '16px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px'
+          gap: '12px',
+          animation: 'fadeIn 0.6s ease-out'
         }}>
-          <FiAlertTriangle style={{ fontSize: '20px' }} />
+          <FiAlertTriangle style={{ fontSize: '24px' }} />
           <p>Access restricted to admins.</p>
         </div>
       </div>
@@ -146,18 +147,19 @@ const SetBatch = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#b8c2cc',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: 'sans-serif'
+        fontFamily: '"Fredoka", sans-serif'
       }}>
         <div style={{
-          backgroundColor: '#FFFFFF',
-          padding: '24px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          color: '#4B5320'
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          color: '#4B5320',
+          animation: 'fadeIn 0.6s ease-out'
         }}>
           Loading...
         </div>
@@ -168,14 +170,16 @@ const SetBatch = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F8F9FA',
-      fontFamily: 'sans-serif'
+      backgroundColor: '#b8c2cc',
+      fontFamily: '"Fredoka", sans-serif',
+      animation: 'slideIn 0.5s ease-out'
     }}>
       <header style={{
         backgroundColor: '#4B5320',
         color: '#FFFFFF',
         padding: '16px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        marginBottom: '2rem'
       }}>
         <div style={{
           maxWidth: '1280px',
@@ -197,8 +201,8 @@ const SetBatch = () => {
               }}
             />
             <div>
-              <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>Sanniville Academy</h1>
-              <p style={{ fontSize: '14px', color: '#D4A017' }}>Set Test Batches</p>
+              <h1 style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: '"Fredoka", sans-serif' }}>Sanniville Academy</h1>
+              <p style={{ fontSize: '14px', color: '#D4A017', fontFamily: '"Fredoka", sans-serif' }}>Set Test Batches</p>
             </div>
           </div>
           <button
@@ -207,13 +211,23 @@ const SetBatch = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              padding: '8px 16px',
+              padding: '10px 20px',
               backgroundColor: '#D4A017',
               color: '#4B5320',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: '6px',
               cursor: 'pointer',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontFamily: '"Fredoka", sans-serif',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'scale(1.05)';
+              e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'scale(1)';
+              e.target.style.boxShadow = 'none';
             }}
           >
             <FiArrowLeft /> Back to Manage Tests
@@ -227,7 +241,7 @@ const SetBatch = () => {
       }}>
         {error && (
           <div style={{
-            backgroundColor: '#FFF3F3',
+            backgroundColor: 'rgba(255, 243, 243, 0.9)',
             color: '#B22222',
             padding: '16px',
             borderRadius: '8px',
@@ -235,7 +249,8 @@ const SetBatch = () => {
             marginBottom: '24px',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: '8px',
+            animation: 'shake 0.5s ease-in-out'
           }}>
             <FiAlertTriangle style={{ fontSize: '20px' }} />
             <span>{error}</span>
@@ -243,7 +258,7 @@ const SetBatch = () => {
         )}
         {success && (
           <div style={{
-            backgroundColor: '#E6FFE6',
+            backgroundColor: 'rgba(230, 255, 230, 0.9)',
             color: '#228B22',
             padding: '16px',
             borderRadius: '8px',
@@ -251,32 +266,63 @@ const SetBatch = () => {
             marginBottom: '24px',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: '8px',
+            animation: 'fadeIn 0.5s ease-out'
           }}>
             <FiCheckCircle style={{ fontSize: '20px' }} />
             <span>{success}</span>
           </div>
         )}
-        <h2 style={{
-          fontSize: '24px',
-          fontWeight: '600',
-          color: '#4B5320',
-          marginBottom: '24px'
-        }}>
-          Set Batches for {test?.title} ({test?.subject}, {test?.class})
-        </h2>
         <div style={{
-          backgroundColor: '#FFFFFF',
-          padding: '24px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          marginBottom: '24px'
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          marginBottom: '2rem',
+          animation: 'slideUp 0.5s ease-out',
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-5px)';
+          e.currentTarget.style.boxShadow = '0 8px 15px rgba(0,0,0,0.15)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+        }}>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: '600',
+            color: '#4B5320',
+            marginBottom: '24px',
+            fontFamily: '"Fredoka", sans-serif'
+          }}>
+            Set Batches for {test?.title} ({test?.subject}, {test?.class})
+          </h2>
+        </div>
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          marginBottom: '24px',
+          animation: 'slideUp 0.5s ease-out 0.1s both',
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-5px)';
+          e.currentTarget.style.boxShadow = '0 8px 15px rgba(0,0,0,0.15)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
         }}>
           <h3 style={{
             fontSize: '18px',
             fontWeight: '600',
             color: '#4B5320',
-            marginBottom: '16px'
+            marginBottom: '16px',
+            fontFamily: '"Fredoka", sans-serif'
           }}>
             Add New Batch
           </h3>
@@ -287,13 +333,15 @@ const SetBatch = () => {
               value={newBatch.name}
               onChange={e => setNewBatch({ ...newBatch, name: e.target.value })}
               style={{
-                padding: '8px 12px',
+                padding: '12px',
                 border: '1px solid #D3D3D3',
-                borderRadius: '4px',
+                borderRadius: '6px',
                 fontSize: '14px',
                 outline: 'none',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                width: '100%'
+                width: '100%',
+                fontFamily: '"Fredoka", sans-serif',
+                transition: 'border-color 0.3s ease'
               }}
             />
             <input
@@ -301,13 +349,15 @@ const SetBatch = () => {
               value={newBatch.start}
               onChange={e => setNewBatch({ ...newBatch, start: e.target.value })}
               style={{
-                padding: '8px 12px',
+                padding: '12px',
                 border: '1px solid #D3D3D3',
-                borderRadius: '4px',
+                borderRadius: '6px',
                 fontSize: '14px',
                 outline: 'none',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                width: '100%'
+                width: '100%',
+                fontFamily: '"Fredoka", sans-serif',
+                transition: 'border-color 0.3s ease'
               }}
             />
             <input
@@ -315,19 +365,21 @@ const SetBatch = () => {
               value={newBatch.end}
               onChange={e => setNewBatch({ ...newBatch, end: e.target.value })}
               style={{
-                padding: '8px 12px',
+                padding: '12px',
                 border: '1px solid #D3D3D3',
-                borderRadius: '4px',
+                borderRadius: '6px',
                 fontSize: '14px',
                 outline: 'none',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                width: '100%'
+                width: '100%',
+                fontFamily: '"Fredoka", sans-serif',
+                transition: 'border-color 0.3s ease'
               }}
             />
             <div style={{
               border: '1px solid #D3D3D3',
-              borderRadius: '4px',
-              padding: '12px',
+              borderRadius: '6px',
+              padding: '16px',
               maxHeight: '200px',
               overflowY: 'auto',
               backgroundColor: '#FFFFFF',
@@ -341,12 +393,13 @@ const SetBatch = () => {
                   onChange={handleStudentSearch}
                   style={{
                     width: '100%',
-                    padding: '8px 12px 8px 36px',
+                    padding: '10px 12px 10px 36px',
                     border: '1px solid #D3D3D3',
-                    borderRadius: '4px',
+                    borderRadius: '6px',
                     fontSize: '14px',
                     outline: 'none',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                    fontFamily: '"Fredoka", sans-serif'
                   }}
                 />
                 <FiSearch style={{
@@ -359,14 +412,23 @@ const SetBatch = () => {
                 }} />
               </div>
               {filteredStudents.length > 0 ? (
-                filteredStudents.map(student => (
+                filteredStudents.map((student, index) => (
                   <label key={student._id} style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '8px 0',
+                    padding: '10px 0',
                     fontSize: '14px',
-                    color: '#4B5320'
+                    color: '#4B5320',
+                    fontFamily: '"Fredoka", sans-serif',
+                    animation: `fadeIn 0.5s ease-out ${index * 0.05}s both`,
+                    transition: 'background-color 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f8f9fa';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
                   }}>
                     <input
                       type="checkbox"
@@ -384,7 +446,7 @@ const SetBatch = () => {
                   </label>
                 ))
               ) : (
-                <p style={{ color: '#6B7280', fontSize: '14px', textAlign: 'center' }}>
+                <p style={{ color: '#6B7280', fontSize: '14px', textAlign: 'center', fontFamily: '"Fredoka", sans-serif' }}>
                   No students available
                 </p>
               )}
@@ -392,13 +454,23 @@ const SetBatch = () => {
             <button
               onClick={handleAddBatch}
               style={{
-                padding: '8px 16px',
+                padding: '12px 24px',
                 backgroundColor: '#D4A017',
                 color: '#4B5320',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: '6px',
                 cursor: 'pointer',
-                fontSize: '14px'
+                fontSize: '14px',
+                fontFamily: '"Fredoka", sans-serif',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.boxShadow = 'none';
               }}
             >
               Add Batch
@@ -407,35 +479,47 @@ const SetBatch = () => {
         </div>
         {batches.length > 0 && (
           <div style={{
-            backgroundColor: '#FFFFFF',
-            padding: '24px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            padding: '2rem',
+            borderRadius: '12px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            animation: 'slideUp 0.5s ease-out 0.2s both'
           }}>
             <h3 style={{
               fontSize: '18px',
               fontWeight: '600',
               color: '#4B5320',
-              marginBottom: '16px'
+              marginBottom: '16px',
+              fontFamily: '"Fredoka", sans-serif'
             }}>
               Existing Batches
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {batches.map((batch, index) => (
                 <div key={index} style={{
-                  padding: '16px',
+                  padding: '20px',
                   border: '1px solid #D3D3D3',
-                  borderRadius: '4px',
+                  borderRadius: '8px',
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  animation: `fadeIn 0.5s ease-out ${index * 0.1}s both`,
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}>
                   <div>
-                    <p style={{ fontSize: '14px', fontWeight: '500', color: '#4B5320' }}>{batch.name}</p>
-                    <p style={{ fontSize: '14px', color: '#6B7280' }}>
+                    <p style={{ fontSize: '16px', fontWeight: '500', color: '#4B5320', fontFamily: '"Fredoka", sans-serif' }}>{batch.name}</p>
+                    <p style={{ fontSize: '14px', color: '#6B7280', fontFamily: '"Fredoka", sans-serif' }}>
                       Schedule: {new Date(batch.schedule.start).toLocaleString()} - {new Date(batch.schedule.end).toLocaleString()}
                     </p>
-                    <p style={{ fontSize: '14px', color: '#6B7280' }}>Students: {batch.students.length}</p>
+                    <p style={{ fontSize: '14px', color: '#6B7280', fontFamily: '"Fredoka", sans-serif' }}>Students: {batch.students.length}</p>
                   </div>
                   <button
                     onClick={() => handleDeleteBatch(index)}
@@ -443,7 +527,18 @@ const SetBatch = () => {
                       color: '#B22222',
                       background: 'none',
                       border: 'none',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      padding: '8px',
+                      borderRadius: '4px',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = '#ffe6e6';
+                      e.target.style.transform = 'scale(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                      e.target.style.transform = 'scale(1)';
                     }}
                   >
                     <FiTrash2 style={{ fontSize: '20px' }} />
@@ -454,6 +549,27 @@ const SetBatch = () => {
           </div>
         )}
       </main>
+      <style>
+        {`
+          @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+          }
+        `}
+      </style>
     </div>
   );
 };

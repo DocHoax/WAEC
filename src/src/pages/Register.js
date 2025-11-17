@@ -227,13 +227,70 @@ const Register = () => {
     link.remove();
   };
 
-  if (!user || user.role !== 'admin') return <p style={{ padding: '20px', color: '#D4A017', backgroundColor: '#4B5320', textAlign: 'center', fontFamily: 'sans-serif' }}>Access restricted to admins.</p>;
-  if (loading) return <p style={{ padding: '20px', color: '#D4A017', backgroundColor: '#4B5320', textAlign: 'center', fontFamily: 'sans-serif' }}>Loading...</p>;
+  if (!user || user.role !== 'admin') return (
+    <div style={{
+      padding: '20px',
+      color: '#D4A017',
+      backgroundColor: '#b8c2cc',
+      textAlign: 'center',
+      fontFamily: '"Fredoka", sans-serif',
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: '2rem',
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        animation: 'fadeIn 0.6s ease-out'
+      }}>
+        Access restricted to admins.
+      </div>
+    </div>
+  );
+  if (loading) return (
+    <div style={{
+      padding: '20px',
+      color: '#D4A017',
+      backgroundColor: '#b8c2cc',
+      textAlign: 'center',
+      fontFamily: '"Fredoka", sans-serif',
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: '2rem',
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        animation: 'fadeIn 0.6s ease-out'
+      }}>
+        Loading...
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F5F5F5', padding: '20px' }}>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#b8c2cc',
+      padding: '20px',
+      fontFamily: '"Fredoka", sans-serif',
+      animation: 'slideIn 0.5s ease-out'
+    }}>
       {/* Header */}
-      <header style={{ backgroundColor: '#4B5320', color: '#D4A017', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+      <header style={{
+        backgroundColor: '#4B5320',
+        color: '#D4A017',
+        padding: '15px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        marginBottom: '2rem',
+        borderRadius: '8px'
+      }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <img 
@@ -242,13 +299,31 @@ const Register = () => {
               style={{ height: '48px', border: '2px solid #D4A017', padding: '4px', backgroundColor: '#FFFFFF', borderRadius: '4px' }}
             />
             <div>
-              <h1 style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: 'sans-serif' }}>Sanniville Academy</h1>
-              <span style={{ fontSize: '14px', fontFamily: 'sans-serif', color: '#F0E68C' }}>User Registration</span>
+              <h1 style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: '"Fredoka", sans-serif' }}>Sanniville Academy</h1>
+              <span style={{ fontSize: '14px', fontFamily: '"Fredoka", sans-serif', color: '#F0E68C' }}>User Registration</span>
             </div>
           </div>
           <button 
             onClick={() => navigate('/admin')} 
-            style={{ padding: '8px 16px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '14px', cursor: 'pointer' }}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#D4A017',
+              color: '#4B5320',
+              border: 'none',
+              borderRadius: '4px',
+              fontFamily: '"Fredoka", sans-serif',
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'scale(1.05)';
+              e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'scale(1)';
+              e.target.style.boxShadow = 'none';
+            }}
           >
             Back to Dashboard
           </button>
@@ -258,32 +333,69 @@ const Register = () => {
       {/* Main content */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
         {error && (
-          <p style={{ backgroundColor: '#FFE6E6', color: '#B22222', borderLeft: '4px solid #B22222', padding: '10px', marginBottom: '20px', fontFamily: 'sans-serif' }}>
+          <div style={{
+            backgroundColor: 'rgba(255, 230, 230, 0.9)',
+            color: '#B22222',
+            borderLeft: '4px solid #B22222',
+            padding: '15px',
+            marginBottom: '20px',
+            fontFamily: '"Fredoka", sans-serif',
+            borderRadius: '8px',
+            animation: 'shake 0.5s ease-in-out'
+          }}>
             Error: {error}
-          </p>
+          </div>
         )}
         {success && (
-          <p style={{ backgroundColor: '#E6FFE6', color: '#228B22', borderLeft: '4px solid #228B22', padding: '10px', marginBottom: '20px', fontFamily: 'sans-serif' }}>
+          <div style={{
+            backgroundColor: 'rgba(230, 255, 230, 0.9)',
+            color: '#228B22',
+            borderLeft: '4px solid #228B22',
+            padding: '15px',
+            marginBottom: '20px',
+            fontFamily: '"Fredoka", sans-serif',
+            borderRadius: '8px',
+            animation: 'fadeIn 0.5s ease-out'
+          }}>
             Success: {success}
-          </p>
+          </div>
         )}
 
         {/* Navigation tabs */}
-        <div style={{ marginBottom: '20px', borderBottom: '2px solid #D3D3D3', paddingBottom: '10px' }}>
+        <div style={{
+          marginBottom: '20px',
+          borderBottom: '2px solid #D3D3D3',
+          paddingBottom: '10px',
+          display: 'flex',
+          gap: '10px'
+        }}>
           {['single', 'bulk', 'edit'].map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
               style={{
-                marginRight: '10px',
-                padding: '8px 16px',
+                padding: '12px 24px',
                 backgroundColor: tab === t ? '#D4A017' : '#4B5320',
                 color: tab === t ? '#4B5320' : '#D4A017',
                 border: 'none',
-                borderRadius: '4px',
-                fontFamily: 'sans-serif',
+                borderRadius: '8px',
+                fontFamily: '"Fredoka", sans-serif',
                 fontSize: '14px',
                 cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}
+              onMouseEnter={(e) => {
+                if (tab !== t) {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (tab !== t) {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                }
               }}
             >
               {t === 'single' ? 'Single User' : t === 'bulk' ? 'Bulk Upload' : 'Edit User'}
@@ -293,74 +405,146 @@ const Register = () => {
 
         {/* Single User Registration */}
         {tab === 'single' && (
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #D3D3D3' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#4B5320', fontFamily: 'sans-serif', borderBottom: '1px solid #D3D3D3', paddingBottom: '10px', marginBottom: '20px' }}>
+          <div style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            padding: '2rem',
+            borderRadius: '12px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            border: '1px solid #D3D3D3',
+            animation: 'slideUp 0.5s ease-out',
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-5px)';
+            e.currentTarget.style.boxShadow = '0 8px 15px rgba(0,0,0,0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+          }}>
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: '#4B5320',
+              fontFamily: '"Fredoka", sans-serif',
+              borderBottom: '1px solid #D3D3D3',
+              paddingBottom: '10px',
+              marginBottom: '20px'
+            }}>
               {editUserId ? 'Edit User' : 'Register Single User'}
             </h3>
             <form onSubmit={handleSingleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '400px' }}>
               <div>
-                <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Username</label>
+                <label style={{ display: 'block', color: '#4B5320', fontFamily: '"Fredoka", sans-serif', fontSize: '14px', marginBottom: '5px' }}>Username</label>
                 <input
                   type="text"
                   placeholder="e.g., johndoe"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   required
-                  style={{ padding: '8px', border: '1px solid #D3D3D3', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px' }}
+                  style={{
+                    padding: '10px',
+                    border: '1px solid #D3D3D3',
+                    borderRadius: '6px',
+                    width: '100%',
+                    fontFamily: '"Fredoka", sans-serif',
+                    fontSize: '14px',
+                    transition: 'border-color 0.3s ease'
+                  }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Password</label>
+                <label style={{ display: 'block', color: '#4B5320', fontFamily: '"Fredoka", sans-serif', fontSize: '14px', marginBottom: '5px' }}>Password</label>
                 <input
                   type="password"
                   placeholder="Min 8 chars, 1 letter, 1 number"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required={!editUserId}
-                  style={{ padding: '8px', border: '1px solid #D3D3D3', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px' }}
+                  style={{
+                    padding: '10px',
+                    border: '1px solid #D3D3D3',
+                    borderRadius: '6px',
+                    width: '100%',
+                    fontFamily: '"Fredoka", sans-serif',
+                    fontSize: '14px',
+                    transition: 'border-color 0.3s ease'
+                  }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Name</label>
+                <label style={{ display: 'block', color: '#4B5320', fontFamily: '"Fredoka", sans-serif', fontSize: '14px', marginBottom: '5px' }}>Name</label>
                 <input
                   type="text"
                   placeholder="e.g., John"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  style={{ padding: '8px', border: '1px solid #D3D3D3', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px' }}
+                  style={{
+                    padding: '10px',
+                    border: '1px solid #D3D3D3',
+                    borderRadius: '6px',
+                    width: '100%',
+                    fontFamily: '"Fredoka", sans-serif',
+                    fontSize: '14px',
+                    transition: 'border-color 0.3s ease'
+                  }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Surname</label>
+                <label style={{ display: 'block', color: '#4B5320', fontFamily: '"Fredoka", sans-serif', fontSize: '14px', marginBottom: '5px' }}>Surname</label>
                 <input
                   type="text"
                   placeholder="e.g., Doe"
                   value={formData.surname}
                   onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
                   required
-                  style={{ padding: '8px', border: '1px solid #D3D3D3', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px' }}
+                  style={{
+                    padding: '10px',
+                    border: '1px solid #D3D3D3',
+                    borderRadius: '6px',
+                    width: '100%',
+                    fontFamily: '"Fredoka", sans-serif',
+                    fontSize: '14px',
+                    transition: 'border-color 0.3s ease'
+                  }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Role</label>
+                <label style={{ display: 'block', color: '#4B5320', fontFamily: '"Fredoka", sans-serif', fontSize: '14px', marginBottom: '5px' }}>Role</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   required
-                  style={{ padding: '8px', border: '1px solid #D3D3D3', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px' }}
+                  style={{
+                    padding: '10px',
+                    border: '1px solid #D3D3D3',
+                    borderRadius: '6px',
+                    width: '100%',
+                    fontFamily: '"Fredoka", sans-serif',
+                    fontSize: '14px',
+                    transition: 'border-color 0.3s ease'
+                  }}
                 >
                   <option value="student">Student</option>
                   <option value="teacher">Teacher</option>
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Class</label>
+                <label style={{ display: 'block', color: '#4B5320', fontFamily: '"Fredoka", sans-serif', fontSize: '14px', marginBottom: '5px' }}>Class</label>
                 <select
                   value={formData.class}
                   onChange={(e) => setFormData({ ...formData, class: e.target.value })}
                   required
-                  style={{ padding: '8px', border: '1px solid #D3D3D3', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px' }}
+                  style={{
+                    padding: '10px',
+                    border: '1px solid #D3D3D3',
+                    borderRadius: '6px',
+                    width: '100%',
+                    fontFamily: '"Fredoka", sans-serif',
+                    fontSize: '14px',
+                    transition: 'border-color 0.3s ease'
+                  }}
                 >
                   <option value="">Select Class</option>
                   {classes.map(cls => (
@@ -369,7 +553,7 @@ const Register = () => {
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>Subjects</label>
+                <label style={{ display: 'block', color: '#4B5320', fontFamily: '"Fredoka", sans-serif', fontSize: '14px', marginBottom: '5px' }}>Subjects</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   {classes.find(cls => cls.name === formData.class)?.subjects.map(subject => (
                     <label key={subject} style={{ display: 'block', marginBottom: '5px' }}>
@@ -379,7 +563,7 @@ const Register = () => {
                         onChange={() => handleSubjectChange(subject)}
                         style={{ marginRight: '5px' }}
                       />
-                      <span style={{ color: '#333', fontFamily: 'sans-serif', fontSize: '14px' }}>{subject}</span>
+                      <span style={{ color: '#333', fontFamily: '"Fredoka", sans-serif', fontSize: '14px' }}>{subject}</span>
                     </label>
                   ))}
                 </div>
@@ -388,7 +572,30 @@ const Register = () => {
                 <button 
                   type="submit" 
                   disabled={loading} 
-                  style={{ padding: '8px 16px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: '#D4A017',
+                    color: '#4B5320',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontFamily: '"Fredoka", sans-serif',
+                    fontSize: '14px',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.5 : 1,
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.target.style.transform = 'scale(1.05)';
+                      e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!loading) {
+                      e.target.style.transform = 'scale(1)';
+                      e.target.style.boxShadow = 'none';
+                    }
+                  }}
                 >
                   {editUserId ? 'Update User' : 'Register User'}
                 </button>
@@ -396,7 +603,25 @@ const Register = () => {
                   <button 
                     type="button" 
                     onClick={() => { setEditUserId(null); setFormData({ username: '', password: '', name: '', surname: '', role: 'student', class: '', subjects: [] }); }} 
-                    style={{ padding: '8px 16px', backgroundColor: '#D3D3D3', color: '#333', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '14px', cursor: 'pointer' }}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: '#D3D3D3',
+                      color: '#333',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontFamily: '"Fredoka", sans-serif',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'scale(1.05)';
+                      e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'scale(1)';
+                      e.target.style.boxShadow = 'none';
+                    }}
                   >
                     Cancel
                   </button>
@@ -408,34 +633,108 @@ const Register = () => {
 
         {/* Bulk User Registration */}
         {tab === 'bulk' && (
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #D3D3D3' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#4B5320', fontFamily: 'sans-serif', borderBottom: '1px solid #D3D3D3', paddingBottom: '10px', marginBottom: '20px' }}>
+          <div style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            padding: '2rem',
+            borderRadius: '12px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            border: '1px solid #D3D3D3',
+            animation: 'slideUp 0.5s ease-out',
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-5px)';
+            e.currentTarget.style.boxShadow = '0 8px 15px rgba(0,0,0,0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+          }}>
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: '#4B5320',
+              fontFamily: '"Fredoka", sans-serif',
+              borderBottom: '1px solid #D3D3D3',
+              paddingBottom: '10px',
+              marginBottom: '20px'
+            }}>
               Bulk User Registration
             </h3>
-            <p style={{ color: '#333', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '15px' }}>
+            <p style={{ color: '#333', fontFamily: '"Fredoka", sans-serif', fontSize: '14px', marginBottom: '15px' }}>
               Upload a CSV file with columns: username, password, name, surname, role, class, subjects (semicolon-separated, e.g., Math;English)
             </p>
             <button 
               onClick={handleDownloadTemplate} 
-              style={{ padding: '8px 16px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '14px', cursor: 'pointer', marginBottom: '15px' }}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#D4A017',
+                color: '#4B5320',
+                border: 'none',
+                borderRadius: '6px',
+                fontFamily: '"Fredoka", sans-serif',
+                fontSize: '14px',
+                cursor: 'pointer',
+                marginBottom: '15px',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.boxShadow = 'none';
+              }}
             >
               Download CSV Template
             </button>
             <form onSubmit={handleBulkSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '400px' }}>
               <div>
-                <label style={{ display: 'block', color: '#4B5320', fontFamily: 'sans-serif', fontSize: '14px', marginBottom: '5px' }}>CSV File</label>
+                <label style={{ display: 'block', color: '#4B5320', fontFamily: '"Fredoka", sans-serif', fontSize: '14px', marginBottom: '5px' }}>CSV File</label>
                 <input
                   type="file"
                   accept=".csv"
                   onChange={handleFileChange}
                   required
-                  style={{ padding: '8px', border: '1px solid #D3D3D3', borderRadius: '4px', width: '100%', fontFamily: 'sans-serif', fontSize: '14px' }}
+                  style={{
+                    padding: '10px',
+                    border: '1px solid #D3D3D3',
+                    borderRadius: '6px',
+                    width: '100%',
+                    fontFamily: '"Fredoka", sans-serif',
+                    fontSize: '14px',
+                    transition: 'border-color 0.3s ease'
+                  }}
                 />
               </div>
               <button 
                 type="submit" 
                 disabled={loading} 
-                style={{ padding: '8px 16px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#D4A017',
+                  color: '#4B5320',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontFamily: '"Fredoka", sans-serif',
+                  fontSize: '14px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.5 : 1,
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) {
+                    e.target.style.transform = 'scale(1.05)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) {
+                    e.target.style.transform = 'scale(1)';
+                    e.target.style.boxShadow = 'none';
+                  }
+                }}
               >
                 Upload and Register
               </button>
@@ -445,46 +744,115 @@ const Register = () => {
 
         {/* Edit User */}
         {tab === 'edit' && (
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #D3D3D3' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#4B5320', fontFamily: 'sans-serif', borderBottom: '1px solid #D3D3D3', paddingBottom: '10px', marginBottom: '20px' }}>
+          <div style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            padding: '2rem',
+            borderRadius: '12px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            border: '1px solid #D3D3D3',
+            animation: 'slideUp 0.5s ease-out'
+          }}>
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: '#4B5320',
+              fontFamily: '"Fredoka", sans-serif',
+              borderBottom: '1px solid #D3D3D3',
+              paddingBottom: '10px',
+              marginBottom: '20px'
+            }}>
               Edit User
             </h3>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #D3D3D3' }}>
+              <table style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                border: '1px solid #D3D3D3',
+                borderRadius: '8px',
+                overflow: 'hidden'
+              }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#4B5320', color: '#D4A017', fontFamily: 'sans-serif', fontSize: '12px' }}>
-                    <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Username</th>
-                    <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Name</th>
-                    <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Surname</th>
-                    <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Role</th>
-                    <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Class</th>
-                    <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Subjects</th>
-                    <th style={{ border: '1px solid #D3D3D3', padding: '8px' }}>Actions</th>
+                  <tr style={{ backgroundColor: '#4B5320', color: '#D4A017', fontFamily: '"Fredoka", sans-serif', fontSize: '12px' }}>
+                    <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Username</th>
+                    <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Name</th>
+                    <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Surname</th>
+                    <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Role</th>
+                    <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Class</th>
+                    <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Subjects</th>
+                    <th style={{ border: '1px solid #D3D3D3', padding: '12px' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map(user => (
-                    <tr key={user._id} style={{ color: '#333', fontFamily: 'sans-serif', fontSize: '12px' }}>
-                      <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>{user.username}</td>
-                      <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>{user.name}</td>
-                      <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>{user.surname}</td>
-                      <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>{user.role}</td>
-                      <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>{user.class || 'N/A'}</td>
-                      <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>
+                  {users.map((user, index) => (
+                    <tr key={user._id} style={{
+                      color: '#333',
+                      fontFamily: '"Fredoka", sans-serif',
+                      fontSize: '12px',
+                      animation: `fadeIn 0.5s ease-out ${index * 0.1}s both`,
+                      transition: 'background-color 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f8f9fa';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '';
+                    }}>
+                      <td style={{ border: '1px solid #D3D3D3', padding: '12px' }}>{user.username}</td>
+                      <td style={{ border: '1px solid #D3D3D3', padding: '12px' }}>{user.name}</td>
+                      <td style={{ border: '1px solid #D3D3D3', padding: '12px' }}>{user.surname}</td>
+                      <td style={{ border: '1px solid #D3D3D3', padding: '12px' }}>{user.role}</td>
+                      <td style={{ border: '1px solid #D3D3D3', padding: '12px' }}>{user.class || 'N/A'}</td>
+                      <td style={{ border: '1px solid #D3D3D3', padding: '12px' }}>
                         {(user.role === 'teacher' ? user.subjects : user.enrolledSubjects)
                           .map(s => `${s.subject} (${s.class})`)
                           .join(', ') || 'None'}
                       </td>
-                      <td style={{ border: '1px solid #D3D3D3', padding: '8px', display: 'flex', gap: '5px' }}>
+                      <td style={{ border: '1px solid #D3D3D3', padding: '12px', display: 'flex', gap: '5px' }}>
                         <button 
                           onClick={() => handleEditUser(user)} 
-                          style={{ padding: '5px 10px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '12px', cursor: 'pointer' }}
+                          style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#D4A017',
+                            color: '#4B5320',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontFamily: '"Fredoka", sans-serif',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'scale(1.05)';
+                            e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'scale(1)';
+                            e.target.style.boxShadow = 'none';
+                          }}
                         >
                           Edit
                         </button>
                         <button 
                           onClick={() => handleDeleteUser(user._id)} 
-                          style={{ padding: '5px 10px', backgroundColor: '#B22222', color: '#FFFFFF', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '12px', cursor: 'pointer' }}
+                          style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#B22222',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontFamily: '"Fredoka", sans-serif',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = 'scale(1.05)';
+                            e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = 'scale(1)';
+                            e.target.style.boxShadow = 'none';
+                          }}
                         >
                           Delete
                         </button>
@@ -497,6 +865,27 @@ const Register = () => {
           </div>
         )}
       </div>
+      <style>
+        {`
+          @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+          }
+        `}
+      </style>
     </div>
   );
 };
