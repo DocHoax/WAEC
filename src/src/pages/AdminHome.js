@@ -233,39 +233,228 @@ const styles = {
     minHeight: '100vh',
     fontFamily: '"Fredoka", sans-serif',
     width: '100%',
-    padding: '20px 0', // Add vertical padding for better look
+    padding: '20px 0',
+    animation: 'fadeIn 0.8s ease-in',
   },
   container: {
     padding: '20px',
-    maxWidth: '1000px',
+    maxWidth: '1200px',
     margin: '0 auto',
     fontFamily: '"Fredoka", sans-serif'
   },
-  header: { backgroundColor: '#2c3e50', color: '#FFFFFF', padding: '20px', borderRadius: '8px', marginBottom: '25px', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
-  headerTitle: { fontSize: '24px', fontWeight: '600', margin: '0 0 10px 0' },
-  headerSubtitle: { fontSize: '14px', margin: '0', color: '#bdc3c7' },
-  alertError: { backgroundColor: '#fee', color: '#c33', borderLeft: '4px solid #c33', padding: '12px 15px', marginBottom: '25px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '10px' },
+  header: { 
+    backgroundColor: '#2c3e50', 
+    color: '#FFFFFF', 
+    padding: '25px', 
+    borderRadius: '12px', 
+    marginBottom: '30px', 
+    border: 'none', 
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    animation: 'slideDown 0.6s ease-out'
+  },
+  headerTitle: { fontSize: '28px', fontWeight: '700', margin: '0 0 10px 0' },
+  headerSubtitle: { fontSize: '16px', margin: '0', color: '#bdc3c7' },
+  alertError: { 
+    backgroundColor: '#fee', 
+    color: '#c33', 
+    borderLeft: '4px solid #c33', 
+    padding: '15px', 
+    marginBottom: '25px', 
+    borderRadius: '8px', 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '10px',
+    animation: 'shake 0.5s ease-in-out'
+  },
   alertIcon: { fontSize: '20px' },
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '25px' },
-  statCard: { backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.08)', border: '1px solid #ecf0f1', textAlign: 'center' },
-  statTitle: { fontSize: '16px', fontWeight: '600', color: '#2c3e50' },
-  statValue: { fontSize: '24px', color: '#3498db', margin: '10px 0' },
-  actionsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '25px' },
-  actionCard: { backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.08)', border: '1px solid #ecf0f1', display: 'flex', alignItems: 'flex-start', transition: 'all 0.3s ease' },
-  actionIcon: { fontSize: '28px', marginRight: '15px', color: '#3498db' },
-  actionTitle: { fontSize: '18px', fontWeight: '600', color: '#2c3e50', marginBottom: '8px' },
-  actionDesc: { fontSize: '14px', color: '#555', marginBottom: '15px' },
-  actionButton: { padding: '8px 16px', backgroundColor: '#3498db', color: '#FFFFFF', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', transition: 'all 0.3s ease' },
-  section: { backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 6px rgba(0,0,0,0.08)', border: '1px solid #ecf0f1' },
-  sectionTitle: { fontSize: '18px', fontWeight: '600', color: '#2c3e50', backgroundColor: '#FFFFFF', padding: '10px', borderRadius: '4px', marginBottom: '20px' },
+  statsGrid: { 
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', 
+    gap: '20px', 
+    marginBottom: '30px' 
+  },
+  statCard: { 
+    backgroundColor: '#FFFFFF', 
+    padding: '25px', 
+    borderRadius: '12px', 
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
+    border: '1px solid #ecf0f1', 
+    textAlign: 'center',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+    animation: 'fadeInUp 0.6s ease-out'
+  },
+  statTitle: { fontSize: '16px', fontWeight: '600', color: '#2c3e50', marginBottom: '10px' },
+  statValue: { fontSize: '32px', color: '#3498db', margin: '10px 0', fontWeight: '700' },
+  actionsGrid: { 
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+    gap: '25px', 
+    marginBottom: '30px' 
+  },
+  actionCard: { 
+    backgroundColor: '#FFFFFF', 
+    padding: '25px', 
+    borderRadius: '12px', 
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
+    border: '1px solid #ecf0f1', 
+    display: 'flex', 
+    alignItems: 'flex-start', 
+    transition: 'all 0.3s ease',
+    animation: 'fadeInUp 0.6s ease-out 0.1s both'
+  },
+  actionIcon: { fontSize: '32px', marginRight: '15px', color: '#3498db' },
+  actionTitle: { fontSize: '20px', fontWeight: '600', color: '#2c3e50', marginBottom: '10px' },
+  actionDesc: { fontSize: '14px', color: '#555', marginBottom: '20px', lineHeight: '1.5' },
+  actionButton: { 
+    padding: '10px 20px', 
+    backgroundColor: '#3498db', 
+    color: '#FFFFFF', 
+    border: 'none', 
+    borderRadius: '8px', 
+    cursor: 'pointer', 
+    fontSize: '14px', 
+    transition: 'all 0.3s ease',
+    fontWeight: '600'
+  },
+  section: { 
+    backgroundColor: '#FFFFFF', 
+    padding: '25px', 
+    borderRadius: '12px', 
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
+    border: '1px solid #ecf0f1',
+    animation: 'fadeInUp 0.6s ease-out 0.2s both'
+  },
+  sectionTitle: { fontSize: '20px', fontWeight: '600', color: '#2c3e50', marginBottom: '20px' },
   testList: { display: 'flex', flexDirection: 'column', gap: '15px' },
-  testItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '4px', border: '1px solid #ecf0f1' },
-  testInfo: { fontSize: '14px', color: '#555' },
+  testItem: { 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    padding: '15px', 
+    backgroundColor: '#f8f9fa', 
+    borderRadius: '8px', 
+    border: '1px solid #ecf0f1',
+    transition: 'transform 0.2s ease'
+  },
+  testInfo: { fontSize: '14px', color: '#555', fontWeight: '500' },
   testActions: { display: 'flex', gap: '10px' },
-  viewButton: { padding: '5px 10px', backgroundColor: '#95a5a6', color: '#FFFFFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.3s ease' },
-  approveButton: { padding: '5px 10px', backgroundColor: '#27ae60', color: '#FFFFFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.3s ease' },
-  accessDenied: { textAlign: 'center', padding: '4rem', backgroundColor: '#FFFFFF', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '600px', margin: '2rem auto' },
-  loading: { padding: '20px', color: '#FFFFFF', backgroundColor: '#2c3e50', textAlign: 'center', fontSize: '16px', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  viewButton: { 
+    padding: '8px 15px', 
+    backgroundColor: '#95a5a6', 
+    color: '#FFFFFF', 
+    border: 'none', 
+    borderRadius: '6px', 
+    cursor: 'pointer', 
+    fontSize: '12px', 
+    transition: 'all 0.3s ease',
+    fontWeight: '600'
+  },
+  approveButton: { 
+    padding: '8px 15px', 
+    backgroundColor: '#27ae60', 
+    color: '#FFFFFF', 
+    border: 'none', 
+    borderRadius: '6px', 
+    cursor: 'pointer', 
+    fontSize: '12px', 
+    transition: 'all 0.3s ease',
+    fontWeight: '600'
+  },
+  accessDenied: { 
+    textAlign: 'center', 
+    padding: '4rem', 
+    backgroundColor: '#FFFFFF', 
+    borderRadius: '12px', 
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
+    maxWidth: '600px', 
+    margin: '2rem auto',
+    animation: 'fadeIn 0.8s ease-in'
+  },
+  loading: { 
+    padding: '20px', 
+    color: '#FFFFFF', 
+    backgroundColor: '#2c3e50', 
+    textAlign: 'center', 
+    fontSize: '18px', 
+    minHeight: '100vh', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    fontFamily: '"Fredoka", sans-serif'
+  },
 };
+
+// Add CSS animations
+const styleSheet = document.styleSheets[0];
+const keyframes = `
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeInUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+`;
+
+// Inject keyframes
+if (styleSheet) {
+  styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
+}
+
+// Add hover effects
+const hoverStyles = `
+  .statCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+  .actionCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+  .testItem:hover {
+    transform: translateX(5px);
+  }
+  .actionButton:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+  }
+  .viewButton:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-2px);
+  }
+  .approveButton:hover {
+    background-color: #219653;
+    transform: translateY(-2px);
+  }
+`;
+
+// Inject hover styles
+if (styleSheet) {
+  const hoverStyleElement = document.createElement('style');
+  hoverStyleElement.textContent = hoverStyles;
+  document.head.appendChild(hoverStyleElement);
+}
 
 export default AdminHome;

@@ -20,7 +20,6 @@ import ErrorMessage from '../components/ErrorMessage';
 import AccessDenied from '../components/AccessDenied';
 
 const AnalyticsPage = () => {
-  // ... (All logic remains the same) ...
   const { user } = useContext(AuthContext);
   const { analytics, tests, results, error: hookError, loading: hookLoading } = useTeacherData();
   const navigate = useNavigate();
@@ -85,9 +84,9 @@ const AnalyticsPage = () => {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#b8c2cc', fontFamily: '"Fredoka", sans-serif' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#b8c2cc', fontFamily: '"Fredoka", sans-serif', animation: 'fadeIn 0.8s ease-in' }}>
       {/* Header */}
-      <header className="bg-primary-800 text-white shadow-md">
+      <header className="bg-primary-800 text-white shadow-md" style={{ animation: 'slideDown 0.6s ease-out' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -105,7 +104,7 @@ const AnalyticsPage = () => {
             </div>
             <button
               onClick={() => navigate(user.role === 'admin' ? '/admin' : '/teacher')}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-800 bg-secondary-500 hover:bg-secondary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-800 bg-secondary-500 hover:bg-secondary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500 transition-all duration-300 hover:scale-105"
             >
               <FiArrowLeft className="mr-2" />
               Back to Dashboard
@@ -117,7 +116,7 @@ const AnalyticsPage = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Title */}
-        <div className="mb-8">
+        <div className="mb-8" style={{ animation: 'fadeInUp 0.6s ease-out 0.2s both' }}>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center">
             <FiBarChart2 className="mr-2 text-primary-600" />
             Performance Analytics Overview
@@ -130,7 +129,7 @@ const AnalyticsPage = () => {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5 mb-8">
           {/* Students Card */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white overflow-hidden shadow rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg" style={{ animation: 'fadeInUp 0.6s ease-out 0.3s both' }}>
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0 bg-primary-100 rounded-md p-3">
@@ -147,7 +146,7 @@ const AnalyticsPage = () => {
           </div>
 
           {/* Teachers Card */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white overflow-hidden shadow rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg" style={{ animation: 'fadeInUp 0.6s ease-out 0.4s both' }}>
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0 bg-primary-100 rounded-md p-3">
@@ -164,7 +163,7 @@ const AnalyticsPage = () => {
           </div>
 
           {/* Classes Card */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white overflow-hidden shadow rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg" style={{ animation: 'fadeInUp 0.6s ease-out 0.5s both' }}>
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0 bg-primary-100 rounded-md p-3">
@@ -181,7 +180,7 @@ const AnalyticsPage = () => {
           </div>
 
           {/* Tests Card */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white overflow-hidden shadow rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg" style={{ animation: 'fadeInUp 0.6s ease-out 0.6s both' }}>
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0 bg-primary-100 rounded-md p-3">
@@ -198,7 +197,7 @@ const AnalyticsPage = () => {
           </div>
 
           {/* Exams Card */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white overflow-hidden shadow rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg" style={{ animation: 'fadeInUp 0.6s ease-out 0.7s both' }}>
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0 bg-primary-100 rounded-md p-3">
@@ -216,7 +215,7 @@ const AnalyticsPage = () => {
         </div>
 
         {/* Test Analytics Section */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg" style={{ animation: 'fadeInUp 0.6s ease-out 0.8s both' }}>
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
             <h3 className="text-lg leading-6 font-medium text-gray-900 flex items-center">
               <FiActivity className="mr-2 text-primary-600" />
@@ -266,7 +265,7 @@ const AnalyticsPage = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {analytics.map((data, idx) => (
-                    <tr key={data.testId} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <tr key={data.testId} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} transition-all duration-200 hover:bg-blue-50`}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {data.testTitle}
                       </td>
@@ -280,14 +279,14 @@ const AnalyticsPage = () => {
                         {data.type}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${data.averageScore >= 70 ? 'bg-green-100 text-green-800' : data.averageScore >= 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full transition-all duration-300 ${data.averageScore >= 70 ? 'bg-green-100 text-green-800' : data.averageScore >= 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
                           {data.averageScore}%
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                           <div 
-                            className={`h-2.5 rounded-full ${data.completionRate >= 90 ? 'bg-green-600' : data.completionRate >= 70 ? 'bg-blue-600' : 'bg-yellow-500'}`} 
+                            className={`h-2.5 rounded-full transition-all duration-1000 ${data.completionRate >= 90 ? 'bg-green-600' : data.completionRate >= 70 ? 'bg-blue-600' : 'bg-yellow-500'}`} 
                             style={{ width: `${data.completionRate}%` }}
                           ></div>
                         </div>
@@ -307,5 +306,39 @@ const AnalyticsPage = () => {
     </div>
   );
 };
+
+// Add CSS animations
+const styleSheet = document.styleSheets[0];
+const keyframes = `
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeInUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+`;
+
+// Inject keyframes
+if (styleSheet) {
+  styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
+}
 
 export default AnalyticsPage;

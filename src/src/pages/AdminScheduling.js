@@ -5,7 +5,6 @@ import axios from 'axios';
 import { FiSave, FiX, FiAlertTriangle, FiCheckCircle, FiUpload, FiUsers } from 'react-icons/fi';
 
 const AdminScheduling = () => {
-  // ... (All logic remains exactly the same) ...
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [tests, setTests] = useState([]);
@@ -327,24 +326,23 @@ const styles = {
   container: {
     fontFamily: '"Fredoka", sans-serif',
     padding: '20px',
-    backgroundColor: '#b8c2cc', // Updated color
+    backgroundColor: '#b8c2cc',
     minHeight: '100vh',
-    // Removed margin auto constraint to allow full width background if needed, 
-    // or you can keep maxWidth if you want centered content on gray bg.
-    // Keeping maxWidth for layout consistency but ensuring bg is visible.
+    animation: 'fadeIn 0.8s ease-in',
   },
   header: {
     backgroundColor: '#2c3e50',
     color: '#FFFFFF',
     padding: '25px',
-    borderRadius: '8px',
+    borderRadius: '12px',
     marginBottom: '25px',
     border: '1px solid #000000',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    animation: 'slideDown 0.6s ease-out'
   },
   headerTitle: {
     fontSize: '24px',
-    fontWeight: 'bold',
+    fontWeight: '700',
     margin: '0 0 10px 0',
   },
   headerSubtitle: {
@@ -358,10 +356,11 @@ const styles = {
     borderLeft: '4px solid #B22222',
     padding: '15px',
     marginBottom: '25px',
-    borderRadius: '4px',
+    borderRadius: '8px',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
+    animation: 'shake 0.5s ease-in-out'
   },
   alertSuccess: {
     backgroundColor: '#d4edda',
@@ -369,21 +368,23 @@ const styles = {
     borderLeft: '4px solid #28a745',
     padding: '15px',
     marginBottom: '25px',
-    borderRadius: '4px',
+    borderRadius: '8px',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
+    animation: 'fadeInUp 0.6s ease-out'
   },
   alertIcon: {
     fontSize: '20px',
   },
   section: {
     backgroundColor: '#FFFFFF',
-    borderRadius: '8px',
+    borderRadius: '12px',
     padding: '25px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
     border: '1px solid #E0E0E0',
     marginBottom: '25px',
+    animation: 'fadeInUp 0.6s ease-out 0.2s both'
   },
   formGroup: {
     display: 'flex',
@@ -399,15 +400,17 @@ const styles = {
   input: {
     padding: '12px',
     border: '1px solid #E0E0E0',
-    borderRadius: '6px',
+    borderRadius: '8px',
     fontSize: '16px',
+    transition: 'all 0.3s ease'
   },
   select: {
     padding: '12px',
     border: '1px solid #E0E0E0',
-    borderRadius: '6px',
+    borderRadius: '8px',
     fontSize: '16px',
     backgroundColor: 'white',
+    transition: 'all 0.3s ease'
   },
   checkboxGroup: {
     display: 'flex',
@@ -423,19 +426,22 @@ const styles = {
   checkboxLabel: {
     color: '#2c3e50',
     fontSize: '14px',
+    fontWeight: '500'
   },
   batchSection: {
     backgroundColor: '#f8f9fa',
-    padding: '15px',
-    borderRadius: '6px',
+    padding: '20px',
+    borderRadius: '8px',
     marginBottom: '20px',
     border: '1px solid #E0E0E0',
+    animation: 'fadeInUp 0.6s ease-out',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease'
   },
   batchTitle: {
     color: '#2c3e50',
-    fontSize: '16px',
+    fontSize: '18px',
     fontWeight: '600',
-    marginBottom: '10px',
+    marginBottom: '15px',
   },
   formActions: {
     display: 'flex',
@@ -448,33 +454,35 @@ const styles = {
     color: '#FFFFFF',
     border: 'none',
     padding: '12px 24px',
-    borderRadius: '6px',
+    borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: '600',
     fontSize: '16px',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
+    transition: 'all 0.3s ease'
   },
   cancelButton: {
     backgroundColor: 'transparent',
     color: '#2c3e50',
     border: '1px solid #2c3e50',
     padding: '12px 24px',
-    borderRadius: '6px',
+    borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: '600',
     fontSize: '16px',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
+    transition: 'all 0.3s ease'
   },
   addButton: {
     backgroundColor: '#3498db',
     color: '#FFFFFF',
     border: 'none',
-    padding: '10px 20px',
-    borderRadius: '6px',
+    padding: '12px 20px',
+    borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: '600',
     fontSize: '14px',
@@ -482,30 +490,109 @@ const styles = {
     alignItems: 'center',
     gap: '8px',
     marginBottom: '20px',
+    transition: 'all 0.3s ease'
   },
   buttonIcon: {
     fontSize: '18px',
   },
   loading: {
     minHeight: '100vh',
-    backgroundColor: '#b8c2cc', // Updated color
+    backgroundColor: '#b8c2cc',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    fontFamily: '"Fredoka", sans-serif'
   },
   loadingText: {
-    fontSize: '16px',
+    fontSize: '18px',
     color: '#2c3e50',
   },
   accessDenied: {
     textAlign: 'center',
     padding: '4rem',
     backgroundColor: '#FFFFFF',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    borderRadius: '12px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
     maxWidth: '600px',
     margin: '2rem auto',
+    fontFamily: '"Fredoka", sans-serif',
+    animation: 'fadeIn 0.8s ease-in'
   },
 };
+
+// Add CSS animations
+const styleSheet = document.styleSheets[0];
+const keyframes = `
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeInUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+`;
+
+// Inject keyframes
+if (styleSheet) {
+  styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
+}
+
+// Add hover effects
+const hoverStyles = `
+  .batchSection:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  }
+  .submitButton:hover:not([disabled]) {
+    background-color: #1a252f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  .cancelButton:hover {
+    background-color: #2c3e50;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  .addButton:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  input:focus, select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    outline: none;
+  }
+`;
+
+// Inject hover styles
+if (styleSheet) {
+  const hoverStyleElement = document.createElement('style');
+  hoverStyleElement.textContent = hoverStyles;
+  document.head.appendChild(hoverStyleElement);
+}
 
 export default AdminScheduling;
