@@ -40,12 +40,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-<<<<<<< HEAD
     "build": "node --localstorage-file=./localstorage.json ./node_modules/react-scripts/scripts/build.js",
-=======
     "dev": "react-scripts start",
     "build": "react-scripts build",
->>>>>>> d99923fa028164108d1f648bb31333e96ab4c91d
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
