@@ -7,7 +7,8 @@ import AdminHome from './pages/AdminHome';
 import Register from './pages/Register';
 import TestTaking from './pages/TestTaking';
 import TestResults from './pages/TestResults';
-import AdminResults from './pages/AdminResults';
+import Results from './pages/Results';
+import EditResults from './pages/EditResults';
 import Analytics from './components/teacher/Analytics';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -125,11 +126,11 @@ const AppContent = () => {
         />
         <Route
           path="/admin/results"
-          element={<ProtectedRoute requiredRoles={['admin', 'super_admin']}><AdminLayout><AdminResults /></AdminLayout></ProtectedRoute>}
+          element={<ProtectedRoute requiredRoles={['admin', 'super_admin']}><AdminLayout><EditResults /></AdminLayout></ProtectedRoute>}
         />
         <Route
           path="/admin/results/:testId"
-          element={<ProtectedRoute requiredRoles={['admin', 'super_admin']}><AdminLayout><AdminResults /></AdminLayout></ProtectedRoute>}
+          element={<ProtectedRoute requiredRoles={['admin', 'super_admin']}><AdminLayout><Results /></AdminLayout></ProtectedRoute>}
         />
         <Route
           path="/admin/sessions"

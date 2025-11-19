@@ -1,7 +1,10 @@
+// pages/results.js
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useResultEditing } from '../hooks/useResultEditing';
+import ResultScoreEditor from '../components/ResultScoreEditor';
 
 const Results = () => {
   const { user } = useContext(AuthContext);
@@ -10,17 +13,28 @@ const Results = () => {
   const [results, setResults] = useState([]);
   const [test, setTest] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [editingResultId, setEditingResultId] = useState(null);
-  const [editScore, setEditScore] = useState(0);
   const [selectedResult, setSelectedResult] = useState(null);
+
+  // Use the reusable editing hook
+  const {
+    editingResultId,
+    editScore,
+    setEditScore,
+    loading: editingLoading,
+    error: editingError,
+    success: editingSuccess,
+    setError: setEditingError,
+    setSuccess: setEditingSuccess,
+    startEditing,
+    cancelEditing,
+    saveScore
+  } = useResultEditing();
 
   useEffect(() => {
     const fetchResults = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
-        setError('Please login again.');
+        setEditingError('Please login again.');
         setLoading(false);
         return;
       }
@@ -41,7 +55,7 @@ const Results = () => {
         setLoading(false);
       } catch (error) {
         console.error('Results - Error:', error.response?.data || error.message);
-        setError(error.response?.data?.error || 'Failed to load results');
+        setEditingError(error.response?.data?.error || 'Failed to load results');
         setLoading(false);
       }
     };
@@ -49,39 +63,18 @@ const Results = () => {
     if (user && ['admin', 'teacher'].includes(user.role)) {
       fetchResults();
     } else {
-      setError('Access restricted to admins or teachers.');
+      setEditingError('Access restricted to admins or teachers.');
       setLoading(false);
     }
-  }, [testId, user, navigate]);
+  }, [testId, user, navigate, setEditingError]);
 
-  const handleEdit = (result) => {
-    setEditingResultId(result._id);
-    setEditScore(result.score);
-  };
-
-  const handleSave = async (resultId) => {
-    setLoading(true);
-    const token = localStorage.getItem('token');
-    try {
-      const response = await axios.put(
-        `https://waec-gfv0.onrender.com/api/tests/results/${resultId}`,
-        { score: Number(editScore) },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      console.log('Results - Result updated:', response.data);
-      setResults(
-        results.map((r) =>
-          r._id === resultId ? { ...r, score: Number(editScore) } : r
-        )
-      );
-      setSuccess('Result updated successfully.');
-      setEditingResultId(null);
-      setError(null);
-    } catch (error) {
-      console.error('Results - Update error:', error.response?.data || error.message);
-      setError(error.response?.data?.error || 'Failed to update result');
-    }
-    setLoading(false);
+  const handleSaveScore = async (resultId) => {
+    await saveScore(resultId, (updatedResultId, newScore) => {
+      // Update local state after successful save
+      setResults(results.map((r) =>
+        r._id === updatedResultId ? { ...r, score: newScore } : r
+      ));
+    });
   };
 
   const handleViewAnswers = (result) => {
@@ -97,7 +90,7 @@ const Results = () => {
   }
 
   if (loading) return <p style={{ padding: '20px', color: '#D4A017', backgroundColor: '#4B5320', textAlign: 'center', fontFamily: 'sans-serif' }}>Loading...</p>;
-  if (error) return <p style={{ backgroundColor: '#FFE6E6', color: '#B22222', borderLeft: '4px solid #B22222', padding: '10px', margin: '20px', fontFamily: 'sans-serif' }}>Error: {error}</p>;
+  if (editingError) return <p style={{ backgroundColor: '#FFE6E6', color: '#B22222', borderLeft: '4px solid #B22222', padding: '10px', margin: '20px', fontFamily: 'sans-serif' }}>Error: {editingError}</p>;
   if (!test) return <p style={{ padding: '20px', color: '#4B5320', fontFamily: 'sans-serif', textAlign: 'center' }}>Test not found.</p>;
 
   return (
@@ -125,9 +118,9 @@ const Results = () => {
       </header>
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-        {success && (
+        {editingSuccess && (
           <p style={{ backgroundColor: '#E6FFE6', color: '#228B22', borderLeft: '4px solid #228B22', padding: '10px', marginBottom: '20px', fontFamily: 'sans-serif' }}>
-            Success: {success}
+            Success: {editingSuccess}
           </p>
         )}
         <h2 style={{ fontSize: '24px', color: '#4B5320', fontFamily: 'sans-serif', marginBottom: '10px' }}>
@@ -153,20 +146,20 @@ const Results = () => {
               <tbody>
                 {results.map((result) => (
                   <tr key={result._id} style={{ color: '#333', fontFamily: 'sans-serif', fontSize: '14px' }}>
-                    <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>{result.userId?.name ? `${result.userId.name} ${result.userId.surname}` : 'Unknown'}</td>
                     <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>
-                      {editingResultId === result._id && user.role === 'admin' ? (
-                        <input
-                          type="number"
-                          value={editScore}
-                          onChange={(e) => setEditScore(Number(e.target.value))}
-                          min="0"
-                          max={test.questions?.length || 100}
-                          style={{ padding: '5px', border: '1px solid #D3D3D3', borderRadius: '4px', width: '60px', fontFamily: 'sans-serif' }}
-                        />
-                      ) : (
-                        `${result.score}%`
-                      )}
+                      {result.userId?.name ? `${result.userId.name} ${result.userId.surname}` : 'Unknown'}
+                    </td>
+                    <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>
+                      <ResultScoreEditor
+                        result={result}
+                        editingResultId={editingResultId}
+                        editScore={editScore}
+                        setEditScore={setEditScore}
+                        loading={editingLoading}
+                        onSave={handleSaveScore}
+                        onCancel={cancelEditing}
+                        maxScore={test.totalMarks || 100}
+                      />
                     </td>
                     <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>{test.questions?.length || 'N/A'}</td>
                     <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>
@@ -178,25 +171,10 @@ const Results = () => {
                       </button>
                     </td>
                     {user.role === 'admin' && (
-                      <td style={{ border: '1px solid #D3D3D3', padding: '8px', display: 'flex', gap: '5px' }}>
-                        {editingResultId === result._id ? (
-                          <>
-                            <button
-                              onClick={() => handleSave(result._id)}
-                              style={{ padding: '5px 10px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '12px', cursor: 'pointer' }}
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => setEditingResultId(null)}
-                              style={{ padding: '5px 10px', backgroundColor: '#D3D3D3', color: '#333', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '12px', cursor: 'pointer' }}
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
+                      <td style={{ border: '1px solid #D3D3D3', padding: '8px' }}>
+                        {editingResultId !== result._id && (
                           <button
-                            onClick={() => handleEdit(result)}
+                            onClick={() => startEditing(result)}
                             style={{ padding: '5px 10px', backgroundColor: '#D4A017', color: '#4B5320', border: 'none', borderRadius: '4px', fontFamily: 'sans-serif', fontSize: '12px', cursor: 'pointer' }}
                           >
                             Edit
